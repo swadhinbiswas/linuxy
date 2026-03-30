@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
-import Sidebar from "./components/Sidebar";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Moon, Sun, Monitor, FolderOpen, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+import { useState, useEffect } from "react";
+
 import AppGrid from "./components/AppGrid";
 import DropZone from "./components/DropZone";
+import Sidebar from "./components/Sidebar";
 import Storefront from "./components/Storefront";
-import { Moon, Sun, Monitor, FolderOpen, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+
 import "./styles/main.css";
 
 export interface AppInfo {
@@ -551,7 +553,7 @@ function App() {
                   >
                     sudo apt install firejail
                   </code>{" "}
-                  (Debian/Ubuntu) or your distro's package manager.
+                  (Debian/Ubuntu) or your distro&apos;s package manager.
                 </div>
               )}
             </div>

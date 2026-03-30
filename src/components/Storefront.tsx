@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Download, Search, Github, Globe } from "lucide-react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { Download, Search, Github, Globe } from "lucide-react";
+import React, { useState, useEffect } from "react";
 
 interface StoreApp {
   name: string;

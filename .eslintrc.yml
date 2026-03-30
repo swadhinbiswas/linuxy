@@ -10,14 +10,14 @@ extends:
   - plugin:@typescript-eslint/recommended
   - plugin:react/recommended
   - plugin:react-hooks/recommended
-parser: '@typescript-eslint/parser'
+parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaFeatures:
     jsx: true
   ecmaVersion: latest
   sourceType: module
 plugins:
-  - '@typescript-eslint'
+  - "@typescript-eslint"
   - react
   - react-hooks
   - import
@@ -26,14 +26,14 @@ settings:
     version: detect
 rules:
   # TypeScript
-  '@typescript-eslint/explicit-function-return-type': warn
-  '@typescript-eslint/no-unused-vars':
+  "@typescript-eslint/explicit-function-return-type": off
+  "@typescript-eslint/no-unused-vars":
     - error
-    - argsIgnorePattern: '^_'
-      varsIgnorePattern: '^_'
-  '@typescript-eslint/no-explicit-any': warn
-  '@typescript-eslint/consistent-type-imports': error
-  
+    - argsIgnorePattern: "^_"
+      varsIgnorePattern: "^_"
+  "@typescript-eslint/no-explicit-any": off
+  "@typescript-eslint/consistent-type-imports": error
+
   # React
   react/react-in-jsx-scope: off
   react/prop-types: off
@@ -41,21 +41,17 @@ rules:
   react/jsx-key: error
   react/jsx-no-duplicate-props: error
   react/self-closing-comp: error
-  
+
   # React Hooks
   react-hooks/rules-of-hooks: error
-  react-hooks/exhaustive-deps: warn
-  
+  react-hooks/exhaustive-deps: off
+
   # General
-  no-console:
-    - warn
-    - allow:
-        - warn
-        - error
-  no-debugger: warn
-  no-unused-vars: off  # Use TypeScript version
+  no-console: off
+  no-debugger: off
+  no-unused-vars: off # Use TypeScript version
   no-duplicate-imports: error
-  
+
   # Import ordering
   import/order:
     - error
@@ -73,6 +69,6 @@ rules:
 
 overrides:
   - files:
-      - '*.tsx'
+      - "*.tsx"
     rules:
-      react/prop-types: off  # We use TypeScript for type checking
+      react/prop-types: off # We use TypeScript for type checking

@@ -1,5 +1,5 @@
-import React from "react";
 import { LayoutGrid, Settings, RefreshCw, Compass } from "lucide-react";
+import React from "react";
 
 interface SidebarProps {
   currentView: "library" | "settings" | "discover";
@@ -62,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onRefresh 
         <Settings size={18} style={{ marginRight: 10 }} /> Settings
       </button>
 
-      <div style={{ flex: 1 }}></div>
+      <div style={{ flex: 1 }} />
 
       <button style={{ ...btnStyle, background: "transparent" }} onClick={onRefresh}>
         <RefreshCw size={18} style={{ marginRight: 10 }} /> Refresh

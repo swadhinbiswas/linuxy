@@ -1,7 +1,8 @@
-import React from "react";
-import { Play, Trash2, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
-import { AppInfo } from "../App";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { Play, Trash2, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
+import React from "react";
+
+import type { AppInfo } from "../App";
 
 interface AppGridProps {
   apps: AppInfo[];
@@ -95,7 +96,7 @@ const AppGrid: React.FC<AppGridProps> = ({
                 borderRadius: "12px",
                 marginBottom: "15px",
               }}
-            ></div>
+            />
           )}
           <div
             style={{

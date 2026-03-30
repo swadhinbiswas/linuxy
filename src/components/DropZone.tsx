@@ -1,6 +1,6 @@
-import React from "react";
-import { Upload } from "lucide-react";
 import { open } from "@tauri-apps/api/dialog";
+import { Upload } from "lucide-react";
+import React from "react";
 
 interface DropZoneProps {
   onInstall: (path: string) => void;
