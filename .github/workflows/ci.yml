@@ -15,7 +15,7 @@ jobs:
   # Frontend checks
   frontend-lint:
     name: Frontend Check & Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -46,7 +46,7 @@ jobs:
   # Rust backend checks
   rust-check:
     name: Rust Check & Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -100,7 +100,7 @@ jobs:
   # Build Tauri application
   build-tauri:
     name: Build Tauri App
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [frontend-lint, rust-check, verify-csp]
 
     steps:
@@ -164,7 +164,7 @@ jobs:
   # Security audit
   security-audit:
     name: Security Audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -194,7 +194,7 @@ jobs:
   # Production CSP verification
   verify-csp:
     name: Verify CSP Configuration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -224,7 +224,7 @@ jobs:
   # Integration tests on clean environment
   integration-test:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
