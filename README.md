@@ -7,7 +7,10 @@
 [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri-24C8DB)](https://tauri.app)
 [![Rust](https://img.shields.io/badge/rust-v1.70+-orange)](https://www.rust-lang.org)
 
-Linuxy is a modern, feature-rich AppImage manager that simplifies how you install, organize, and run AppImage applications on Linux. With one-click installation, Firejail sandboxing, and optional delta updates, Linuxy brings simplicity and security to managing portable Linux applications.
+Linuxy is a modern, feature-rich AppImage manager that simplifies how you
+install, organize, and run AppImage applications on Linux. With one-click
+installation, Firejail sandboxing, and optional delta updates, Linuxy brings
+simplicity and security to managing portable Linux applications.
 
 **📚 Complete Documentation**: [DOCS_INDEX.md](DOCS_INDEX.md)
 
@@ -15,24 +18,31 @@ Linuxy is a modern, feature-rich AppImage manager that simplifies how you instal
 
 ## ✨ Features
 
-- **📦 One-Click Installation** - Drag and drop AppImage files to install them instantly
-- **🛡️ Firejail Sandboxing** - Toggle secure sandboxing per application with a single click
-- **🔄 Optional Delta Updates** - Update checks for supported AppImages when `appimageupdatetool` is installed
+- **📦 One-Click Installation** - Drag and drop AppImage files to install them
+  instantly
+- **🛡️ Firejail Sandboxing** - Toggle secure sandboxing per application with a
+  single click
+- **🔄 Optional Delta Updates** - Update checks for supported AppImages when
+  `appimageupdatetool` is installed
 - **🎨 Beautiful Interface** - Modern UI with dark and light theme support
 - **📊 Storage Management** - Monitor disk usage across all installed AppImages
 - **🔍 App Discovery** - Browse and discover new AppImages directly from the app
-- **🖥️ Desktop Integration** - Automatic .desktop file creation for menu integration
+- **🖥️ Desktop Integration** - Automatic .desktop file creation for menu
+  integration
 - **🎯 Icon Management** - Automatic icon extraction and caching
 
 ## 📸 Screenshots
 
 ### Library View
+
 ![Library View](.github/library.png)
 
 ### Settings View
+
 ![Settings View](.github/settings.png)
 
 ### Dark/Light Themes
+
 ![Themes](.github/themes.png)
 
 ## 🚀 Quick Start
@@ -50,10 +60,10 @@ Linuxy is a modern, feature-rich AppImage manager that simplifies how you instal
 
 ```bash
 # Download the latest .deb package from releases
-wget https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy_0.1.0_amd64.deb
+wget https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy_1.0.0_amd64.deb
 
 # Install the package
-sudo apt install ./linuxy_0.1.0_amd64.deb
+sudo apt install ./linuxy_1.0.0_amd64.deb
 ```
 
 #### Option 2: AUR Package (Arch Linux)
@@ -100,18 +110,21 @@ npm run dev
 
 1. **Drag and Drop**: Simply drag an `.AppImage` file onto the Linuxy window
 2. **File Browser**: Click the "Browse" button to select an AppImage file
-3. **Discovery**: Use the built-in app discovery to find and install popular AppImages
+3. **Discovery**: Use the built-in app discovery to find and install popular
+   AppImages
 
 ### Managing Installed Apps
 
 - **Launch**: Click the "Launch" button to run an installed AppImage
 - **Sandbox**: Click the shield icon to toggle Firejail sandboxing
-- **Update**: Click the refresh icon to check for updates when `appimageupdatetool` is available
+- **Update**: Click the refresh icon to check for updates when
+  `appimageupdatetool` is available
 - **Remove**: Click the trash icon to uninstall an AppImage
 
 ### Firejail Sandboxing
 
-Firejail provides an additional security layer by restricting what AppImages can access:
+Firejail provides an additional security layer by restricting what AppImages can
+access:
 
 ```bash
 # Install Firejail (if not already installed)
@@ -121,6 +134,7 @@ sudo pacman -S firejail          # Arch Linux
 ```
 
 When sandboxing is enabled for an app, it runs with restricted access to:
+
 - Home directory (configurable)
 - System files
 - Network (optional)
@@ -128,11 +142,11 @@ When sandboxing is enabled for an app, it runs with restricted access to:
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+O` | Open AppImage file |
-| `Ctrl+R` | Refresh app list |
-| `Ctrl+,` | Open settings |
+| Shortcut | Action              |
+| -------- | ------------------- |
+| `Ctrl+O` | Open AppImage file  |
+| `Ctrl+R` | Refresh app list    |
+| `Ctrl+,` | Open settings       |
 | `Delete` | Remove selected app |
 
 ## 🏗️ Project Structure
@@ -169,18 +183,18 @@ linuxy/
 
 ### Storage Locations
 
-| Type | Location |
-|------|----------|
-| AppImages | `~/.local/appimages/` |
+| Type          | Location                       |
+| ------------- | ------------------------------ |
+| AppImages     | `~/.local/appimages/`          |
 | Desktop Files | `~/.local/share/applications/` |
-| Icons | `~/.local/share/icons/` |
+| Icons         | `~/.local/share/icons/`        |
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `TAURI_DEBUG` | Enable debug mode | `false` |
-| `VITE_API_URL` | Custom API endpoint | - |
+| Variable       | Description         | Default |
+| -------------- | ------------------- | ------- |
+| `TAURI_DEBUG`  | Enable debug mode   | `false` |
+| `VITE_API_URL` | Custom API endpoint | -       |
 
 ## 🔧 Development
 
@@ -236,7 +250,8 @@ cd src-tauri && cargo clippy
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md)
+for details.
 
 ### Quick Start for Contributors
 
@@ -260,7 +275,8 @@ git push origin feature/your-feature
 1. **Frontend**: TypeScript + React with functional components
 2. **Backend**: Rust with async/await patterns
 3. **Styling**: CSS custom properties for theming
-4. **Commits**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
+4. **Commits**: Follow
+   [Conventional Commits](https://www.conventionalcommits.org/)
 
 ## 🐛 Troubleshooting
 
@@ -290,14 +306,17 @@ chmod +x ~/.local/appimages/your-app.AppImage
 #### Build fails with missing dependencies
 
 ```bash
-# Ubuntu/Debian
+# Ubuntu/Debian (24.04+)
+sudo apt install libwebkit2gtk-4.1-dev libssl-dev libayatana-appindicator3-dev
+
+# Ubuntu/Debian (20.04-22.04)
 sudo apt install libwebkit2gtk-4.0-dev libssl-dev libayatana-appindicator3-dev
 
 # Fedora
-sudo dnf install webkit2gtk3-devel openssl-devel libappindicator-gtk3-devel
+sudo dnf install webkit2gtk4.1-devel openssl-devel libappindicator-gtk3-devel
 
 # Arch Linux
-sudo pacman -S webkit2gtk openssl libappindicator-gtk3
+sudo pacman -S webkit2gtk-4.1 openssl libappindicator-gtk3
 ```
 
 ## 📄 License
@@ -328,8 +347,10 @@ copies or substantial portions of the Software.
 
 ## 📬 Contact
 
-- **GitHub Issues**: [Report a bug or request a feature](https://github.com/swadhinbiswas/linuxy/issues)
-- **Discussions**: [Community discussions](https://github.com/swadhinbiswas/linuxy/discussions)
+- **GitHub Issues**:
+  [Report a bug or request a feature](https://github.com/swadhinbiswas/linuxy/issues)
+- **Discussions**:
+  [Community discussions](https://github.com/swadhinbiswas/linuxy/discussions)
 - **Twitter**: [@linuxyapp](https://twitter.com/linuxyapp)
 
 ---

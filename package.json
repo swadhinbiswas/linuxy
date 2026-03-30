@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "homepage": "https://swadhinbiswas.github.io/linuxy",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

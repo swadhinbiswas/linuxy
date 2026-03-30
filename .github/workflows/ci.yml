@@ -73,7 +73,13 @@ jobs:
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
-            libxdo-dev
+            libxdo-dev \
+            libsoup2.4-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libgdk-pixbuf-2.0-dev \
+            libpango1.0-dev \
+            libatk1.0-dev \
+            libcairo2-dev
 
       - name: Check Rust formatting
         working-directory: src-tauri
@@ -122,7 +128,13 @@ jobs:
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
-            libxdo-dev
+            libxdo-dev \
+            libsoup2.4-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libgdk-pixbuf-2.0-dev \
+            libpango1.0-dev \
+            libatk1.0-dev \
+            libcairo2-dev
 
       - name: Install Rust dependencies
         run: npm install
@@ -237,6 +249,12 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libxdo-dev \
+            libsoup2.4-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libgdk-pixbuf-2.0-dev \
+            libpango1.0-dev \
+            libatk1.0-dev \
+            libcairo2-dev \
             firejail
 
       - name: Install dependencies
