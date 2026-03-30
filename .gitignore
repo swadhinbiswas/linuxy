@@ -40,3 +40,9 @@ Cargo.lock
 
 # Linuxy specific
 pkg/
+
+# IDE - Qwen
+.qwen/
+
+# Code analysis
+.coderabbit.yml
