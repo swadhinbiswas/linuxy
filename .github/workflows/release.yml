@@ -28,9 +28,7 @@ jobs:
           cache: "npm"
 
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
-        with:
-          toolchain: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install system dependencies
         run: |
@@ -45,7 +43,7 @@ jobs:
             libxdo-dev
 
       - name: Install npm dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Tauri application
         uses: tauri-apps/tauri-action@v0
