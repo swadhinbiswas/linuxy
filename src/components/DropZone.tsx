@@ -11,7 +11,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
     try {
       const selected = await open({
         multiple: false,
-        filters: [{ name: "AppImage", extensions: ["AppImage", "appimage"] }]
+        filters: [{ name: "AppImage", extensions: ["AppImage", "appimage"] }],
       });
       if (typeof selected === "string") {
         onInstall(selected);
@@ -22,7 +22,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
   };
 
   return (
-    <div 
+    <div
       style={{
         border: "2px dashed var(--border-color)",
         borderRadius: "8px",
@@ -32,7 +32,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
         marginBottom: "20px",
         background: "var(--bg-input)",
         color: "var(--text-secondary)",
-        transition: "background-color 0.3s, border-color 0.3s"
+        transition: "background-color 0.3s, border-color 0.3s",
       }}
       onClick={handleSelectFile}
     >
