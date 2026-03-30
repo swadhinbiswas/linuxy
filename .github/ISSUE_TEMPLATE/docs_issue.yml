@@ -1,0 +1,59 @@
+name: 📚 Documentation Issue
+description: Report an issue with documentation
+title: '[Docs]: '
+labels: ['documentation', 'triage']
+assignees:
+  - ''
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: What type of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect information
+        - Unclear explanation
+        - Broken link
+        - Typo or grammar
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      description: What's wrong or missing in the documentation?
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Link to or name of the documentation page
+      placeholder: e.g., README.md, docs/USAGE.md, or URL
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: How should this be fixed or what should be added?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](CONTRIBUTING.md#code-of-conduct).
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

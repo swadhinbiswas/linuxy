@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linuxy - One-Click AppImage Manager for Linux</title>
+    <meta name="description" content="Linuxy is a modern AppImage manager with one-click installation, Firejail sandboxing, and automatic updates.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a0a; --card: #1a1a1a; --text: #fff; --text-muted: #a0a0a0;
+            --accent: #4caf50; --border: #2a2a2a;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        
+        /* Nav */
+        nav { padding: 20px 0; border-bottom: 1px solid var(--border); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #4caf50, #81c784); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 9999px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #4caf50, #81c784); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #252525; }
+
+        /* Hero */
+        .hero { padding: 100px 0 60px; text-align: center; }
+        .hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 20px; background: linear-gradient(135deg, #fff, #a0a0a0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero h1 span { background: linear-gradient(135deg, #4caf50, #81c784); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 32px; }
+        .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+        /* Features */
+        .features { padding: 80px 0; }
+        .section-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 48px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .feature-card { background: var(--card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s; }
+        .feature-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+        .feature-icon { font-size: 2rem; margin-bottom: 16px; }
+        .feature-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+        .feature-card p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* How it works */
+        .how-it-works { padding: 80px 0; background: #0f0f0f; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; }
+        .step { text-align: center; }
+        .step-number { width: 60px; height: 60px; background: var(--card); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: var(--accent); margin: 0 auto 16px; }
+        .step h3 { margin-bottom: 8px; }
+        .step p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Install */
+        .installation { padding: 80px 0; }
+        .install-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .install-card { background: var(--card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .install-card:hover { border-color: var(--accent); }
+        .install-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .install-command { background: #0f0f0f; padding: 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--accent); margin: 16px 0; overflow-x: auto; }
+
+        /* FAQ */
+        .faq { padding: 80px 0; background: #0f0f0f; }
+        .faq-list { max-width: 700px; margin: 0 auto; }
+        .faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { padding: 20px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-question::after { content: '+'; font-size: 1.5rem; color: var(--accent); }
+        .faq-item.active .faq-question::after { transform: rotate(45deg); }
+        .faq-answer { padding: 0 20px; max-height: 0; overflow: hidden; color: var(--text-muted); transition: all 0.3s; }
+        .faq-item.active .faq-answer { padding: 0 20px 20px; max-height: 300px; }
+
+        /* Footer */
+        footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); }
+        .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; list-style: none; }
+        .footer-links a { color: var(--text-muted); text-decoration: none; }
+        .footer-links a:hover { color: var(--accent); }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="#" class="logo"><div class="logo-icon">🐧</div> Linuxy</a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+            <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-secondary">GitHub</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>The Ultimate <span>AppImage Manager</span> for Linux</h1>
+            <p>Install, organize, and sandbox your AppImages with a single click. Simple, secure, and beautiful.</p>
+            <div class="hero-buttons">
+                <a href="#installation" class="btn btn-primary">⬇️ Download</a>
+                <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-secondary">⭐ GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>One-Click Installation</h3>
+                    <p>Drag and drop AppImage files to install them instantly with automatic desktop integration.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Firejail Sandboxing</h3>
+                    <p>Run apps in a secure sandbox. Toggle sandboxing per application with a single click.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Automatic Updates</h3>
+                    <p>Built-in update checking keeps your AppImages up to date automatically.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Beautiful UI</h3>
+                    <p>Modern interface with dark and light themes. Clean, responsive, and intuitive.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Storage Management</h3>
+                    <p>Monitor disk usage and see installation dates for all your AppImages.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>App Discovery</h3>
+                    <p>Browse and discover new AppImages directly from the application.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Install Linuxy</h3>
+                    <p>Download and install using your package manager or build from source.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Add AppImages</h3>
+                    <p>Drag and drop AppImage files or discover new apps from the built-in store.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Launch & Enjoy</h3>
+                    <p>Launch apps with one click, optionally sandboxed for extra security.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="installation" id="installation">
+        <div class="container">
+            <h2 class="section-title">Installation</h2>
+            <div class="install-grid">
+                <div class="install-card">
+                    <div class="install-icon">📦</div>
+                    <h3>DEB Package</h3>
+                    <p>Debian/Ubuntu</p>
+                    <div class="install-command">sudo apt install ./linuxy_*.deb</div>
+                    <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary">Download</a>
+                </div>
+                <div class="install-card">
+                    <div class="install-icon">🦀</div>
+                    <h3>Build from Source</h3>
+                    <p>All Linux distros</p>
+                    <div class="install-command">git clone https://github.com/swadhinbiswas/linuxy<br>cd linuxy && npm install<br>npm run tauri build</div>
+                    <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-secondary">View Guide</a>
+                </div>
+                <div class="install-card">
+                    <div class="install-icon">📋</div>
+                    <h3>AUR Package</h3>
+                    <p>Arch Linux</p>
+                    <div class="install-command">yay -S linuxy</div>
+                    <a href="https://aur.archlinux.org/packages/linuxy" class="btn btn-secondary">AUR Page</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">FAQ</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">What is an AppImage?</div>
+                    <div class="faq-answer"><p>AppImage is a universal package format for Linux. It's a single file containing an application and all its dependencies, allowing you to run software without installation.</p></div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Do I need Firejail?</div>
+                    <div class="faq-answer"><p>Firejail is optional but recommended. Linuxy works without it, but Firejail adds security by restricting what AppImages can access. Install with: sudo apt install firejail</p></div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Where are AppImages stored?</div>
+                    <div class="faq-answer"><p>Linuxy stores AppImages in ~/.local/appimages/ and creates desktop entries in ~/.local/share/applications/ for easy access.</p></div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Is Linuxy free?</div>
+                    <div class="faq-answer"><p>Yes! Linuxy is completely free and open source under the MIT license.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <ul class="footer-links">
+                <li><a href="https://github.com/swadhinbiswas/linuxy">GitHub</a></li>
+                <li><a href="https://github.com/swadhinbiswas/linuxy/issues">Issues</a></li>
+                <li><a href="https://github.com/swadhinbiswas/linuxy/blob/main/README.md">Docs</a></li>
+            </ul>
+            <p>&copy; 2024 Linuxy. Open source under MIT License.</p>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ toggle
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.addEventListener('click', () => {
+                const item = q.parentElement;
+                item.classList.toggle('active');
+            });
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>

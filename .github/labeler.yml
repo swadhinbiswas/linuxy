@@ -1,0 +1,37 @@
+name: Auto Labeler
+
+# Labels for different file changes
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/**/*'
+          - 'package*.json'
+          - 'tsconfig*.json'
+          - 'vite.config.ts'
+          - 'index.html'
+
+rust:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/**/*'
+          - 'Cargo.toml'
+          - 'Cargo.lock'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.md'
+          - 'docs/**/*'
+          - '.github/**/*.md'
+
+ci-cd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**/*'
+          - '.github/*.yml'
+
+packaging:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'packaging/**/*'
+          - 'src-tauri/tauri.conf.json'

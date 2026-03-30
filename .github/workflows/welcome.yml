@@ -1,0 +1,87 @@
+name: Welcome New Contributors
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Welcome first-time issue creator
+        if: github.event_name == 'issues'
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            👋 Hello @${{ github.actor }}! Thank you for opening your first issue in Linuxy!
+            
+            We appreciate your contribution to making Linuxy better. A maintainer will review your issue soon.
+            
+            In the meantime:
+            - Please make sure you've provided all the requested information
+            - Add screenshots if applicable
+            - Check for similar existing issues
+            
+            Feel free to join our community discussions if you have questions!
+            
+            ---
+            *This is an automated message. Happy coding!* 🐧
+
+      - name: Welcome first-time contributor
+        if: github.event_name == 'pull_request_target'
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            🎉 Welcome @${{ github.actor }}! Thank you for your first pull request to Linuxy!
+            
+            We're excited to have you contribute. Here's what happens next:
+            
+            1. **Automated Checks**: Our CI/CD pipeline will run tests and linting
+            2. **AI Review**: CodeRabbit will provide automated code review
+            3. **Human Review**: A maintainer will review your changes
+            
+            Please make sure you've:
+            - [ ] Read our [Contributing Guide](CONTRIBUTING.md)
+            - [ ] Followed the code style guidelines
+            - [ ] Added tests if applicable
+            - [ ] Updated documentation if needed
+            
+            Feel free to ask questions in the comments if you need help!
+            
+            ---
+            *This is an automated message. Happy coding!* 🐧
+
+      - name: Add labels to first-time contributors
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            
+            // Check if this is truly a first-time contributor
+            const { data: commits } = await github.rest.repos.listCommits({
+              owner,
+              repo,
+              author: context.payload.pull_request.user.login,
+              per_page: 1
+            });
+            
+            if (commits.length === 1) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: prNumber,
+                labels: ['first-time-contributor']
+              });
+            }

@@ -1,0 +1,2 @@
+# Keep Clippy configuration intentionally minimal and stable.
+# The CI job enforces `cargo clippy -- -D warnings`.

@@ -1,0 +1,39 @@
+# Code Owners for Linuxy
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for the entire repository
+* @swadhinbiswas
+
+# Frontend code
+src/ @swadhinbiswas
+src/components/ @swadhinbiswas
+src/styles/ @swadhinbiswas
+src/App.tsx @swadhinbiswas
+src/main.tsx @swadhinbiswas
+
+# Rust backend
+src-tauri/src/ @swadhinbiswas
+src-tauri/Cargo.toml @swadhinbiswas
+src-tauri/Cargo.lock @swadhinbiswas
+
+# Configuration files
+package.json @swadhinbiswas
+package-lock.json @swadhinbiswas
+tsconfig.json @swadhinbiswas
+tsconfig.node.json @swadhinbiswas
+vite.config.ts @swadhinbiswas
+
+# GitHub configuration
+.github/ @swadhinbiswas
+.github/workflows/ @swadhinbiswas
+
+# Documentation
+*.md @swadhinbiswas
+docs/ @swadhinbiswas
+
+# Packaging
+packaging/ @swadhinbiswas
+src-tauri/tauri.conf.json @swadhinbiswas
+
+# Build artifacts (for review purposes)
+dist/ @swadhinbiswas

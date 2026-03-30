@@ -1,0 +1,24 @@
+# Maintainer: You <you@example.com>
+pkgname=linuxy
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A centralized AppImage manager and installer"
+arch=('x86_64')
+url="https://github.com/yourusername/linuxy"
+license=('MIT')
+depends=('webkit2gtk' 'gtk3' 'cairo' 'pango' 'glib2' 'openssl' 'appimagetool')
+makedepends=('cargo' 'npm' 'nodejs')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/yourusername/linuxy/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "$pkgname-$pkgver"
+    npm install
+    npm run build
+    cargo build --release
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    install -Dm755 "src-tauri/target/release/linuxy" "$pkgdir/usr/bin/linuxy"
+}

@@ -1,0 +1,130 @@
+name-template: 'v$RESOLVED_VERSION 🐧'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: '🧰 Maintenance'
+    labels:
+      - 'chore'
+      - 'maintenance'
+      - 'ci'
+      - 'build'
+  - title: '📚 Documentation'
+    labels:
+      - 'docs'
+      - 'documentation'
+  - title: '♻️ Refactoring'
+    labels:
+      - 'refactor'
+      - 'refactoring'
+  - title: '🎨 Styling'
+    labels:
+      - 'style'
+      - 'formatting'
+  - title: '⚡ Performance'
+    labels:
+      - 'performance'
+      - 'perf'
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+  - title: '🧪 Testing'
+    labels:
+      - 'test'
+      - 'tests'
+  - title: '🔧 Configuration'
+    labels:
+      - 'config'
+      - 'configuration'
+  - title: '📦 Dependencies'
+    labels:
+      - 'dependencies'
+      - 'deps'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bug'
+      - 'chore'
+      - 'docs'
+      - 'test'
+  default: patch
+template: |
+  ## 🚀 What's Changed
+
+  $CHANGES
+
+  ## 📦 Installation
+
+  ### Debian/Ubuntu
+  ```bash
+  sudo apt install ./linuxy_*.deb
+  ```
+
+  ### Arch Linux (AUR)
+  ```bash
+  yay -S linuxy
+  ```
+
+  ### Build from Source
+  ```bash
+  git clone https://github.com/swadhinbiswas/linuxy.git
+  cd linuxy
+  npm install
+  npm run tauri build
+  ```
+
+  ## 🙏 Contributors
+
+  Thanks to $CONTRIBUTORS for their contributions!
+
+  ---
+  **Full Changelog**: https://github.com/swadhinbiswas/linuxy/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+no-changes-template: 'No changes since the last release.'
+exclude-labels:
+  - 'skip-changelog'
+  - 'duplicate'
+  - 'invalid'
+  - 'wontfix'
+replacers:
+  - search: '/(?:and )?@?swadhin(?:\/linuxy)?/gi'
+    replace: ''
+autolabeler:
+  - label: 'chore'
+    files:
+      - '*.lock'
+      - '*.toml'
+      - '*.json'
+    branch:
+      - '/chore\/.*/'
+  - label: 'docs'
+    files:
+      - '*.md'
+    branch:
+      - '/docs\/.*/'
+  - label: 'feature'
+    branch:
+      - '/feat\/.*/'
+  - label: 'fix'
+    branch:
+      - '/fix\/.*/'

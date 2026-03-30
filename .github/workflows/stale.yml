@@ -1,0 +1,59 @@
+name: Close Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          # Issues
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          stale-issue-label: 'stale'
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity.
+            
+            It will be closed if no further activity occurs within 7 days. If you believe this is still relevant, 
+            please leave a comment and the stale status will be removed.
+            
+            Thank you for your contributions!
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity.
+            
+            If you still experience this issue or need assistance, please feel free to reopen it or create a new issue.
+          exempt-issue-labels: 'bug,enhancement,help-wanted,security,pinned'
+          exempt-issue-assignees: true
+          
+          # Pull Requests
+          days-before-pr-stale: 14
+          days-before-pr-close: 7
+          stale-pr-label: 'stale'
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            
+            It will be closed if no further activity occurs within 7 days. If you are still working on this, 
+            please leave a comment and the stale status will be removed.
+            
+            Thank you for your contributions!
+          close-pr-message: |
+            This pull request has been automatically closed due to inactivity.
+            
+            If you plan to continue working on this, please reopen it or create a new PR.
+          exempt-pr-labels: 'security,pinned'
+          
+          # General settings
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          debug-only: false
