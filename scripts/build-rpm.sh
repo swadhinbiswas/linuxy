@@ -10,12 +10,19 @@ TAURI_TARGET="$PROJECT_ROOT/src-tauri/target"
 
 echo "=== Building RPM from DEB package ==="
 
-# Check if fpm is installed
+# Check if fpm is installed and usable
 if ! command -v fpm &> /dev/null; then
-    echo "Warning: fpm is not installed. Skipping RPM build."
+    echo "Error: fpm is not installed."
     echo "To build RPM, install fpm with: gem install fpm"
     echo "Or on Arch Linux: sudo pacman -S ruby base-devel && gem install fpm"
-    exit 0
+    exit 1
+fi
+
+if ! fpm --version &> /dev/null; then
+    echo "Error: fpm is present in PATH but unusable."
+    echo "The Ruby environment cannot load the fpm gem for this executable."
+    echo "In CI, install it system-wide with: sudo gem install --no-document fpm"
+    exit 1
 fi
 
 # Find the latest DEB package
