@@ -4,823 +4,408 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Linuxy - One-Click AppImage Manager for Linux</title>
-    <meta
-      name="description"
-      content="Linuxy is a modern AppImage manager with one-click installation, Firejail sandboxing, and automatic updates."
-    />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>"
-    />
+    <meta name="description" content="Linuxy is a modern AppImage manager with one-click installation, Firejail sandboxing, and automatic updates. Manage all your AppImages from one beautiful interface." />
+    <meta name="keywords" content="AppImage, Linux, AppImage Manager, Firejail, Sandboxing, Package Manager" />
+    <link rel="icon" type="image/png" href="assets/linuxy-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      *{margin:0;padding:0;box-sizing:border-box}
+      :root{
+        --bg:#060910;--bg-alt:#0c1018;--card:rgba(18,24,38,0.7);
+        --text:#e8eaf0;--text-muted:#8892a8;
+        --accent:#4ade80;--accent-dim:rgba(74,222,128,0.12);--accent-glow:rgba(74,222,128,0.25);
+        --border:rgba(255,255,255,0.06);--border-hover:rgba(74,222,128,0.3);
+        --radius:16px;
       }
-      :root {
-        --bg: #0a0a0a;
-        --card: #1a1a1a;
-        --text: #fff;
-        --text-muted: #a0a0a0;
-        --accent: #4caf50;
-        --accent-hover: #66bb6a;
-        --border: #2a2a2a;
-      }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        line-height: 1.6;
-      }
-      .container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0 24px;
-      }
+      html{scroll-behavior:smooth}
+      body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+      .container{max-width:1140px;margin:0 auto;padding:0 24px}
+
+      /* Particles canvas */
+      #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
 
       /* Nav */
-      nav {
-        padding: 20px 0;
-        border-bottom: 1px solid var(--border);
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: rgba(10, 10, 10, 0.9);
-        backdrop-filter: blur(10px);
-        z-index: 100;
-      }
-      nav .container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .logo {
-        font-size: 1.5rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: var(--text);
-      }
-      .logo-icon {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #4caf50, #81c784);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-      }
-      .nav-links {
-        display: flex;
-        gap: 24px;
-        list-style: none;
-      }
-      .nav-links a {
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: color 0.2s;
-        font-weight: 500;
-      }
-      .nav-links a:hover {
-        color: var(--text);
-      }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        border-radius: 9999px;
-        font-weight: 600;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.95rem;
-      }
-      .btn-primary {
-        background: linear-gradient(135deg, #4caf50, #81c784);
-        color: #fff;
-      }
-      .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
-      }
-      .btn-secondary {
-        background: var(--card);
-        color: var(--text);
-        border: 1px solid var(--border);
-      }
-      .btn-secondary:hover {
-        background: #252525;
-      }
-      .btn-ghost {
-        background: transparent;
-        color: var(--text-muted);
-      }
-      .btn-ghost:hover {
-        color: var(--text);
-      }
+      nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:all .3s;border-bottom:1px solid transparent}
+      nav.scrolled{background:rgba(6,9,16,0.92);backdrop-filter:blur(20px);border-color:var(--border)}
+      nav .container{display:flex;justify-content:space-between;align-items:center}
+      .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:800;font-size:1.4rem}
+      .logo-icon{width:36px;height:36px;border-radius:10px;object-fit:contain}
+      .nav-links{display:flex;gap:28px;list-style:none}
+      .nav-links a{color:var(--text-muted);text-decoration:none;font-weight:500;font-size:.95rem;transition:color .2s;position:relative}
+      .nav-links a:hover{color:var(--accent)}
+      .nav-right{display:flex;gap:12px;align-items:center}
+      .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:999px;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:all .25s;font-size:.9rem;font-family:inherit}
+      .btn svg{width:18px;height:18px}
+      .btn-primary{background:linear-gradient(135deg,#4ade80,#22c55e);color:#060910;box-shadow:0 0 20px var(--accent-glow)}
+      .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--accent-glow)}
+      .btn-outline{background:transparent;color:var(--text-muted);border:1px solid var(--border)}
+      .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+      .btn-ghost{background:transparent;color:var(--text-muted);padding:10px 16px}
+      .btn-ghost:hover{color:var(--text)}
 
       /* Hero */
-      .hero {
-        padding: 160px 0 100px;
-        text-align: center;
-        background: radial-gradient(ellipse at top, rgba(76, 175, 80, 0.15) 0%, transparent 50%);
-      }
-      .hero h1 {
-        font-size: 4rem;
-        font-weight: 800;
-        margin-bottom: 24px;
-        background: linear-gradient(135deg, #fff 0%, #e0e0e0 50%, #4caf50 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        line-height: 1.1;
-      }
-      .hero h1 span {
-        background: linear-gradient(135deg, #4caf50, #81c784);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .hero p {
-        font-size: 1.35rem;
-        color: var(--text-muted);
-        max-width: 600px;
-        margin: 0 auto 40px;
-      }
-      .hero-buttons {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      .hero-stats {
-        display: flex;
-        justify-content: center;
-        gap: 48px;
-        margin-top: 60px;
-      }
-      .stat {
-        text-align: center;
-      }
-      .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--accent);
-      }
-      .stat-label {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-      }
+      .hero{position:relative;z-index:1;padding:160px 0 100px;text-align:center}
+      .hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse,var(--accent-dim) 0%,transparent 70%);pointer-events:none;z-index:-1}
+      .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-dim);border:1px solid rgba(74,222,128,0.2);color:var(--accent);padding:6px 16px;border-radius:999px;font-size:.85rem;font-weight:600;margin-bottom:28px}
+      .hero-badge svg{width:16px;height:16px}
+      .hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.08;margin-bottom:24px;letter-spacing:-.02em}
+      .hero h1 .gradient{background:linear-gradient(135deg,#4ade80 0%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+      .hero>p{font-size:1.25rem;color:var(--text-muted);max-width:560px;margin:0 auto 40px}
+      .hero-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+      .hero-stats{display:flex;justify-content:center;gap:56px;margin-top:64px}
+      .stat-value{font-size:1.75rem;font-weight:800;color:var(--accent)}
+      .stat-label{font-size:.85rem;color:var(--text-muted);margin-top:2px}
+
+      /* Screenshot showcase */
+      .showcase{position:relative;z-index:1;padding:40px 0 100px}
+      .showcase-scroll{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:20px 0;scrollbar-width:none}
+      .showcase-scroll::-webkit-scrollbar{display:none}
+      .showcase-item{flex:0 0 min(80vw,700px);scroll-snap-align:center;border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.5);transition:transform .4s,box-shadow .4s}
+      .showcase-item:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+      .showcase-item img{width:100%;height:auto;display:block}
+      .showcase-caption{text-align:center;margin-top:24px;color:var(--text-muted);font-size:.95rem}
+
+      /* Section common */
+      section{position:relative;z-index:1}
+      .section-tag{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+      .section-tag svg{width:18px;height:18px}
+      .section-title{font-size:clamp(2rem,4vw,2.75rem);font-weight:800;margin-bottom:16px;letter-spacing:-.01em}
+      .section-subtitle{color:var(--text-muted);max-width:500px;margin:0 auto 56px;font-size:1.1rem}
+      .text-center{text-align:center}
 
       /* Features */
-      .features {
-        padding: 100px 0;
-      }
-      .section-title {
-        text-align: center;
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 16px;
-      }
-      .section-subtitle {
-        text-align: center;
-        color: var(--text-muted);
-        max-width: 500px;
-        margin: 0 auto 48px;
-        font-size: 1.1rem;
-      }
-      .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 24px;
-      }
-      .feature-card {
-        background: var(--card);
-        padding: 32px;
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        transition: all 0.3s;
-        position: relative;
-        overflow: hidden;
-      }
-      .feature-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--accent), transparent);
-        opacity: 0;
-        transition: opacity 0.3s;
-      }
-      .feature-card:hover {
-        border-color: var(--accent);
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      }
-      .feature-card:hover::before {
-        opacity: 1;
-      }
-      .feature-icon {
-        font-size: 2.5rem;
-        margin-bottom: 20px;
-        display: block;
-      }
-      .feature-card h3 {
-        font-size: 1.25rem;
-        margin-bottom: 12px;
-      }
-      .feature-card p {
-        color: var(--text-muted);
-        font-size: 1rem;
-        line-height: 1.7;
-      }
+      .features{padding:100px 0}
+      .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+      .feature-card{background:var(--card);backdrop-filter:blur(12px);padding:32px;border-radius:var(--radius);border:1px solid var(--border);transition:all .35s;position:relative;overflow:hidden}
+      .feature-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);opacity:0;transition:opacity .35s}
+      .feature-card:hover{border-color:var(--border-hover);transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+      .feature-card:hover::after{opacity:1}
+      .feature-icon-wrap{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--accent-dim);border-radius:12px;margin-bottom:20px}
+      .feature-icon-wrap svg{width:24px;height:24px;color:var(--accent);stroke:var(--accent);fill:none}
+      .feature-card h3{font-size:1.15rem;font-weight:700;margin-bottom:10px}
+      .feature-card p{color:var(--text-muted);font-size:.95rem;line-height:1.7}
 
       /* How it works */
-      .how-it-works {
-        padding: 100px 0;
-        background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%);
-      }
-      .steps {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 40px;
-        max-width: 900px;
-        margin: 0 auto;
-      }
-      .step {
-        text-align: center;
-        position: relative;
-      }
-      .step::after {
-        content: "";
-        position: absolute;
-        top: 30px;
-        right: -20px;
-        width: 40px;
-        height: 2px;
-        background: var(--border);
-        display: none;
-      }
-      .step:last-child::after {
-        display: none;
-      }
-      .step-number {
-        width: 72px;
-        height: 72px;
-        background: var(--card);
-        border: 2px solid var(--accent);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--accent);
-        margin: 0 auto 24px;
-        transition: all 0.3s;
-      }
-      .step:hover .step-number {
-        background: var(--accent);
-        color: #fff;
-        transform: scale(1.1);
-      }
-      .step h3 {
-        font-size: 1.25rem;
-        margin-bottom: 12px;
-      }
-      .step p {
-        color: var(--text-muted);
-        font-size: 1rem;
-      }
+      .how-it-works{padding:100px 0}
+      .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;max-width:900px;margin:0 auto;position:relative}
+      .steps::before{content:'';position:absolute;top:36px;left:calc(16.67% + 36px);right:calc(16.67% + 36px);height:2px;background:linear-gradient(90deg,var(--border),var(--accent),var(--border))}
+      .step{text-align:center}
+      .step-num{width:72px;height:72px;background:var(--card);border:2px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:var(--accent);margin:0 auto 24px;transition:all .3s;position:relative;z-index:1}
+      .step:hover .step-num{background:var(--accent);color:var(--bg);transform:scale(1.12);box-shadow:0 0 30px var(--accent-glow)}
+      .step h3{font-size:1.15rem;font-weight:700;margin-bottom:10px}
+      .step p{color:var(--text-muted);font-size:.95rem}
 
-      /* Install */
-      .installation {
-        padding: 100px 0;
-      }
-      .install-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 24px;
-      }
-      .install-card {
-        background: var(--card);
-        padding: 32px;
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        text-align: center;
-        transition: all 0.3s;
-      }
-      .install-card:hover {
-        border-color: var(--accent);
-        transform: translateY(-4px);
-      }
-      .install-icon {
-        font-size: 3rem;
-        margin-bottom: 16px;
-        display: block;
-      }
-      .install-card h3 {
-        font-size: 1.35rem;
-        margin-bottom: 8px;
-      }
-      .install-card > p {
-        color: var(--text-muted);
-        margin-bottom: 16px;
-      }
-      .install-command {
-        background: #0a0a0a;
-        padding: 16px;
-        border-radius: 8px;
-        font-family: "Fira Code", "Courier New", monospace;
-        font-size: 0.9rem;
-        color: var(--accent);
-        margin: 20px 0;
-        overflow-x: auto;
-        text-align: left;
-      }
-      .install-card .btn {
-        margin-top: 8px;
-      }
+      /* Installation */
+      .installation{padding:100px 0}
+      .install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+      .install-card{background:var(--card);backdrop-filter:blur(12px);padding:32px;border-radius:var(--radius);border:1px solid var(--border);text-align:center;transition:all .3s}
+      .install-card:hover{border-color:var(--border-hover);transform:translateY(-4px)}
+      .install-card.disabled{opacity:.45;pointer-events:none}
+      .install-icon-wrap{width:56px;height:56px;display:flex;align-items:center;justify-content:center;background:var(--accent-dim);border-radius:14px;margin:0 auto 16px}
+      .install-icon-wrap svg{width:28px;height:28px;color:var(--accent);stroke:var(--accent);fill:none}
+      .install-card h3{font-size:1.2rem;font-weight:700;margin-bottom:6px}
+      .install-card h3 .badge{font-size:.7em;color:var(--accent);font-weight:500}
+      .install-card>p{color:var(--text-muted);margin-bottom:12px;font-size:.95rem}
+      .install-cmd{background:rgba(0,0,0,.4);padding:14px 18px;border-radius:10px;font-family:'Fira Code','Courier New',monospace;font-size:.85rem;color:var(--accent);margin:16px 0;overflow-x:auto;text-align:left;border:1px solid var(--border)}
+      .install-card .btn{margin-top:8px}
 
       /* CTA */
-      .cta {
-        padding: 100px 0;
-        background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
-        text-align: center;
-      }
-      .cta h2 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 16px;
-      }
-      .cta p {
-        color: var(--text-muted);
-        font-size: 1.15rem;
-        margin-bottom: 32px;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-      }
+      .cta{padding:120px 0;text-align:center;position:relative}
+      .cta::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:700px;height:400px;background:radial-gradient(ellipse,var(--accent-dim),transparent 70%);pointer-events:none}
+      .cta h2{font-size:clamp(2rem,4vw,3rem);font-weight:800;margin-bottom:16px}
+      .cta p{color:var(--text-muted);font-size:1.15rem;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto}
 
       /* FAQ */
-      .faq {
-        padding: 100px 0;
-        background: #0f0f0f;
-      }
-      .faq-list {
-        max-width: 700px;
-        margin: 0 auto;
-      }
-      .faq-item {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        margin-bottom: 12px;
-        overflow: hidden;
-        transition: all 0.3s;
-      }
-      .faq-item:hover {
-        border-color: var(--accent);
-      }
-      .faq-question {
-        padding: 24px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1.05rem;
-      }
-      .faq-question::after {
-        content: "+";
-        font-size: 1.5rem;
-        color: var(--accent);
-        transition: transform 0.3s;
-      }
-      .faq-item.active .faq-question::after {
-        transform: rotate(45deg);
-      }
-      .faq-answer {
-        padding: 0 24px;
-        max-height: 0;
-        overflow: hidden;
-        color: var(--text-muted);
-        transition: all 0.3s;
-        line-height: 1.8;
-      }
-      .faq-item.active .faq-answer {
-        padding: 0 24px 24px;
-        max-height: 300px;
-      }
+      .faq{padding:100px 0}
+      .faq-list{max-width:700px;margin:0 auto}
+      .faq-item{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .3s}
+      .faq-item:hover{border-color:var(--border-hover)}
+      .faq-question{padding:22px 24px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:1rem;user-select:none}
+      .faq-chevron{width:20px;height:20px;stroke:var(--accent);transition:transform .3s}
+      .faq-item.active .faq-chevron{transform:rotate(180deg)}
+      .faq-answer{padding:0 24px;max-height:0;overflow:hidden;color:var(--text-muted);transition:all .35s ease;line-height:1.8}
+      .faq-item.active .faq-answer{padding:0 24px 22px;max-height:300px}
 
       /* Footer */
-      footer {
-        padding: 60px 0;
-        border-top: 1px solid var(--border);
-        text-align: center;
-        color: var(--text-muted);
-      }
-      .footer-links {
-        display: flex;
-        justify-content: center;
-        gap: 32px;
-        margin-bottom: 24px;
-        list-style: none;
-        flex-wrap: wrap;
-      }
-      .footer-links a {
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: color 0.2s;
-      }
-      .footer-links a:hover {
-        color: var(--accent);
-      }
-      .footer-logo {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 16px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-      }
-      .footer-logo span {
-        background: linear-gradient(135deg, #4caf50, #81c784);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
+      footer{padding:60px 0;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);position:relative;z-index:1}
+      .footer-brand{display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:20px;font-size:1.3rem;font-weight:800}
+      .footer-brand span{color:var(--accent)}
+      .footer-links{display:flex;justify-content:center;gap:28px;margin-bottom:20px;list-style:none;flex-wrap:wrap}
+      .footer-links a{color:var(--text-muted);text-decoration:none;font-size:.9rem;transition:color .2s}
+      .footer-links a:hover{color:var(--accent)}
+      .footer-bottom{font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+      .footer-bottom svg{width:16px;height:16px;stroke:var(--accent)}
 
-      @media (max-width: 768px) {
-        .hero h1 {
-          font-size: 2.5rem;
-        }
-        .hero p {
-          font-size: 1.1rem;
-        }
-        .section-title {
-          font-size: 2rem;
-        }
-        .hero-stats {
-          flex-direction: column;
-          gap: 24px;
-        }
-        .nav-links {
-          display: none;
-        }
-        .steps {
-          grid-template-columns: 1fr;
-        }
-        .step::after {
-          display: none;
-        }
+      @media(max-width:768px){
+        .nav-links{display:none}
+        .hero-stats{flex-direction:column;gap:20px}
+        .steps{grid-template-columns:1fr;gap:32px}
+        .steps::before{display:none}
+        .showcase-item{flex:0 0 90vw}
       }
     </style>
   </head>
   <body>
-    <nav>
+    <canvas id="particles"></canvas>
+
+    <nav id="main-nav">
       <div class="container">
-        <a href="#" class="logo"
-          ><div class="logo-icon">🐧</div>
-          Linuxy</a
-        >
+        <a href="#" class="logo"><img src="assets/linuxy-icon.png" alt="Linuxy" class="logo-icon" /> Linuxy</a>
         <ul class="nav-links">
           <li><a href="#features">Features</a></li>
+          <li><a href="#showcase">Screenshots</a></li>
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#installation">Install</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
-        <div style="display: flex; gap: 12px">
-          <a href="#installation" class="btn btn-primary">Download</a>
-          <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-ghost">GitHub</a>
+        <div class="nav-right">
+          <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            GitHub
+          </a>
+          <a href="#installation" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+          </a>
         </div>
       </div>
     </nav>
 
+    <!-- Hero -->
     <section class="hero">
       <div class="container">
-        <h1>The Ultimate<br /><span>AppImage Manager</span><br />for Linux</h1>
-        <p>
-          Install, organize, and sandbox your AppImages with a single click. Simple, secure, and
-          beautiful.
-        </p>
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Open Source &middot; MIT Licensed
+        </div>
+        <h1>The Ultimate<br /><span class="gradient">AppImage Manager</span><br />for Linux</h1>
+        <p>Install, organize, and sandbox your AppImages with a single click. Simple, secure, and beautiful.</p>
         <div class="hero-buttons">
-          <a href="#installation" class="btn btn-primary">⬇️ Download v1.0.0</a>
-          <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-secondary"
-            >⭐ Star on GitHub</a
-          >
+          <a href="#installation" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download v1.0.0
+          </a>
+          <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Star on GitHub
+          </a>
         </div>
         <div class="hero-stats">
-          <div class="stat">
-            <div class="stat-value">100%</div>
-            <div class="stat-label">Free & Open Source</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">MIT</div>
-            <div class="stat-label">License</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">Tauri</div>
-            <div class="stat-label">Powered by</div>
-          </div>
+          <div class="stat"><div class="stat-value">100%</div><div class="stat-label">Free &amp; Open Source</div></div>
+          <div class="stat"><div class="stat-value">MIT</div><div class="stat-label">License</div></div>
+          <div class="stat"><div class="stat-value">Tauri</div><div class="stat-label">Powered by Rust</div></div>
         </div>
       </div>
     </section>
 
+    <!-- Screenshot Showcase -->
+    <section class="showcase" id="showcase">
+      <div class="container text-center">
+        <div class="section-tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          See It In Action
+        </div>
+        <h2 class="section-title">Beautiful by Design</h2>
+        <p class="section-subtitle">A clean, modern interface that makes managing AppImages a joy</p>
+      </div>
+      <div class="showcase-scroll">
+        <div style="flex:0 0 24px"></div>
+        <div class="showcase-item"><img src="docs/images/installed.png" alt="Linuxy Library - Installed Apps" loading="lazy" /></div>
+        <div class="showcase-item"><img src="docs/images/hub.png" alt="Linuxy Discover - AppImage Hub" loading="lazy" /></div>
+        <div class="showcase-item"><img src="docs/images/settings.png" alt="Linuxy Settings Panel" loading="lazy" /></div>
+        <div class="showcase-item"><img src="docs/images/autodiscover.png" alt="Linuxy Auto-Discovery" loading="lazy" /></div>
+        <div style="flex:0 0 24px"></div>
+      </div>
+    </section>
+
+    <!-- Features -->
     <section class="features" id="features">
       <div class="container">
-        <h2 class="section-title">Why Linuxy?</h2>
-        <p class="section-subtitle">Everything you need to manage AppImages on Linux</p>
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Features
+          </div>
+          <h2 class="section-title">Why Linuxy?</h2>
+          <p class="section-subtitle">Everything you need to manage AppImages on Linux</p>
+        </div>
         <div class="features-grid">
           <div class="feature-card">
-            <span class="feature-icon">📦</span>
+            <div class="feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
             <h3>One-Click Installation</h3>
-            <p>
-              Drag and drop AppImage files to install them instantly. Automatic desktop entry
-              creation and icon extraction.
-            </p>
+            <p>Drag and drop AppImage files to install them instantly. Automatic desktop entry creation and icon extraction.</p>
           </div>
           <div class="feature-card">
-            <span class="feature-icon">🛡️</span>
+            <div class="feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
             <h3>Firejail Sandboxing</h3>
-            <p>
-              Run apps in a secure sandbox with a single click. Toggle sandboxing per application
-              for extra security.
-            </p>
+            <p>Run apps in a secure sandbox with a single click. Toggle sandboxing per application for extra security.</p>
           </div>
           <div class="feature-card">
-            <span class="feature-icon">🔄</span>
+            <div class="feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
             <h3>Automatic Updates</h3>
-            <p>
-              Built-in update checking keeps your AppImages up to date. Supports delta updates when
-              available.
-            </p>
+            <p>Built-in update checking keeps your AppImages up to date. Supports delta updates when available.</p>
           </div>
           <div class="feature-card">
-            <span class="feature-icon">🎨</span>
+            <div class="feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></div>
             <h3>Beautiful UI</h3>
-            <p>
-              Modern dark and light themes. Clean, responsive interface built with React and
-              Tailwind patterns.
-            </p>
+            <p>Modern dark and light themes with system-follow support. Clean, responsive interface built with React.</p>
           </div>
           <div class="feature-card">
-            <span class="feature-icon">📊</span>
+            <div class="feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div>
             <h3>Storage Management</h3>
-            <p>
-              Monitor disk usage, see installation dates, and manage all your AppImages from one
-              place.
-            </p>
+            <p>Monitor disk usage, see installation dates, and manage all your AppImages from one place.</p>
           </div>
           <div class="feature-card">
-            <span class="feature-icon">🔍</span>
+            <div class="feature-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
             <h3>App Discovery</h3>
-            <p>Browse and discover new AppImages directly from the integrated app catalog.</p>
+            <p>Browse and discover new AppImages directly from the integrated AppImageHub catalog.</p>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- How It Works -->
     <section class="how-it-works" id="how-it-works">
       <div class="container">
-        <h2 class="section-title">How It Works</h2>
-        <p class="section-subtitle">Get started in three simple steps</p>
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Getting Started
+          </div>
+          <h2 class="section-title">How It Works</h2>
+          <p class="section-subtitle">Get started in three simple steps</p>
+        </div>
         <div class="steps">
-          <div class="step">
-            <div class="step-number">1</div>
-            <h3>Install Linuxy</h3>
-            <p>
-              Download from releases or build from source. Supports DEB, AppImage, RPM, and AUR.
-            </p>
-          </div>
-          <div class="step">
-            <div class="step-number">2</div>
-            <h3>Add AppImages</h3>
-            <p>Drag & drop files or discover apps from the built-in store. It's that simple.</p>
-          </div>
-          <div class="step">
-            <div class="step-number">3</div>
-            <h3>Launch & Enjoy</h3>
-            <p>One-click launch, optional sandboxing, automatic updates. Done!</p>
-          </div>
+          <div class="step"><div class="step-num">1</div><h3>Install Linuxy</h3><p>Download the DEB package from releases or build from source.</p></div>
+          <div class="step"><div class="step-num">2</div><h3>Add AppImages</h3><p>Drag and drop files or discover apps from the built-in store.</p></div>
+          <div class="step"><div class="step-num">3</div><h3>Launch & Enjoy</h3><p>One-click launch, optional sandboxing, automatic updates. Done!</p></div>
         </div>
       </div>
     </section>
 
+    <!-- Installation -->
     <section class="installation" id="installation">
       <div class="container">
-        <h2 class="section-title">Install Linuxy</h2>
-        <p class="section-subtitle">Choose your preferred installation method</p>
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Installation
+          </div>
+          <h2 class="section-title">Install Linuxy</h2>
+          <p class="section-subtitle">Choose your preferred installation method</p>
+        </div>
         <div class="install-grid">
           <div class="install-card">
-            <span class="install-icon">📦</span>
+            <div class="install-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
             <h3>DEB Package</h3>
             <p>Debian / Ubuntu / Mint</p>
-            <div class="install-command">sudo apt install ./linuxy_1.0.0_amd64.deb</div>
-            <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary"
-              >Download DEB</a
-            >
+            <div class="install-cmd">sudo apt install ./linuxy_1.0.0_amd64.deb</div>
+            <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary">Download DEB</a>
           </div>
-          <div class="install-card">
-            <span class="install-icon">🟢</span>
-            <h3>AppImage</h3>
+          <div class="install-card disabled">
+            <div class="install-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <h3>AppImage <span class="badge">(Coming Soon)</span></h3>
             <p>Any Linux Distribution</p>
-            <div class="install-command">
-              chmod +x linuxy_1.0.0_amd64.AppImage<br />./linuxy_1.0.0_amd64.AppImage
-            </div>
-            <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-secondary"
-              >Download AppImage</a
-            >
+            <div class="install-cmd">chmod +x linuxy.AppImage<br />./linuxy.AppImage</div>
+            <span class="btn btn-outline" style="cursor:default">Coming Soon</span>
           </div>
-          <div class="install-card">
-            <span class="install-icon">🔴</span>
-            <h3>RPM Package</h3>
+          <div class="install-card disabled">
+            <div class="install-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <h3>RPM Package <span class="badge">(Coming Soon)</span></h3>
             <p>Fedora / RHEL / openSUSE</p>
-            <div class="install-command">sudo dnf install ./linuxy-1.0.0-1.x86_64.rpm</div>
-            <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-secondary"
-              >Download RPM</a
-            >
+            <div class="install-cmd">sudo dnf install ./linuxy.rpm</div>
+            <span class="btn btn-outline" style="cursor:default">Coming Soon</span>
           </div>
           <div class="install-card">
-            <span class="install-icon" style="font-weight: bold">AUR</span>
-            <h3>AUR Package</h3>
-            <p>Arch Linux</p>
-            <div class="install-command">yay -S linuxy</div>
-            <a href="https://aur.archlinux.org/packages/linuxy" class="btn btn-secondary"
-              >View AUR</a
-            >
-          </div>
-          <div class="install-card">
-            <span class="install-icon">🐙</span>
+            <div class="install-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
             <h3>Build from Source</h3>
             <p>All Distributions</p>
-            <div class="install-command">
-              git clone https://github.com/swadhinbiswas/linuxy<br />cd linuxy && npm install && npm
-              run tauri build
-            </div>
-            <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-secondary"
-              >View Source</a
-            >
+            <div class="install-cmd">git clone https://github.com/swadhinbiswas/linuxy<br />cd linuxy && npm install && npm run tauri build</div>
+            <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline">View Source</a>
           </div>
           <div class="install-card">
-            <span class="install-icon">🍱</span>
+            <div class="install-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
             <h3>Development</h3>
             <p>Run from Source</p>
-            <div class="install-command">
-              git clone https://github.com/swadhinbiswas/linuxy<br />cd linuxy && npm install && npm
-              run tauri dev
-            </div>
-            <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-secondary"
-              >Contribute</a
-            >
+            <div class="install-cmd">git clone https://github.com/swadhinbiswas/linuxy<br />cd linuxy && npm install && npm run tauri dev</div>
+            <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline">Contribute</a>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- CTA -->
     <section class="cta">
       <div class="container">
         <h2>Ready to Try Linuxy?</h2>
-        <p>Join thousands of Linux users who manage their AppImages with Linuxy.</p>
-        <a
-          href="#installation"
-          class="btn btn-primary"
-          style="padding: 16px 32px; font-size: 1.1rem"
-          >Get Started Now →</a
-        >
+        <p>Join the Linux community managing their AppImages the modern way.</p>
+        <a href="#installation" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          Get Started Now
+        </a>
       </div>
     </section>
 
+    <!-- FAQ -->
     <section class="faq" id="faq">
       <div class="container">
-        <h2 class="section-title">Frequently Asked Questions</h2>
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            FAQ
+          </div>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
         <div class="faq-list">
-          <div class="faq-item">
-            <div class="faq-question">What is an AppImage?</div>
-            <div class="faq-answer">
-              <p>
-                AppImage is a universal package format for Linux. It's a single executable file
-                containing an application and all its dependencies, allowing you to run software
-                without installation or root access.
-              </p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">Do I need Firejail?</div>
-            <div class="faq-answer">
-              <p>
-                Firejail is optional but highly recommended. Linuxy works perfectly without it, but
-                Firejail adds an essential security layer by sandboxing your AppImages. Install
-                with: <code>sudo apt install firejail</code>
-              </p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">Where are AppImages stored?</div>
-            <div class="faq-answer">
-              <p>
-                Linuxy stores AppImages in <code>~/.local/appimages/</code> and creates desktop
-                entries in <code>~/.local/share/applications/</code> for easy access from your
-                application menu.
-              </p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">Is Linuxy free?</div>
-            <div class="faq-answer">
-              <p>
-                Yes! Linuxy is 100% free and open source under the MIT license. There are no premium
-                features or payments.
-              </p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">What distributions are supported?</div>
-            <div class="faq-answer">
-              <p>
-                Linuxy runs on any Linux distribution! We provide DEB packages for Debian/Ubuntu,
-                RPM for Fedora, AppImage for universal use, and AUR for Arch Linux users.
-              </p>
-            </div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-question">How do I report bugs?</div>
-            <div class="faq-answer">
-              <p>
-                Please open an issue on our
-                <a
-                  href="https://github.com/swadhinbiswas/linuxy/issues"
-                  style="color: var(--accent)"
-                  >GitHub Issues page</a
-                >. We welcome bug reports, feature requests, and contributions!
-              </p>
-            </div>
-          </div>
+          <div class="faq-item"><div class="faq-question">What is an AppImage?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-answer"><p>AppImage is a universal package format for Linux. It's a single executable file containing an application and all its dependencies, allowing you to run software without installation or root access.</p></div></div>
+          <div class="faq-item"><div class="faq-question">Do I need Firejail?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-answer"><p>Firejail is optional but highly recommended. Linuxy works perfectly without it, but Firejail adds an essential security layer by sandboxing your AppImages. Install with: <code>sudo apt install firejail</code></p></div></div>
+          <div class="faq-item"><div class="faq-question">Where are AppImages stored?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-answer"><p>Linuxy stores AppImages in <code>~/.local/appimages/</code> and creates desktop entries in <code>~/.local/share/applications/</code> for easy access from your application menu.</p></div></div>
+          <div class="faq-item"><div class="faq-question">Is Linuxy free?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-answer"><p>Yes! Linuxy is 100% free and open source under the MIT license. There are no premium features or payments.</p></div></div>
+          <div class="faq-item"><div class="faq-question">What distributions are supported?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-answer"><p>Linuxy runs on any Linux distribution. We provide DEB packages for Debian/Ubuntu, with RPM, AppImage, and AUR packages coming soon.</p></div></div>
+          <div class="faq-item"><div class="faq-question">How do I report bugs?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-answer"><p>Please open an issue on our <a href="https://github.com/swadhinbiswas/linuxy/issues" style="color:var(--accent)">GitHub Issues page</a>. We welcome bug reports, feature requests, and contributions!</p></div></div>
         </div>
       </div>
     </section>
 
     <footer>
       <div class="container">
-        <div class="footer-logo">🐧 <span>Linuxy</span></div>
+        <div class="footer-brand"><img src="assets/linuxy-icon.png" alt="Linuxy" style="width:28px;height:28px;border-radius:8px" /> <span>Linuxy</span></div>
         <ul class="footer-links">
           <li><a href="https://github.com/swadhinbiswas/linuxy">GitHub</a></li>
           <li><a href="https://github.com/swadhinbiswas/linuxy/releases">Releases</a></li>
           <li><a href="https://github.com/swadhinbiswas/linuxy/issues">Issues</a></li>
-          <li>
-            <a href="https://github.com/swadhinbiswas/linuxy/blob/main/README.md">Documentation</a>
-          </li>
-          <li>
-            <a href="https://github.com/swadhinbiswas/linuxy/blob/main/CONTRIBUTING.md"
-              >Contribute</a
-            >
-          </li>
+          <li><a href="https://github.com/swadhinbiswas/linuxy/blob/main/README.md">Documentation</a></li>
+          <li><a href="https://github.com/swadhinbiswas/linuxy/blob/main/CONTRIBUTING.md">Contribute</a></li>
         </ul>
-        <p>© 2024 Linuxy. Open source under MIT License.</p>
-        <p style="margin-top: 12px; font-size: 0.9rem">
-          Made with ❤️ and 🦀 for the Linux community
+        <p class="footer-bottom">
+          &copy; 2025 Swadhin Biswas. Open source under MIT License.
+          <span style="margin-left:6px;display:inline-flex;align-items:center;gap:4px">
+            Made with
+            <svg viewBox="0 0 24 24" fill="var(--accent)" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            for the Linux community
+          </span>
         </p>
       </div>
     </footer>
 
     <script>
-      // FAQ toggle
-      document.querySelectorAll(".faq-question").forEach((q) => {
-        q.addEventListener("click", () => {
-          const item = q.parentElement;
-          const wasActive = item.classList.contains("active");
-          document.querySelectorAll(".faq-item").forEach((i) => i.classList.remove("active"));
-          if (!wasActive) item.classList.add("active");
-        });
-      });
+      // Particle system
+      (function(){const c=document.getElementById('particles'),x=c.getContext('2d');let w,h,pts=[];function resize(){w=c.width=innerWidth;h=c.height=innerHeight;pts=[];for(let i=0;i<60;i++)pts.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.5,dx:(Math.random()-.5)*.3,dy:(Math.random()-.5)*.3,o:Math.random()*.3+.1})}resize();addEventListener('resize',resize);function draw(){x.clearRect(0,0,w,h);for(const p of pts){p.x+=p.dx;p.y+=p.dy;if(p.x<0)p.x=w;if(p.x>w)p.x=0;if(p.y<0)p.y=h;if(p.y>h)p.y=0;x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(74,222,128,${p.o})`;x.fill()}for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){x.beginPath();x.moveTo(pts[i].x,pts[i].y);x.lineTo(pts[j].x,pts[j].y);x.strokeStyle=`rgba(74,222,128,${.06*(1-d/120)})`;x.stroke()}}requestAnimationFrame(draw)}draw()})();
+
+      // Nav scroll
+      addEventListener('scroll',()=>{document.getElementById('main-nav').classList.toggle('scrolled',scrollY>40)});
+
+      // FAQ
+      document.querySelectorAll('.faq-question').forEach(q=>{q.addEventListener('click',()=>{const item=q.parentElement,was=item.classList.contains('active');document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('active'));if(!was)item.classList.add('active')})});
 
       // Smooth scroll
-      document.querySelectorAll('a[href^="#"]').forEach((a) => {
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          const target = document.querySelector(a.getAttribute("href"));
-          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      });
+      document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})});
 
-      // Nav background on scroll
-      window.addEventListener("scroll", () => {
-        const nav = document.querySelector("nav");
-        if (window.scrollY > 50) {
-          nav.style.background = "rgba(10,10,10,0.95)";
-        } else {
-          nav.style.background = "rgba(10,10,10,0.9)";
-        }
-      });
+      // Scroll reveal
+      const obs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)'}})},{threshold:.1});
+      document.querySelectorAll('.feature-card,.install-card,.step,.faq-item,.showcase-item').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(30px)';el.style.transition='opacity .6s ease,transform .6s ease';obs.observe(el)});
     </script>
   </body>
 </html>

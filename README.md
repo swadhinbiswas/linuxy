@@ -1,363 +1,372 @@
-# 🐧 Linuxy
+<div align="center">
+  <img src="assets/linuxy-icon.png" alt="Linuxy Mascot" width="140" />
 
-**The Ultimate AppImage Manager for Linux**
+  <h1>Linuxy</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub release](https://img.shields.io/github/release/swadhinbiswas/linuxy.svg)](https://github.com/swadhinbiswas/linuxy/releases)
-[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri-24C8DB)](https://tauri.app)
-[![Rust](https://img.shields.io/badge/rust-v1.70+-orange)](https://www.rust-lang.org)
+  <p><strong>The Modern AppImage Manager for Linux</strong></p>
 
-Linuxy is a modern, feature-rich AppImage manager that simplifies how you
-install, organize, and run AppImage applications on Linux. With one-click
-installation, Firejail sandboxing, and optional delta updates, Linuxy brings
-simplicity and security to managing portable Linux applications.
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="MIT License" /></a>
+    <a href="https://github.com/swadhinbiswas/linuxy/releases"><img src="https://img.shields.io/github/v/release/swadhinbiswas/linuxy?style=for-the-badge&color=6366f1" alt="Release" /></a>
+    <a href="https://tauri.app"><img src="https://img.shields.io/badge/Built_with-Tauri_v1-24C8DB?style=for-the-badge" alt="Tauri" /></a>
+    <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-1.70+-e97b30?style=for-the-badge&logo=rust&logoColor=white" alt="Rust" /></a>
+    <a href="https://github.com/swadhinbiswas/linuxy/actions"><img src="https://img.shields.io/github/actions/workflow/status/swadhinbiswas/linuxy/ci.yml?style=for-the-badge&label=CI" alt="CI" /></a>
+  </p>
 
-**📚 Complete Documentation**: [DOCS_INDEX.md](DOCS_INDEX.md)
+  <p>
+    Install, organize, sandbox, and update AppImages &mdash; all from one place.<br/>
+    Drag-and-drop simplicity backed by Rust-powered performance.
+  </p>
+</div>
 
-![Linuxy Screenshot](.github/screenshot.png)
+<br/>
 
-## ✨ Features
+<div align="center">
+  <img src="docs/images/installed.png" alt="Linuxy Library View" width="80%" />
+</div>
 
-- **📦 One-Click Installation** - Drag and drop AppImage files to install them
-  instantly
-- **🛡️ Firejail Sandboxing** - Toggle secure sandboxing per application with a
-  single click
-- **🔄 Optional Delta Updates** - Update checks for supported AppImages when
-  `appimageupdatetool` is installed
-- **🎨 Beautiful Interface** - Modern UI with dark and light theme support
-- **📊 Storage Management** - Monitor disk usage across all installed AppImages
-- **🔍 App Discovery** - Browse and discover new AppImages directly from the app
-- **🖥️ Desktop Integration** - Automatic .desktop file creation for menu
-  integration
-- **🎯 Icon Management** - Automatic icon extraction and caching
+---
 
-## 📸 Screenshots
+## Features
 
-### Library View
+| | Feature | Description |
+|---|---|---|
+| **1** | **One-Click Install** | Drag & drop any `.AppImage` onto the window, or browse for it with the file picker. Linuxy validates the ELF header, extracts metadata and icons from the SquashFS, creates a `.desktop` entry, and copies everything to `~/.local/`. |
+| **2** | **App Discovery** | Browse the [AppImageHub](https://appimage.github.io) catalog or search GitHub's `appimage` topic -- then install directly in one click. |
+| **3** | **Firejail Sandboxing** | Toggle per-app sandboxing with a single click. When enabled, the app runs under `firejail --appimage` with restricted filesystem and network access. |
+| **4** | **Delta Updates** | Checks for updates via the bundled `appimageupdatetool` sidecar. Only downloads binary diffs -- not the entire AppImage. |
+| **5** | **Downloads Watcher** | Automatically detects new `.AppImage` files appearing in `~/Downloads` and prompts you to install them. A "Later" option suppresses repeated notifications. |
+| **6** | **Theming** | Switch between Dark, Light, and System-follow themes. Preferences persist across sessions via `localStorage`. |
+| **7** | **Storage Dashboard** | Settings panel shows total disk usage and installed app count at a glance. |
+| **8** | **CLI Mode** | Headless installation and management from the terminal: `linuxy install <path>`, `linuxy list`, `linuxy help`. |
+| **9** | **Desktop Integration** | Automatic `.desktop` file creation, icon extraction, and `update-desktop-database` for native menu integration. |
 
-![Library View](.github/library.png)
+---
 
-### Settings View
+## Screenshots
 
-![Settings View](.github/settings.png)
+<div align="center">
 
-### Dark/Light Themes
+| Library | Discover |
+|---|---|
+| <img src="docs/images/installed.png" alt="Installed Apps" width="100%" /> | <img src="docs/images/hub.png" alt="AppImage Hub" width="100%" /> |
 
-![Themes](.github/themes.png)
+| Settings | Auto-Discovery |
+|---|---|
+| <img src="docs/images/settings.png" alt="Settings" width="100%" /> | <img src="docs/images/autodiscover.png" alt="Auto Discovery" width="100%" /> |
 
-## 🚀 Quick Start
+</div>
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- **Linux** (x86_64 architecture)
-- **Node.js** 18+ (for building from source)
-- **Rust** 1.70+ (for building from source)
-- **Firejail** (optional, for sandboxing features)
+| Requirement | Minimum | Notes |
+|---|---|---|
+| **OS** | Linux x86_64 | Tested on Ubuntu 22.04+, Fedora 38+, Arch |
+| **Node.js** | 18+ | For building from source |
+| **Rust** | 1.70+ | For building from source |
+| **Firejail** | Any | *Optional* -- enables sandboxing |
 
-### Installation Methods
-
-#### Option 1: DEB Package (Debian/Ubuntu)
+### Install from .deb (Debian / Ubuntu)
 
 ```bash
-# Download the latest .deb package from releases
+# Download the latest release
 wget https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy_1.0.0_amd64.deb
 
-# Install the package
+# Install
 sudo apt install ./linuxy_1.0.0_amd64.deb
 ```
 
-#### Option 2: AUR Package (Arch Linux)
+### Build from Source
 
 ```bash
-# Using yay
-yay -S linuxy
-
-# Using paru
-paru -S linuxy
-```
-
-#### Option 3: Build from Source
-
-```bash
-# Clone the repository
 git clone https://github.com/swadhinbiswas/linuxy.git
 cd linuxy
-
-# Install dependencies
 npm install
-
-# Build the application
 npm run tauri build
 
-# The built application will be in src-tauri/target/release/
+# Binary output -> src-tauri/target/release/linuxy
+# DEB package  -> src-tauri/target/release/bundle/deb/
 ```
 
-#### Option 4: Run in Development Mode
+### Run in Development
 
 ```bash
-# Clone and install dependencies
 git clone https://github.com/swadhinbiswas/linuxy.git
 cd linuxy
 npm install
-
-# Run in development mode
-npm run dev
+npm run tauri dev
 ```
 
-## 📖 Usage Guide
+> [!TIP]
+> On Wayland, Linuxy forces the X11/XWayland backend to work around a WebKitGTK compositing crash. No manual intervention required.
 
-### Installing AppImages
+---
 
-1. **Drag and Drop**: Simply drag an `.AppImage` file onto the Linuxy window
-2. **File Browser**: Click the "Browse" button to select an AppImage file
-3. **Discovery**: Use the built-in app discovery to find and install popular
-   AppImages
+## Usage
 
-### Managing Installed Apps
+### GUI
 
-- **Launch**: Click the "Launch" button to run an installed AppImage
-- **Sandbox**: Click the shield icon to toggle Firejail sandboxing
-- **Update**: Click the refresh icon to check for updates when
-  `appimageupdatetool` is available
-- **Remove**: Click the trash icon to uninstall an AppImage
+1. **Library** -- Your home screen. Drag an `.AppImage` here or click the drop-zone to browse.
+2. **Discover** -- Search and install from AppImageHub or trending GitHub projects.
+3. **Settings** -- Toggle themes, view storage stats, check Firejail / update-tool status, and open the AppImage directory.
 
-### Firejail Sandboxing
+Each installed app shows action buttons:
 
-Firejail provides an additional security layer by restricting what AppImages can
-access:
+- **Launch** -- Run the AppImage (through Firejail if sandbox is toggled on).
+- **Sandbox** -- Enable / disable Firejail isolation.
+- **Update** -- Check for and apply delta updates.
+- **Remove** -- Delete the AppImage, its `.desktop` entry, and cached icons.
+
+### CLI
 
 ```bash
-# Install Firejail (if not already installed)
-sudo apt install firejail        # Debian/Ubuntu
-sudo dnf install firejail        # Fedora
-sudo pacman -S firejail          # Arch Linux
+linuxy install ~/Downloads/App.AppImage   # Install an AppImage
+linuxy list                               # List installed AppImages
+linuxy help                               # Show available commands
 ```
 
-When sandboxing is enabled for an app, it runs with restricted access to:
+You can also pass an AppImage path directly:
 
-- Home directory (configurable)
-- System files
-- Network (optional)
-- Other processes
+```bash
+linuxy ~/Downloads/App.AppImage
+```
 
-### Keyboard Shortcuts
+---
 
-| Shortcut | Action              |
-| -------- | ------------------- |
-| `Ctrl+O` | Open AppImage file  |
-| `Ctrl+R` | Refresh app list    |
-| `Ctrl+,` | Open settings       |
-| `Delete` | Remove selected app |
-
-## 🏗️ Project Structure
+## Architecture
 
 ```
 linuxy/
-├── src/                    # React/TypeScript frontend
-│   ├── components/         # UI components
-│   │   ├── AppGrid.tsx     # App display grid
-│   │   ├── Sidebar.tsx     # Navigation sidebar
-│   │   ├── DropZone.tsx    # Drag-drop zone
-│   │   └── Storefront.tsx  # App discovery
-│   ├── styles/             # CSS stylesheets
-│   ├── App.tsx             # Main application component
-│   └── main.tsx            # Entry point
-├── src-tauri/              # Rust backend
+├── src/                        # React + TypeScript frontend
+│   ├── App.tsx                 # Root component -- views, modals, state
+│   ├── components/
+│   │   ├── Sidebar.tsx         # Navigation (Library / Discover / Settings)
+│   │   ├── AppGrid.tsx         # Installed app cards with actions
+│   │   ├── DropZone.tsx        # Drag-and-drop install area
+│   │   └── Storefront.tsx      # AppImageHub + GitHub discovery
+│   ├── styles/
+│   │   └── main.css            # CSS custom-property theme system
+│   └── main.tsx                # React entry point
+│
+├── src-tauri/                  # Rust backend
 │   ├── src/
-│   │   ├── main.rs         # Application entry
-│   │   ├── manager.rs      # App management logic
-│   │   ├── installer.rs    # Installation logic
-│   │   ├── updater.rs      # Update checking
-│   │   ├── watcher.rs      # File system watcher
-│   │   └── downloader.rs   # Download utilities
-│   ├── icons/              # Application icons
-│   └── Cargo.toml          # Rust dependencies
-├── packaging/              # Package configurations
-│   ├── deb/                # Debian package config
-│   ├── aur/                # AUR package config
-│   └── appimage/           # AppImage build config
-└── index.html              # Landing page
+│   │   ├── main.rs             # Tauri builder, handler registration
+│   │   ├── installer.rs        # SquashFS extraction, .desktop creation
+│   │   ├── manager.rs          # CRUD ops, launch, sandbox toggle
+│   │   ├── updater.rs          # Sidecar-based delta update commands
+│   │   ├── watcher.rs          # ~/Downloads polling for new AppImages
+│   │   ├── downloader.rs       # Streaming HTTP download + install
+│   │   └── cli.rs              # Headless CLI subcommands
+│   ├── icons/                  # App icons (all sizes + .ico/.icns)
+│   ├── bin/                    # Bundled sidecar (appimageupdatetool)
+│   └── Cargo.toml              # Rust dependencies
+│
+├── packaging/                  # Distribution configs
+│   ├── deb/                    # Debian package metadata
+│   ├── rpm/                    # RPM spec (planned)
+│   ├── aur/                    # AUR PKGBUILD (planned)
+│   └── appimage/               # Meta-AppImage build (planned)
+│
+├── docs/                       # Extended documentation
+│   ├── images/                 # Application screenshots
+│   ├── INSTALL.md
+│   ├── USAGE.md
+│   ├── MAINTENANCE.md
+│   ├── CODE_SIGNING.md
+│   └── PRODUCTION_READINESS.md
+│
+└── assets/                     # Branding
+    └── linuxy-icon.png         # Mascot icon
 ```
 
-## ⚙️ Configuration
+---
+
+## Configuration
 
 ### Storage Locations
 
-| Type          | Location                       |
-| ------------- | ------------------------------ |
-| AppImages     | `~/.local/appimages/`          |
-| Desktop Files | `~/.local/share/applications/` |
-| Icons         | `~/.local/share/icons/`        |
+| Purpose | Path |
+|---|---|
+| AppImage binaries | `~/.local/appimages/` |
+| Desktop entries | `~/.local/share/applications/` |
+| Extracted icons | `~/.local/share/icons/` |
 
-### Environment Variables
+### Firejail Sandboxing
 
-| Variable       | Description         | Default |
-| -------------- | ------------------- | ------- |
-| `TAURI_DEBUG`  | Enable debug mode   | `false` |
-| `VITE_API_URL` | Custom API endpoint | -       |
-
-## 🔧 Development
-
-### Prerequisites Setup
+Install Firejail with your distro's package manager:
 
 ```bash
-# Install Node.js (using nvm recommended)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-nvm install 18
-
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Install system dependencies (Debian/Ubuntu)
-sudo apt install libwebkit2gtk-4.0-dev \
-    build-essential \
-    curl \
-    wget \
-    file \
-    libxdo-dev \
-    libssl-dev \
-    libayatana-appindicator3-dev \
-    librsvg2-dev
+sudo apt install firejail        # Debian / Ubuntu
+sudo dnf install firejail        # Fedora
+sudo pacman -S firejail          # Arch
 ```
 
-### Available Scripts
+When sandbox is toggled on for an app, Linuxy rewrites its `.desktop` file to prepend `firejail --appimage` to the `Exec=` line. Toggle it off to restore direct execution.
+
+### Delta Updates
+
+Linuxy bundles `appimageupdatetool` as a Tauri sidecar. If the tool is present in `src-tauri/bin/`, update checks and apply are available per-app. The Settings panel shows the current detection status.
+
+---
+
+## Development
+
+### System Dependencies
 
 ```bash
-# Development
-npm run dev          # Start Vite dev server
-npm run tauri dev    # Start Tauri dev app
-
-# Building
-npm run build        # Build frontend
-npm run tauri build  # Build full application
-
-# Other
-npm run preview      # Preview production build
-```
-
-### Code Style
-
-```bash
-# Frontend linting
-npm run lint
-
-# Rust formatting
-cd src-tauri && cargo fmt
-
-# Rust linting
-cd src-tauri && cargo clippy
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md)
-for details.
-
-### Quick Start for Contributors
-
-```bash
-# Fork the repository
-git clone https://github.com/YOUR_USERNAME/linuxy.git
-cd linuxy
-
-# Create a branch
-git checkout -b feature/your-feature
-
-# Make your changes and commit
-git commit -m "feat: add your feature"
-
-# Push and create PR
-git push origin feature/your-feature
-```
-
-### Development Guidelines
-
-1. **Frontend**: TypeScript + React with functional components
-2. **Backend**: Rust with async/await patterns
-3. **Styling**: CSS custom properties for theming
-4. **Commits**: Follow
-   [Conventional Commits](https://www.conventionalcommits.org/)
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### "Firejail not found" error
-
-```bash
-# Install Firejail
-sudo apt install firejail
-```
-
-#### AppImage won't launch
-
-```bash
-# Make sure the AppImage is executable
-chmod +x ~/.local/appimages/your-app.AppImage
-```
-
-#### Missing icons
-
-```bash
-# Reinstall the app to regenerate icons
-# Or manually extract icons to ~/.local/share/icons/
-```
-
-#### Build fails with missing dependencies
-
-```bash
-# Ubuntu/Debian (24.04+)
-sudo apt install libwebkit2gtk-4.1-dev libssl-dev libayatana-appindicator3-dev
-
-# Ubuntu/Debian (20.04-22.04)
-sudo apt install libwebkit2gtk-4.0-dev libssl-dev libayatana-appindicator3-dev
+# Ubuntu / Debian
+sudo apt install libwebkit2gtk-4.0-dev build-essential curl wget file \
+  libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
 # Fedora
 sudo dnf install webkit2gtk4.1-devel openssl-devel libappindicator-gtk3-devel
 
-# Arch Linux
+# Arch
 sudo pacman -S webkit2gtk-4.1 openssl libappindicator-gtk3
 ```
 
-## 📄 License
+### Scripts
 
-Linuxy is released under the [MIT License](LICENSE).
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server (frontend only) |
+| `npm run tauri dev` | Start full Tauri dev app |
+| `npm run build` | Build frontend for production |
+| `npm run tauri build` | Build the complete application |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Auto-fix lint issues |
+| `npm run format` | Format with Prettier |
+| `npm run format:check` | Check formatting |
+| `npm run typecheck` | TypeScript type check |
+| `npm run check` | Run all quality checks |
 
+### Rust Quality
+
+```bash
+cd src-tauri && cargo fmt         # Format
+cd src-tauri && cargo clippy      # Lint
+cd src-tauri && cargo test        # Run unit tests
 ```
-Copyright (c) 2024 Linuxy
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+---
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](CONTRIBUTING.md) for full details.
+
+```bash
+# 1. Fork & clone
+git clone https://github.com/YOUR_USERNAME/linuxy.git && cd linuxy
+
+# 2. Branch
+git checkout -b feat/your-feature
+
+# 3. Develop & commit (Conventional Commits)
+git commit -m "feat: add your feature"
+
+# 4. Push & open a PR
+git push origin feat/your-feature
 ```
 
-## 🙏 Acknowledgments
+### Tech Stack
 
-- [Tauri](https://tauri.app) - The framework powering Linuxy
-- [Firejail](https://firejail.wordpress.com/) - Sandbox security feature
-- [AppImage](https://appimage.org/) - Universal Linux package format
-- [React](https://react.dev/) - UI library
-- [Lucide Icons](https://lucide.dev/) - Beautiful icons
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, TypeScript, Lucide Icons |
+| Backend | Rust, Tauri v1, Tokio, Reqwest |
+| Build | Vite 5, ESLint, Prettier |
+| Packaging | DEB (via Tauri bundler) |
 
-## 📬 Contact
+---
 
-- **GitHub Issues**:
-  [Report a bug or request a feature](https://github.com/swadhinbiswas/linuxy/issues)
-- **Discussions**:
-  [Community discussions](https://github.com/swadhinbiswas/linuxy/discussions)
-- **Twitter**: [@linuxyapp](https://twitter.com/linuxyapp)
+## Troubleshooting
+
+<details>
+<summary><strong>AppImage won't launch</strong></summary>
+
+Ensure the file is executable:
+
+```bash
+chmod +x ~/.local/appimages/your-app.AppImage
+```
+
+</details>
+
+<details>
+<summary><strong>Firejail not found</strong></summary>
+
+Install Firejail with your package manager:
+
+```bash
+sudo apt install firejail          # Debian / Ubuntu
+sudo dnf install firejail          # Fedora
+sudo pacman -S firejail            # Arch
+```
+
+</details>
+
+<details>
+<summary><strong>Build fails with missing WebKit headers</strong></summary>
+
+Install the WebKitGTK development package:
+
+```bash
+# Ubuntu 24.04+
+sudo apt install libwebkit2gtk-4.1-dev
+
+# Ubuntu 20.04-22.04
+sudo apt install libwebkit2gtk-4.0-dev
+```
+
+</details>
+
+<details>
+<summary><strong>Icons not showing after install</strong></summary>
+
+Re-install the AppImage through Linuxy to re-extract icons, or manually copy an icon to `~/.local/share/icons/`.
+
+</details>
+
+---
+
+## Documentation
+
+Full documentation is available in the [`docs/`](docs/) directory:
+
+- [Installation Guide](docs/INSTALL.md)
+- [Usage Guide](docs/USAGE.md)
+- [Maintenance Guide](docs/MAINTENANCE.md)
+- [Code Signing](docs/CODE_SIGNING.md)
+- [Security Policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2025 [Swadhin Biswas](https://github.com/swadhinbiswas)
+
+---
+
+## Acknowledgments
+
+- [Tauri](https://tauri.app) -- Native app framework
+- [AppImage](https://appimage.org) -- Universal Linux package format
+- [Firejail](https://firejail.wordpress.com) -- Linux sandbox
+- [AppImageHub](https://appimage.github.io) -- App catalog feed
+- [React](https://react.dev) -- UI library
+- [Lucide](https://lucide.dev) -- Icon set
 
 ---
 
 <div align="center">
-  <p>Made with ❤️ and 🦀 for the Linux community</p>
-  <p>
-    <a href="#-linuxy">↑ Back to top ↑</a>
-  </p>
+  <sub>Made with care for the Linux community</sub>
+  <br/>
+  <a href="#linuxy">Back to top</a>
 </div>
