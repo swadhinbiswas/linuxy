@@ -37,7 +37,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onRefresh 
           ...btnStyle,
           background: currentView === "library" ? "var(--accent-bg)" : "transparent",
           color: currentView === "library" ? "var(--accent-color)" : "var(--text-secondary)",
-          borderRight: currentView === "library" ? "3px solid var(--accent-color)" : "3px solid transparent",
+          borderRight:
+            currentView === "library" ? "3px solid var(--accent-color)" : "3px solid transparent",
         }}
         onClick={() => onViewChange("library")}
       >
@@ -49,7 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onRefresh 
           ...btnStyle,
           background: currentView === "discover" ? "var(--accent-bg)" : "transparent",
           color: currentView === "discover" ? "var(--accent-color)" : "var(--text-secondary)",
-          borderRight: currentView === "discover" ? "3px solid var(--accent-color)" : "3px solid transparent",
+          borderRight:
+            currentView === "discover" ? "3px solid var(--accent-color)" : "3px solid transparent",
         }}
         onClick={() => onViewChange("discover")}
       >
@@ -61,7 +63,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onRefresh 
           ...btnStyle,
           background: currentView === "settings" ? "var(--accent-bg)" : "transparent",
           color: currentView === "settings" ? "var(--accent-color)" : "var(--text-secondary)",
-          borderRight: currentView === "settings" ? "3px solid var(--accent-color)" : "3px solid transparent",
+          borderRight:
+            currentView === "settings" ? "3px solid var(--accent-color)" : "3px solid transparent",
         }}
         onClick={() => onViewChange("settings")}
       >
@@ -70,7 +73,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onRefresh 
 
       <div style={{ flex: 1 }} />
 
-      <button style={{ ...btnStyle, background: "transparent", color: "var(--text-secondary)", borderRight: "3px solid transparent" }} onClick={onRefresh}>
+      <button
+        style={{
+          ...btnStyle,
+          background: "transparent",
+          color: "var(--text-secondary)",
+          borderRight: "3px solid transparent",
+        }}
+        onClick={onRefresh}
+      >
         <RefreshCw size={18} style={{ marginRight: 10 }} /> Refresh
       </button>
     </div>

@@ -129,7 +129,7 @@ function App() {
 
     const unlistenDetected = listen<string>("appimage-detected", (event) => {
       const fullPath = event.payload;
-      const ignored = JSON.parse(localStorage.getItem('ignoredAppImages') || '[]');
+      const ignored = JSON.parse(localStorage.getItem("ignoredAppImages") || "[]");
       if (ignored.includes(fullPath)) return;
 
       const fileName = fullPath.split("/").pop() || fullPath;
@@ -137,13 +137,13 @@ function App() {
         title: "Install Detected AppImage",
         message: `New AppImage detected:\n${fileName}\n\nInstall it to your library?`,
         actions: [
-          { 
-            label: "Later", 
+          {
+            label: "Later",
             variant: "secondary",
             onClick: () => {
               ignored.push(fullPath);
-              localStorage.setItem('ignoredAppImages', JSON.stringify(ignored));
-            }
+              localStorage.setItem("ignoredAppImages", JSON.stringify(ignored));
+            },
           },
           {
             label: "Install",
@@ -538,9 +538,7 @@ function App() {
                   fontSize: "13px",
                   marginTop: "10px",
                   padding: "10px",
-                  background: firejailInstalled
-                    ? "var(--accent-bg)"
-                    : "var(--danger-bg)",
+                  background: firejailInstalled ? "var(--accent-bg)" : "var(--danger-bg)",
                   borderRadius: "6px",
                 }}
               >
@@ -588,9 +586,7 @@ function App() {
                   fontSize: "13px",
                   marginTop: "10px",
                   padding: "10px",
-                  background: updateToolInstalled
-                    ? "var(--accent-bg)"
-                    : "var(--danger-bg)",
+                  background: updateToolInstalled ? "var(--accent-bg)" : "var(--danger-bg)",
                   borderRadius: "6px",
                 }}
               >

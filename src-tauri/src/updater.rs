@@ -27,7 +27,7 @@ pub async fn check_for_update(path: String, window: Window) -> Result<bool, Stri
 
     let cmd = Command::new_sidecar(UPDATE_TOOL)
         .map_err(|e| format!("Failed to create sidecar command: {}", e))?;
-        
+
     let output = cmd.args(["--check-for-update", &path]).output();
 
     match output {
@@ -35,7 +35,11 @@ pub async fn check_for_update(path: String, window: Window) -> Result<bool, Stri
             let _ = window.emit("install-progress", "Done");
 
             if out.status.success() || out.status.code() == Some(1) {
-                Ok(update_check_indicates_available(out.status.code(), &out.stdout, &out.stderr))
+                Ok(update_check_indicates_available(
+                    out.status.code(),
+                    &out.stdout,
+                    &out.stderr,
+                ))
             } else {
                 Err(format!("Update check failed: {}", out.stderr.trim()))
             }
@@ -53,7 +57,7 @@ pub async fn apply_update(path: String, window: Window) -> Result<String, String
 
     let cmd = Command::new_sidecar(UPDATE_TOOL)
         .map_err(|e| format!("Failed to create sidecar command: {}", e))?;
-        
+
     let output = cmd.args([&path]).output();
 
     match output {
@@ -81,11 +85,19 @@ mod tests {
 
     #[test]
     fn detects_update_from_output_text() {
-        assert!(update_check_indicates_available(Some(0), "An update is available", ""));
+        assert!(update_check_indicates_available(
+            Some(0),
+            "An update is available",
+            ""
+        ));
     }
 
     #[test]
     fn reports_no_update_when_signal_absent() {
-        assert!(!update_check_indicates_available(Some(0), "already up to date", ""));
+        assert!(!update_check_indicates_available(
+            Some(0),
+            "already up to date",
+            ""
+        ));
     }
 }
