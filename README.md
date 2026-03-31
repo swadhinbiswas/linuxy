@@ -72,6 +72,21 @@
 
 ### Install from .deb (Debian / Ubuntu)
 
+#### Option 1: Official APT Repository (Recommended)
+Add the official repository to automatically receive updates via your package manager:
+```bash
+# Add the repository signing key
+curl -fsSL https://swadhinbiswas.github.io/linuxy/apt/linuxy.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/linuxy.gpg
+
+# Add the repository to sources
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/linuxy.gpg] https://swadhinbiswas.github.io/linuxy/apt /" | sudo tee /etc/apt/sources.list.d/linuxy.list
+
+# Install Linuxy
+sudo apt update
+sudo apt install linuxy
+```
+
+#### Option 2: Manual Download
 ```bash
 # Download the latest release
 wget https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy_1.0.0_amd64.deb

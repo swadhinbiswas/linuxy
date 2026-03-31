@@ -1,0 +1,115 @@
+name: Deploy APT Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch repository debs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p public/apt/pool/main
+          # Ensure gh cli operates non-interactively
+          gh release list --limit 10 | awk '{print $1}' > releases.txt
+          while read -r tag; do
+            echo "Fetching deb packages for release $tag"
+            gh release download "$tag" --pattern "*.deb" --dir public/apt/pool/main/ --clobber || echo "No deb found for $tag"
+          done < releases.txt
+          
+          if [ ! "$(ls -A public/apt/pool/main/*.deb 2>/dev/null)" ]; then
+            echo "No .deb files found to publish!"
+            exit 1
+          fi
+
+      - name: Setup APT Metadata
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev apt-utils
+          
+          cd public/apt
+          
+          # Generate Packages and Archives metadata
+          dpkg-scanpackages --arch amd64 pool/ > Packages
+          cat Packages | gzip -9c > Packages.gz
+          
+          # Generate base Release file
+          cat <<EOF > Release
+          Architectures: amd64
+          Codename: stable
+          Components: main
+          Date: $(date -Ru)
+          Description: Linuxy Official APT Repository
+          Label: Linuxy
+          Origin: swadhinbiswas
+          Suite: stable
+          EOF
+          
+          # Append Checksums to Release
+          echo "MD5Sum:" >> Release
+          for f in Packages Packages.gz; do
+            echo " $(md5sum $f | cut -d' ' -f1) $(stat -c %s $f) $f" >> Release
+          done
+          
+          echo "SHA1:" >> Release
+          for f in Packages Packages.gz; do
+            echo " $(sha1sum $f | cut -d' ' -f1) $(stat -c %s $f) $f" >> Release
+          done
+          
+          echo "SHA256:" >> Release
+          for f in Packages Packages.gz; do
+            echo " $(sha256sum $f | cut -d' ' -f1) $(stat -c %s $f) $f" >> Release
+          done
+
+      - name: Sign Repository (Optional if Keys Present)
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "Warning: GPG_PRIVATE_KEY secret is not set. The repository will be unsigned."
+            exit 0
+          fi
+          
+          echo "$GPG_PRIVATE_KEY" > private.key
+          gpg --batch --import private.key
+          rm private.key
+          
+          KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5 }' | head -n 1)
+          echo "Found key: $KEY_ID"
+          
+          cd public/apt
+          
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "$GPG_PASSPHRASE" | gpg --default-key "$KEY_ID" --batch --yes --pinentry-mode loopback --passphrase-fd 0 -abs -o Release.gpg Release
+            echo "$GPG_PASSPHRASE" | gpg --default-key "$KEY_ID" --batch --yes --pinentry-mode loopback --passphrase-fd 0 --clearsign -o InRelease Release
+          else
+            gpg --default-key "$KEY_ID" --batch --yes -abs -o Release.gpg Release
+            gpg --default-key "$KEY_ID" --batch --yes --clearsign -o InRelease Release
+          fi
+          
+          # Export public key so users can download it
+          gpg --armor --export "$KEY_ID" > linuxy.gpg.key
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          keep_files: true
