@@ -12,6 +12,10 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "dialog": {
+        "all": false,
+        "open": true
+      },
       "protocol": {
         "all": false,
         "asset": true,
@@ -27,11 +31,12 @@
         "files": {},
         "desktopTemplate": "./debian/desktop-template.desktop"
       },
-      "externalBin": [],
+      "externalBin": ["bin/appimageupdatetool"],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
         "icons/128x128@2x.png",
+        "icons/icon.png",
         "icons/icon.icns",
         "icons/icon.ico"
       ],
@@ -50,10 +55,11 @@
       "windows": { "certificateThumbprint": null, "digestAlgorithm": "sha256", "timestampUrl": "" }
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
     },
     "windows": [
       {
+        "url": "app.html",
         "fullscreen": false,
         "height": 600,
         "resizable": true,
