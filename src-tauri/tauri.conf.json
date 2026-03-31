@@ -36,7 +36,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.linuxy.app",
-      "longDescription": "Linuxy is a modern AppImage manager with one-click installation, Firejail sandboxing, optional delta updates, and secure desktop integration.",
+      "longDescription": "Linuxy is a modern Linux application manager with one-click installation, Firejail sandboxing, optional delta updates, and secure desktop integration.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -45,12 +45,12 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "One-click AppImage Manager for Linux",
-      "targets": "all",
+      "shortDescription": "One-click Linux Application Manager",
+      "targets": ["deb"],
       "windows": { "certificateThumbprint": null, "digestAlgorithm": "sha256", "timestampUrl": "" }
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: data: https://appimage.github.io https://avatars.githubusercontent.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://appimage.github.io https://api.github.com https://avatars.githubusercontent.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
     },
     "windows": [
       {

@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
 Name=Linuxy
-Comment=One-click AppImage Manager for Linux - Open Source
+Comment=One-click Linux Application Manager - Open Source
 Exec=linuxy %U
 Icon=linuxy
 Categories=Utility;System;
-Keywords=AppImage;Manager;Linux;
+Keywords=Application;Manager;Linux;
 StartupNotify=true
 StartupWMClass=linuxy

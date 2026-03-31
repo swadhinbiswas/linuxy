@@ -145,6 +145,14 @@ jobs:
       - name: Build Tauri app
         run: npm run tauri build
 
+      - name: Install Ruby and fpm for RPM conversion
+        run: |
+          sudo apt-get install -y ruby ruby-dev
+          gem install fpm
+
+      - name: Build RPM package
+        run: ./scripts/build-rpm.sh
+
       - name: Upload DEB artifact
         uses: actions/upload-artifact@v4
         if: github.event_name == 'pull_request'
@@ -252,8 +260,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build frontend
+        run: npm run build
+
       - name: Build Tauri app
         run: npm run tauri build
+
+      - name: Install Ruby and fpm for RPM conversion
+        run: |
+          sudo apt-get install -y ruby ruby-dev
+          gem install fpm
+
+      - name: Build RPM package
+        run: ./scripts/build-rpm.sh
 
       - name: Test binary exists
         run: |
@@ -266,8 +285,9 @@ jobs:
           echo "Checking bundle outputs..."
           ls -la src-tauri/target/release/bundle/
           [ -d "src-tauri/target/release/bundle/deb" ] && echo "DEB: OK"
-          [ -d "src-tauri/target/release/bundle/appimage" ] && echo "AppImage: OK"
           [ -d "src-tauri/target/release/bundle/rpm" ] && echo "RPM: OK"
+          [ -f "src-tauri/target/release/bundle/deb/"*.deb ] && echo "DEB package: OK"
+          [ -f "src-tauri/target/release/bundle/rpm/"*.rpm ] && echo "RPM package: OK"
 
       - name: Verify desktop file template
         run: |
