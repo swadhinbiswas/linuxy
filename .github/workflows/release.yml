@@ -92,7 +92,7 @@ jobs:
       - name: Install Ruby and fpm for RPM conversion
         run: |
           sudo apt-get install -y ruby ruby-dev
-          gem install fpm
+          sudo gem install fpm
 
       - name: Build RPM package
         run: ./scripts/build-rpm.sh
