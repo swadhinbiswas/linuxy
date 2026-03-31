@@ -1,5 +1,3 @@
-name: Auto Labeler
-
 # Labels for different file changes
 frontend:
   - changed-files:

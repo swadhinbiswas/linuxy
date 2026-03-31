@@ -85,6 +85,9 @@ jobs:
         working-directory: src-tauri
         run: cargo fmt --all -- --check
 
+      - name: Create dist directory for Tauri context
+        run: mkdir -p dist
+
       - name: Run Clippy linter
         working-directory: src-tauri
         run: cargo clippy -- -D warnings
@@ -148,7 +151,7 @@ jobs:
       - name: Install Ruby and fpm for RPM conversion
         run: |
           sudo apt-get install -y ruby ruby-dev
-          gem install fpm
+          sudo gem install fpm
 
       - name: Build RPM package
         run: ./scripts/build-rpm.sh
@@ -175,6 +178,9 @@ jobs:
 
       - name: Install cargo-audit
         run: cargo install cargo-audit
+
+      - name: Create dist directory for Tauri context
+        run: mkdir -p dist
 
       - name: Run security audit
         working-directory: src-tauri
@@ -269,7 +275,7 @@ jobs:
       - name: Install Ruby and fpm for RPM conversion
         run: |
           sudo apt-get install -y ruby ruby-dev
-          gem install fpm
+          sudo gem install fpm
 
       - name: Build RPM package
         run: ./scripts/build-rpm.sh
