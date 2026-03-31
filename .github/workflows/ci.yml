@@ -150,11 +150,16 @@ jobs:
 
       - name: Install Ruby and fpm for RPM conversion
         run: |
-          sudo apt-get install -y ruby ruby-dev
-          sudo gem install fpm
+          sudo apt-get install -y ruby ruby-dev rpm
+          sudo gem install --no-document fpm
+          # Ensure system gems are in PATH (fixes user gem path precedence issue)
+          export PATH="$(gem env | grep 'EXECUTABLE DIRECTORY' | awk '{print $4}'):$PATH"
+          fpm --version
 
       - name: Build RPM package
-        run: ./scripts/build-rpm.sh
+        run: |
+          export PATH="$(gem env | grep 'EXECUTABLE DIRECTORY' | awk '{print $4}'):$PATH"
+          ./scripts/build-rpm.sh
 
       - name: Upload DEB artifact
         uses: actions/upload-artifact@v4
@@ -274,11 +279,16 @@ jobs:
 
       - name: Install Ruby and fpm for RPM conversion
         run: |
-          sudo apt-get install -y ruby ruby-dev
-          sudo gem install fpm
+          sudo apt-get install -y ruby ruby-dev rpm
+          sudo gem install --no-document fpm
+          # Ensure system gems are in PATH (fixes user gem path precedence issue)
+          export PATH="$(gem env | grep 'EXECUTABLE DIRECTORY' | awk '{print $4}'):$PATH"
+          fpm --version
 
       - name: Build RPM package
-        run: ./scripts/build-rpm.sh
+        run: |
+          export PATH="$(gem env | grep 'EXECUTABLE DIRECTORY' | awk '{print $4}'):$PATH"
+          ./scripts/build-rpm.sh
 
       - name: Test binary exists
         run: |
