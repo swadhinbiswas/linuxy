@@ -129,12 +129,22 @@ function App() {
 
     const unlistenDetected = listen<string>("appimage-detected", (event) => {
       const fullPath = event.payload;
+      const ignored = JSON.parse(localStorage.getItem('ignoredAppImages') || '[]');
+      if (ignored.includes(fullPath)) return;
+
       const fileName = fullPath.split("/").pop() || fullPath;
       setModal({
         title: "Install Detected AppImage",
         message: `New AppImage detected:\n${fileName}\n\nInstall it to your library?`,
         actions: [
-          { label: "Later", variant: "secondary" },
+          { 
+            label: "Later", 
+            variant: "secondary",
+            onClick: () => {
+              ignored.push(fullPath);
+              localStorage.setItem('ignoredAppImages', JSON.stringify(ignored));
+            }
+          },
           {
             label: "Install",
             variant: "primary",
@@ -529,8 +539,8 @@ function App() {
                   marginTop: "10px",
                   padding: "10px",
                   background: firejailInstalled
-                    ? "rgba(76, 175, 80, 0.1)"
-                    : "rgba(244, 67, 54, 0.1)",
+                    ? "var(--accent-bg)"
+                    : "var(--danger-bg)",
                   borderRadius: "6px",
                 }}
               >
@@ -579,8 +589,8 @@ function App() {
                   marginTop: "10px",
                   padding: "10px",
                   background: updateToolInstalled
-                    ? "rgba(76, 175, 80, 0.1)"
-                    : "rgba(244, 67, 54, 0.1)",
+                    ? "var(--accent-bg)"
+                    : "var(--danger-bg)",
                   borderRadius: "6px",
                 }}
               >

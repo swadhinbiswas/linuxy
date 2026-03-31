@@ -1,31 +1,47 @@
 :root {
-  --bg-main: #121212;
-  --bg-sidebar: #1e1e1e;
-  --bg-card: #252525;
-  --bg-input: #1a1a1a;
-  --text-primary: #ffffff;
-  --text-secondary: #aaaaaa;
-  --text-muted: #888888;
-  --border-color: #333333;
-  --accent-color: #4caf50;
-  --accent-hover: #45a049;
-  --danger-color: #f44336;
-  --info-color: #2196f3;
+  /* Elegant Dark Theme Palette (Deep Charcoal/Blue hue) */
+  --bg-main: hsl(224, 15%, 8%);
+  --bg-sidebar: hsl(224, 15%, 11%);
+  --bg-card: hsl(224, 14%, 13%);
+  --bg-input: hsl(224, 14%, 16%);
+  --text-primary: hsl(220, 20%, 96%);
+  --text-secondary: hsl(220, 15%, 75%);
+  --text-muted: hsl(220, 15%, 55%);
+  --border-color: hsl(224, 15%, 20%);
+  
+  /* Vibrant Accents */
+  --accent-color: hsl(145, 65%, 45%);
+  --accent-hover: hsl(145, 65%, 52%);
+  --danger-color: hsl(0, 85%, 65%);
+  --info-color: hsl(210, 100%, 65%);
+
+  /* Translucent Backgrounds for Alerts */
+  --accent-bg: hsla(145, 65%, 45%, 0.15);
+  --danger-bg: hsla(0, 85%, 65%, 0.15);
+  
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="light"] {
-  --bg-main: #f5f5f5;
-  --bg-sidebar: #ffffff;
+  /* Crisp Light Theme Palette */
+  --bg-main: hsl(220, 15%, 98%);
+  --bg-sidebar: hsl(220, 15%, 95%);
   --bg-card: #ffffff;
-  --bg-input: #eeeeee;
-  --text-primary: #121212;
-  --text-secondary: #555555;
-  --text-muted: #888888;
-  --border-color: #dddddd;
-  --accent-color: #2e7d32;
-  --accent-hover: #1b5e20;
-  --danger-color: #d32f2f;
-  --info-color: #1976d2;
+  --bg-input: hsl(220, 10%, 90%);
+  --text-primary: hsl(220, 20%, 15%);
+  --text-secondary: hsl(220, 15%, 35%);
+  --text-muted: hsl(220, 10%, 50%);
+  --border-color: hsl(220, 10%, 85%);
+  
+  --accent-color: hsl(150, 75%, 35%);
+  --accent-hover: hsl(150, 75%, 42%);
+  --danger-color: hsl(0, 75%, 45%);
+  --info-color: hsl(210, 85%, 45%);
+
+  --accent-bg: hsla(150, 75%, 35%, 0.1);
+  --danger-bg: hsla(0, 75%, 45%, 0.08);
+
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -39,10 +55,11 @@ body {
   overflow: hidden;
   background-color: var(--bg-main);
   color: var(--text-primary);
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  transition:
-    background-color 0.3s,
-    color 0.3s;
+  /* Use a premium, modern font stack */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  transition: background-color 0.4s ease, color 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -53,6 +70,16 @@ body {
 
 button {
   font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 input {

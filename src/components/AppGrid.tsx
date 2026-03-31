@@ -55,14 +55,15 @@ const AppGrid: React.FC<AppGridProps> = ({
           key={app.path}
           style={{
             background: "var(--bg-card)",
-            borderRadius: "8px",
-            padding: "15px",
+            borderRadius: "12px",
+            padding: "20px 15px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             position: "relative",
             border: "1px solid var(--border-color)",
-            transition: "background-color 0.3s, border-color 0.3s",
+            boxShadow: "var(--shadow-card)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <button
