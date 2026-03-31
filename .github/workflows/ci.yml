@@ -151,7 +151,10 @@ jobs:
       - name: Install Ruby and fpm for RPM conversion
         run: |
           sudo apt-get install -y ruby ruby-dev
-          sudo gem install fpm
+          export GEM_HOME="$HOME/.gem"
+          export PATH="$HOME/.gem/bin:$PATH"
+          gem install fpm
+          echo "$HOME/.gem/bin" >> $GITHUB_PATH
 
       - name: Build RPM package
         run: ./scripts/build-rpm.sh
@@ -275,7 +278,10 @@ jobs:
       - name: Install Ruby and fpm for RPM conversion
         run: |
           sudo apt-get install -y ruby ruby-dev
-          sudo gem install fpm
+          export GEM_HOME="$HOME/.gem"
+          export PATH="$HOME/.gem/bin:$PATH"
+          gem install fpm
+          echo "$HOME/.gem/bin" >> $GITHUB_PATH
 
       - name: Build RPM package
         run: ./scripts/build-rpm.sh
