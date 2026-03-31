@@ -12,7 +12,22 @@ Built automatically by Tauri. Supports:
 - Pop!_OS
 - Other Debian-based distributions
 
-**Installation:**
+**Installation via Custom APT Repository:**
+The easiest way to install and keep Linuxy updated is to add the official APT repository (hosted on GitHub Pages):
+
+```bash
+# Import the GPG key
+curl -fsSL https://swadhinbiswas.github.io/linuxy/apt/linuxy.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/linuxy.gpg
+
+# Add the repository
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/linuxy.gpg] https://swadhinbiswas.github.io/linuxy/apt /" | sudo tee /etc/apt/sources.list.d/linuxy.list
+
+# Update & Install
+sudo apt update
+sudo apt install linuxy
+```
+
+**Installation via Manual Download:**
 ```bash
 sudo apt install ./linuxy_*.deb
 ```
