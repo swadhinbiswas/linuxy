@@ -1609,8 +1609,16 @@
       // Smooth scroll
       document.querySelectorAll('a[href^="#"]').forEach((a) => {
         a.addEventListener("click", (e) => {
+          const href = a.getAttribute("href");
+          if (!href) return;
+
           e.preventDefault();
-          const t = document.querySelector(a.getAttribute("href"));
+          if (href === "#") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+          }
+
+          const t = document.getElementById(href.slice(1));
           if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       });
