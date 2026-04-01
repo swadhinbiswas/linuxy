@@ -99,7 +99,7 @@ jobs:
             ### Build from Source
 
             ```bash
-            git clone https://github.com/swadhinbiswas/linuxy.git
+            git clone --branch ${{ github.ref_name }} --depth 1 https://github.com/swadhinbiswas/linuxy.git
             cd linuxy
             npm install
             npm run tauri build
