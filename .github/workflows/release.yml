@@ -85,7 +85,7 @@ jobs:
 
             ## 🙏 Thanks
             Thanks to everyone who contributed to this release!
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           includeDebug: false
 
