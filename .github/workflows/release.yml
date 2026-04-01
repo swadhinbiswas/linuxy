@@ -64,26 +64,57 @@ jobs:
           releaseBody: |
             ## 🚀 What's Changed
 
-            Please see the changelog for detailed information.
+            See the [CHANGELOG.md](https://github.com/swadhinbiswas/linuxy/blob/${{ github.ref_name }}/CHANGELOG.md) for detailed information about this release.
 
             ## 📦 Installation
 
-            ### Debian/Ubuntu
+            ### Debian / Ubuntu
+
             ```bash
+            # Option 1: Official APT repository (recommended)
+            curl -fsSL https://swadhinbiswas.github.io/linuxy/apt/linuxy.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/linuxy.gpg
+            echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/linuxy.gpg] https://swadhinbiswas.github.io/linuxy/apt /" | sudo tee /etc/apt/sources.list.d/linuxy.list
+            sudo apt update && sudo apt install linuxy
+
+            # Option 2: Manual download
             sudo apt install ./linuxy_*.deb
             ```
 
-            ### RHEL/Fedora/OpenSUSE
+            ### RHEL / Fedora / openSUSE
+
             ```bash
+            # Fedora / RHEL
             sudo dnf install ./linuxy-*.rpm
+
+            # openSUSE
+            sudo zypper install ./linuxy-*.rpm
             ```
 
             ### Arch Linux (AUR)
+
             ```bash
             yay -S linuxy
             ```
 
+            ### Build from Source
+
+            ```bash
+            git clone --branch ${{ github.ref_name }} --depth 1 https://github.com/swadhinbiswas/linuxy.git
+            cd linuxy
+            npm install
+            npm run tauri build
+            ```
+
+            ## 🔗 Quick Links
+
+            - **GitHub**: https://github.com/swadhinbiswas/linuxy
+            - **Releases**: https://github.com/swadhinbiswas/linuxy/releases
+            - **AUR Package**: https://aur.archlinux.org/packages/linuxy
+            - **APT Repository**: https://swadhinbiswas.github.io/linuxy/apt/
+            - **Demo Video**: https://www.youtube.com/watch?v=1VJj5NP0NtE
+
             ## 🙏 Thanks
+
             Thanks to everyone who contributed to this release!
           releaseDraft: false
           prerelease: false
