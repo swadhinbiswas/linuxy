@@ -10,11 +10,11 @@ pkgbase = linuxy
 	depends = webkit2gtk
 	depends = gtk3
 	depends = libappindicator-gtk3
-	depends = libxdo
+	depends = xdo
 	makedepends = cargo
 	makedepends = nodejs
 	makedepends = npm
 	source = linuxy-1.1.0.tar.gz::https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v1.1.0.tar.gz
-	sha256sums = SKIP
+	sha256sums = 14ec94d5c68c770849b945eb793a5ff638a4ceb682d65aa69b64068dc5d30d27
 
 pkgname = linuxy
