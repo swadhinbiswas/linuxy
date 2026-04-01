@@ -143,6 +143,11 @@ jobs:
           sed -i "s/pkgver=.*/pkgver=${VERSION}/" packaging/aur/PKGBUILD
           sed -i "s/pkgver = .*/pkgver = ${VERSION}/" packaging/aur/.SRCINFO
           sed -i "s|source = linuxy-.*|source = linuxy-${VERSION}.tar.gz::https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v${VERSION}.tar.gz|" packaging/aur/.SRCINFO
+          # Download source and compute checksum
+          curl -sL "https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v${VERSION}.tar.gz" -o /tmp/linuxy-${VERSION}.tar.gz
+          CHECKSUM=$(sha256sum /tmp/linuxy-${VERSION}.tar.gz | awk '{print $1}')
+          sed -i "s/sha256sums=.*/sha256sums=('${CHECKSUM}')/" packaging/aur/PKGBUILD
+          sed -i "s/sha256sums = .*/sha256sums = ${CHECKSUM}/" packaging/aur/.SRCINFO
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
@@ -157,7 +162,6 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "chore: update to version ${{ steps.get_version.outputs.VERSION }}"
           ssh_keyscan_types: rsa,ed25519
-          updpkgsums: true
 
   notify:
     name: Notify Release
