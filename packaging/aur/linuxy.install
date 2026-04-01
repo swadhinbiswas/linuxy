@@ -9,7 +9,7 @@ post_install() {
   
   # Update icon cache
   if command -v gtk-update-icon-cache &> /dev/null; then
-    for size in 32x32 128x128 256x256; do
+    for size in 32x32 128x128 256x256 512x512; do
       gtk-update-icon-cache -f -t /usr/share/icons/hicolor/$size 2>/dev/null || true
     done
   fi
@@ -24,7 +24,7 @@ post_remove() {
   
   # Update icon cache
   if command -v gtk-update-icon-cache &> /dev/null; then
-    for size in 32x32 128x128 256x256; do
+    for size in 32x32 128x128 256x256 512x512; do
       gtk-update-icon-cache -f -t /usr/share/icons/hicolor/$size 2>/dev/null || true
     done
   fi

@@ -108,12 +108,16 @@ jobs:
 
       - name: Upload DEB to release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: src-tauri/target/release/bundle/deb/*.deb
           draft: true
 
       - name: Upload RPM to release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: hashFiles('src-tauri/target/release/bundle/rpm/*.rpm') != ''
         with:
           files: src-tauri/target/release/bundle/rpm/*.rpm
@@ -133,21 +137,27 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Update PKGBUILD version
+      - name: Update PKGBUILD and .SRCINFO
         run: |
-          sed -i "s/pkgver=.*/pkgver=${{ steps.get_version.outputs.VERSION }}/" packaging/aur/PKGBUILD
-          sed -i "s|source = linuxy-.*|source = linuxy-${{ steps.get_version.outputs.VERSION }}.tar.gz::https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v${{ steps.get_version.outputs.VERSION }}.tar.gz|" packaging/aur/.SRCINFO
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+          sed -i "s/pkgver=.*/pkgver=${VERSION}/" packaging/aur/PKGBUILD
+          sed -i "s/pkgver = .*/pkgver = ${VERSION}/" packaging/aur/.SRCINFO
+          sed -i "s|source = linuxy-.*|source = linuxy-${VERSION}.tar.gz::https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v${VERSION}.tar.gz|" packaging/aur/.SRCINFO
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: linuxy
           pkgbuild: packaging/aur/PKGBUILD
+          assets: |
+            packaging/aur/.SRCINFO
+            packaging/aur/linuxy.install
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "chore: update to version ${{ steps.get_version.outputs.VERSION }}"
           ssh_keyscan_types: rsa,ed25519
+          updpkgsums: true
 
   notify:
     name: Notify Release
