@@ -64,7 +64,7 @@ jobs:
           releaseBody: |
             ## 🚀 What's Changed
 
-            See the [CHANGELOG.md](https://github.com/swadhinbiswas/linuxy/blob/main/CHANGELOG.md) for detailed information about this release.
+            See the [CHANGELOG.md](https://github.com/swadhinbiswas/linuxy/blob/${{ github.ref_name }}/CHANGELOG.md) for detailed information about this release.
 
             ## 📦 Installation
 
