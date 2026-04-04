@@ -132,6 +132,28 @@ sudo dnf install ./linuxy-1.2.0-1.x86_64.rpm       # Fedora / RHEL
 sudo zypper install ./linuxy-1.2.0-1.x86_64.rpm     # openSUSE
 ```
 
+### Install from .deb (Arch Linux)
+
+> **Note**: The AUR package is recommended for Arch Linux. Use this only if you
+> prefer the pre-built `.deb`.
+
+```bash
+# Install debtap (AUR helper)
+yay -S debtap
+
+# Update debtap database
+sudo debtap -u
+
+# Download the latest release
+wget https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy_1.2.0_amd64.deb
+
+# Convert DEB to Arch package
+debtap linuxy_1.2.0_amd64.deb
+
+# Install the converted package
+sudo pacman -U linuxy-1.2.0-1-x86_64.pkg.tar.zst
+```
+
 ### Install from AUR (Arch Linux)
 
 ```bash
