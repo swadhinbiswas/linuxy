@@ -47,6 +47,7 @@ echo "Version: $VERSION"
 echo "Converting DEB to RPM..."
 fpm --input-type deb \
     --output-type rpm \
+    --no-auto-depends \
     --name linuxy \
     --version "$VERSION" \
     --architecture x86_64 \
@@ -56,6 +57,9 @@ fpm --input-type deb \
     --license MIT \
     --depends firejail \
     --depends xdg-utils \
+    --depends gtk3 \
+    --depends webkit2gtk4.1 \
+    --depends libappindicator-gtk3 \
     --package "$RPM_OUTPUT/linuxy-${VERSION}-1.x86_64.rpm" \
     "$DEB_PACKAGE"
 
