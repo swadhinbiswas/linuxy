@@ -111,9 +111,70 @@ const AppGrid: React.FC<AppGridProps> = ({
             {app.name}
           </div>
 
+          <div
+            style={{
+              fontSize: "9px",
+              padding: "2px 8px",
+              borderRadius: "10px",
+              background:
+                app.package_type === "AppImage"
+                  ? "var(--accent-bg)"
+                  : "var(--info-bg, hsla(210, 100%, 65%, 0.15))",
+              color:
+                app.package_type === "AppImage"
+                  ? "var(--accent-color)"
+                  : "var(--info-color, hsl(210, 100%, 65%))",
+              fontWeight: 600,
+              marginBottom: "8px",
+            }}
+          >
+            {app.package_type}
+          </div>
+
           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "10px" }}>
             {formatBytes(app.size_bytes)} • {formatDate(app.installed_at)}
           </div>
+
+          {app.categories.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "4px",
+                marginBottom: "10px",
+                justifyContent: "center",
+              }}
+            >
+              {app.categories.slice(0, 3).map((cat) => (
+                <span
+                  key={cat}
+                  style={{
+                    fontSize: "9px",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    background: "var(--accent-bg)",
+                    color: "var(--accent-color)",
+                    fontWeight: 500,
+                  }}
+                >
+                  {cat}
+                </span>
+              ))}
+              {app.categories.length > 3 && (
+                <span
+                  style={{
+                    fontSize: "9px",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    background: "var(--bg-input)",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  +{app.categories.length - 3}
+                </span>
+              )}
+            </div>
+          )}
 
           <div
             style={{

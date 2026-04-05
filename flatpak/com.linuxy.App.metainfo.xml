@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.linuxy.App</id>
+  <name>Linuxy</name>
+  <summary>One-click Linux Application Manager</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <developer_name>Swadhin Biswas</developer_name>
+  <url type="homepage">https://github.com/swadhinbiswas/linuxy</url>
+  <url type="bugtracker">https://github.com/swadhinbiswas/linuxy/issues</url>
+  <url type="donation">https://github.com/sponsors/swadhinbiswas</url>
+  <description>
+    <p>
+      Linuxy is a modern Linux application manager with one-click installation,
+      Firejail sandboxing, optional delta updates, and secure desktop integration.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Drag-and-drop installation for AppImage, DEB, and RPM packages</li>
+      <li>Firejail sandboxing toggle per application</li>
+      <li>Built-in AppImageHub discovery</li>
+      <li>Automatic update checking</li>
+      <li>Dark/light theme with system-follow</li>
+      <li>Storage management and cleanup</li>
+      <li>Backup and restore your app library</li>
+    </ul>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/swadhinbiswas/linuxy/main/docs/images/installed.png</image>
+      <caption>Linuxy Library View</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/swadhinbiswas/linuxy/main/docs/images/hub.png</image>
+      <caption>AppImage Hub Discovery</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/swadhinbiswas/linuxy/main/docs/images/settings.png</image>
+      <caption>Settings Panel</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="1.2.0" date="2025-01-15">
+      <description>
+        <p>Latest release with multi-format package support, batch install, and more.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1" />
+  <launchable type="desktop-id">com.linuxy.App.desktop</launchable>
+</component>

@@ -41,6 +41,18 @@ Cargo.lock
 # Linuxy specific
 pkg/
 
+# Snap build artifacts
+parts/
+prime/
+stage/
+build-dir/
+*.snap
+
+# Flatpak build artifacts
+.flatpak-builder/
+build-dir/
+.repo/
+
 # IDE - Qwen
 .qwen/
 

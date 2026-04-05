@@ -27,6 +27,8 @@ async fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             installer::install_appimage,
+            installer::install_deb,
+            installer::install_rpm,
             manager::get_installed_apps,
             manager::launch_app,
             manager::remove_app,
@@ -34,10 +36,15 @@ async fn main() {
             manager::toggle_sandbox,
             manager::open_url,
             manager::get_storage_stats,
+            manager::analyze_storage,
+            manager::cleanup_storage,
             manager::is_firejail_installed,
+            manager::export_library,
+            manager::import_library,
             updater::is_update_tool_installed,
             updater::check_for_update,
             updater::apply_update,
+            updater::check_all_updates,
             downloader::download_and_install
         ])
         .run(tauri::generate_context!())

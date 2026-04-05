@@ -13,12 +13,190 @@ pub struct AppInfo {
     pub sandboxed: bool,
     pub size_bytes: u64,
     pub installed_at: u64,
+    pub categories: Vec<String>,
+    pub package_type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StorageStats {
     pub total_size_bytes: u64,
     pub app_count: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CleanupStats {
+    pub orphaned_icons: u32,
+    pub orphaned_desktops: u32,
+    pub temp_files: u32,
+    pub reclaimable_bytes: u64,
+}
+
+fn get_appimage_base_names(appimages_dir: &Path) -> Vec<String> {
+    let mut names = Vec::new();
+    if appimages_dir.exists() {
+        if let Ok(entries) = fs::read_dir(appimages_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = path
+                        .file_stem()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    names.push(name);
+                }
+            }
+        }
+    }
+    names
+}
+
+#[tauri::command]
+pub async fn analyze_storage() -> Result<CleanupStats, String> {
+    let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
+    let appimages_dir = home_dir.join(".local/appimages");
+    let apps_dir = home_dir.join(".local/share/applications");
+    let icons_dir = home_dir.join(".local/share/icons");
+
+    let app_names = get_appimage_base_names(&appimages_dir);
+    let mut orphaned_icons = 0;
+    let mut orphaned_desktops = 0;
+    let mut reclaimable_bytes = 0;
+
+    if icons_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&icons_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = path
+                        .file_stem()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    let base_name = name.replace("_icon", "");
+                    if !app_names.contains(&base_name) {
+                        orphaned_icons += 1;
+                        if let Ok(meta) = fs::metadata(&path) {
+                            reclaimable_bytes += meta.len();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if apps_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&apps_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("desktop") {
+                    let name = path
+                        .file_stem()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    if !app_names.contains(&name) {
+                        orphaned_desktops += 1;
+                        if let Ok(meta) = fs::metadata(&path) {
+                            reclaimable_bytes += meta.len();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let tmp_dir = std::env::temp_dir();
+    let mut temp_files = 0;
+    if tmp_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&tmp_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    if name.starts_with("linuxy_") {
+                        temp_files += 1;
+                        if let Ok(meta) = fs::metadata(&path) {
+                            reclaimable_bytes += meta.len();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(CleanupStats {
+        orphaned_icons,
+        orphaned_desktops,
+        temp_files,
+        reclaimable_bytes,
+    })
+}
+
+#[tauri::command]
+pub async fn cleanup_storage() -> Result<CleanupStats, String> {
+    let stats = analyze_storage().await?;
+    let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
+    let appimages_dir = home_dir.join(".local/appimages");
+    let apps_dir = home_dir.join(".local/share/applications");
+    let icons_dir = home_dir.join(".local/share/icons");
+
+    let app_names = get_appimage_base_names(&appimages_dir);
+
+    if icons_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&icons_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = path
+                        .file_stem()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    let base_name = name.replace("_icon", "");
+                    if !app_names.contains(&base_name) {
+                        let _ = fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+    }
+
+    if apps_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&apps_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("desktop") {
+                    let name = path
+                        .file_stem()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    if !app_names.contains(&name) {
+                        let _ = fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+    }
+
+    let tmp_dir = std::env::temp_dir();
+    if tmp_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&tmp_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    if name.starts_with("linuxy_") {
+                        let _ = fs::remove_file(&path);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(stats)
 }
 
 #[tauri::command]
@@ -63,6 +241,7 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
             let mut name = base_name.clone();
             let mut icon_path = None;
             let mut sandboxed = false;
+            let mut categories = Vec::new();
 
             if desktop_path.exists() {
                 if let Ok(content) = fs::read_to_string(&desktop_path) {
@@ -75,7 +254,6 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
                             }
                         } else if line.starts_with("Icon=") {
                             let icon_name = line.trim_start_matches("Icon=").to_string();
-                            // look for icon in icons_dir
                             let possible_png = icons_dir.join(format!("{}.png", icon_name));
                             let possible_svg = icons_dir.join(format!("{}.svg", icon_name));
                             if possible_png.exists() {
@@ -83,16 +261,30 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
                             } else if possible_svg.exists() {
                                 icon_path = Some(possible_svg.to_string_lossy().to_string());
                             } else {
-                                // fallback if icon is an absolute path
                                 let abs_path = Path::new(&icon_name);
                                 if abs_path.exists() {
                                     icon_path = Some(abs_path.to_string_lossy().to_string());
                                 }
                             }
+                        } else if line.starts_with("Categories=") {
+                            let cats = line.trim_start_matches("Categories=");
+                            categories = cats
+                                .split(';')
+                                .filter(|c| !c.is_empty())
+                                .map(|c| c.to_string())
+                                .collect();
                         }
                     }
                 }
             }
+
+            let package_type = if path.extension().and_then(|s| s.to_str()) == Some("AppImage")
+                || path.extension().and_then(|s| s.to_str()) == Some("appimage")
+            {
+                "AppImage".to_string()
+            } else {
+                "Native".to_string()
+            };
 
             apps.push(AppInfo {
                 name,
@@ -103,6 +295,8 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
                 sandboxed,
                 size_bytes,
                 installed_at,
+                categories,
+                package_type,
             });
         }
     }
@@ -350,4 +544,66 @@ pub async fn is_firejail_installed() -> Result<bool, String> {
         .map_err(|e| format!("Failed to check for firejail: {}", e))?;
 
     Ok(output.status.success())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LibraryBackup {
+    pub version: String,
+    pub exported_at: u64,
+    pub apps: Vec<AppInfo>,
+}
+
+#[tauri::command]
+pub async fn export_library(backup_path: String) -> Result<String, String> {
+    let apps = get_installed_apps().await?;
+
+    let backup = LibraryBackup {
+        version: "1.0".to_string(),
+        exported_at: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0),
+        apps,
+    };
+
+    let json = serde_json::to_string_pretty(&backup).map_err(|e| e.to_string())?;
+    fs::write(&backup_path, json).map_err(|e| e.to_string())?;
+
+    Ok(format!("Library exported to {}", backup_path))
+}
+
+#[tauri::command]
+pub async fn import_library(backup_path: String) -> Result<String, String> {
+    let content = fs::read_to_string(&backup_path).map_err(|e| e.to_string())?;
+    let backup: LibraryBackup = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+
+    let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
+    let apps_dir = home_dir.join(".local/share/applications");
+    fs::create_dir_all(&apps_dir).map_err(|e| e.to_string())?;
+
+    let mut restored = 0;
+    for app in &backup.apps {
+        if Path::new(&app.path).exists() {
+            let desktop_content = format!(
+                "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories={}\n",
+                app.name,
+                if app.sandboxed { format!("firejail --appimage {}", app.exec) } else { app.exec.clone() },
+                app.icon.as_deref().unwrap_or(""),
+                app.categories.join(";"),
+            );
+
+            let desktop_path = Path::new(&app.desktop_path);
+            if let Err(e) = fs::write(desktop_path, desktop_content) {
+                eprintln!("Failed to write desktop file for {}: {}", app.name, e);
+                continue;
+            }
+            restored += 1;
+        }
+    }
+
+    let _ = Command::new("update-desktop-database")
+        .arg(&apps_dir)
+        .output();
+
+    Ok(format!("Restored {} apps from backup", restored))
 }

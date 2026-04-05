@@ -1,6 +1,19 @@
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Moon, Sun, Monitor, FolderOpen, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Monitor,
+  FolderOpen,
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
+  Search,
+  X,
+  RefreshCw,
+  Save,
+  Upload,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 
 import AppGrid from "./components/AppGrid";
@@ -19,6 +32,8 @@ export interface AppInfo {
   sandboxed: boolean;
   size_bytes: number;
   installed_at: number;
+  categories: string[];
+  package_type: string;
 }
 
 type Theme = "dark" | "light" | "system";
@@ -50,6 +65,15 @@ function App() {
   );
   const [firejailInstalled, setFirejailInstalled] = useState<boolean>(false);
   const [updateToolInstalled, setUpdateToolInstalled] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [cleanupStats, setCleanupStats] = useState<{
+    orphaned_icons: number;
+    orphaned_desktops: number;
+    temp_files: number;
+    reclaimable_bytes: number;
+  } | null>(null);
+  const [analyzingCleanup, setAnalyzingCleanup] = useState(false);
 
   const loadApps = async () => {
     try {
@@ -104,18 +128,117 @@ function App() {
 
   const installAppImage = async (path: string) => {
     try {
-      setLoading(true);
       setInstallProgress("Initializing...");
       await invoke("install_appimage", { path });
-      await loadApps();
       return true;
     } catch (err) {
       console.error(err);
       setError(String(err));
-      setInstallProgress(null);
       return false;
+    }
+  };
+
+  const installDeb = async (path: string) => {
+    try {
+      setInstallProgress("Initializing DEB installation...");
+      await invoke("install_deb", { path });
+      return true;
+    } catch (err) {
+      console.error(err);
+      setError(String(err));
+      return false;
+    }
+  };
+
+  const installRpm = async (path: string) => {
+    try {
+      setInstallProgress("Initializing RPM installation...");
+      await invoke("install_rpm", { path });
+      return true;
+    } catch (err) {
+      console.error(err);
+      setError(String(err));
+      return false;
+    }
+  };
+
+  const handleInstall = async (paths: string[]) => {
+    try {
+      setLoading(true);
+      for (let i = 0; i < paths.length; i++) {
+        const path = paths[i];
+        const prefix = paths.length > 1 ? `[${i + 1}/${paths.length}] ` : "";
+        setInstallProgress(`${prefix}Installing ${path.split("/").pop() || path}...`);
+        if (path.toLowerCase().endsWith(".appimage")) {
+          await installAppImage(path);
+        } else if (path.toLowerCase().endsWith(".deb")) {
+          await installDeb(path);
+        } else if (path.toLowerCase().endsWith(".rpm")) {
+          await installRpm(path);
+        } else {
+          setError(`Unsupported file type: ${path}`);
+        }
+      }
+      await loadApps();
+    } catch (err) {
+      console.error(err);
+      setError(String(err));
     } finally {
       setLoading(false);
+      setInstallProgress(null);
+    }
+  };
+
+  const checkAllUpdates = async () => {
+    try {
+      setCheckingUpdates(true);
+      const results =
+        await invoke<{ path: string; name: string; has_update: boolean; error: string | null }[]>(
+          "check_all_updates"
+        );
+
+      const available = results.filter((r) => r.has_update);
+      const errors = results.filter((r) => r.error);
+
+      if (available.length > 0) {
+        setModal({
+          title: "Updates Available",
+          message: `${available.length} app(s) have updates:\n${available.map((r) => `• ${r.name}`).join("\n")}${errors.length > 0 ? `\n\n${errors.length} app(s) had errors.` : ""}`,
+          actions: [
+            { label: "Close", variant: "secondary" },
+            {
+              label: "Update All",
+              variant: "primary",
+              closeOnClick: false,
+              onClick: async () => {
+                for (const r of available) {
+                  setInstallProgress(`Updating ${r.name}...`);
+                  await invoke("apply_update", { path: r.path });
+                }
+                setInstallProgress(null);
+                await loadApps();
+                setModal(null);
+              },
+            },
+          ],
+        });
+      } else if (errors.length > 0) {
+        setModal({
+          title: "Update Check Complete",
+          message: `No updates found, but ${errors.length} app(s) had errors:\n${errors.map((r) => `• ${r.name}: ${r.error}`).join("\n")}`,
+          actions: [{ label: "OK", variant: "primary" }],
+        });
+      } else {
+        setModal({
+          title: "All Up to Date",
+          message: "All installed apps are up to date.",
+          actions: [{ label: "OK", variant: "primary" }],
+        });
+      }
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setCheckingUpdates(false);
     }
   };
 
@@ -150,10 +273,17 @@ function App() {
             variant: "primary",
             closeOnClick: false,
             onClick: async () => {
-              const installed = await installAppImage(fullPath);
-              if (installed) {
-                setModal(null);
+              setLoading(true);
+              if (fullPath.toLowerCase().endsWith(".appimage")) {
+                await installAppImage(fullPath);
+              } else if (fullPath.toLowerCase().endsWith(".deb")) {
+                await installDeb(fullPath);
+              } else if (fullPath.toLowerCase().endsWith(".rpm")) {
+                await installRpm(fullPath);
               }
+              await loadApps();
+              setLoading(false);
+              setModal(null);
             },
           },
         ],
@@ -163,12 +293,7 @@ function App() {
     const unlisten = listen<string[]>("tauri://file-drop", async (event) => {
       const files = event.payload;
       if (files && files.length > 0) {
-        const file = files[0];
-        if (file.toLowerCase().endsWith(".appimage")) {
-          await installAppImage(file);
-        } else {
-          setError("Only .AppImage files are supported for drag and drop.");
-        }
+        await handleInstall(files);
       }
     });
     return () => {
@@ -177,6 +302,62 @@ function App() {
       unlistenDetected.then((f) => f());
     };
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isCtrl = e.ctrlKey || e.metaKey;
+
+      if (e.key === "Escape" && modal) {
+        e.preventDefault();
+        setModal(null);
+        return;
+      }
+
+      if (isCtrl && e.key === "k") {
+        e.preventDefault();
+        if (view === "library" && apps.length > 0) {
+          const input = document.querySelector<HTMLInputElement>(
+            'input[placeholder="Search installed apps..."]'
+          );
+          input?.focus();
+        }
+        return;
+      }
+
+      if (isCtrl && e.key === "u" && updateToolInstalled) {
+        e.preventDefault();
+        checkAllUpdates();
+        return;
+      }
+
+      if (isCtrl && e.key === "r") {
+        e.preventDefault();
+        loadApps();
+        return;
+      }
+
+      if (isCtrl && e.key === "d" && view === "library") {
+        e.preventDefault();
+        setView("discover");
+        return;
+      }
+
+      if (isCtrl && e.key === "s") {
+        e.preventDefault();
+        setView("settings");
+        return;
+      }
+
+      if (isCtrl && e.key === "l") {
+        e.preventDefault();
+        setView("library");
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [view, modal, updateToolInstalled, apps]);
 
   const launchApp = async (path: string) => {
     try {
@@ -358,10 +539,98 @@ function App() {
         {view === "library" && (
           <>
             <h2 style={{ color: "var(--text-primary)" }}>AppImage Library</h2>
-            <DropZone onInstall={installAppImage} />
-            <h3 style={{ color: "var(--text-secondary)", marginTop: "30px" }}>Installed Apps</h3>
+            <DropZone onInstall={handleInstall} />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: "30px",
+              }}
+            >
+              <h3 style={{ color: "var(--text-secondary)", margin: 0 }}>Installed Apps</h3>
+              {apps.length > 0 && updateToolInstalled && (
+                <button
+                  onClick={checkAllUpdates}
+                  disabled={checkingUpdates}
+                  style={{
+                    background: "var(--info-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    cursor: checkingUpdates ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    opacity: checkingUpdates ? 0.6 : 1,
+                  }}
+                >
+                  <RefreshCw
+                    size={16}
+                    style={{ animation: checkingUpdates ? "spin 1s linear infinite" : "none" }}
+                  />
+                  {checkingUpdates ? "Checking..." : "Check All Updates"}
+                </button>
+              )}
+            </div>
+            {apps.length > 0 && (
+              <div style={{ position: "relative", marginTop: "15px", maxWidth: "400px" }}>
+                <Search
+                  size={18}
+                  style={{
+                    position: "absolute",
+                    left: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--text-muted)",
+                    pointerEvents: "none",
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="Search installed apps..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 36px 10px 40px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border-color)",
+                    background: "var(--bg-input)",
+                    color: "var(--text-primary)",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    style={{
+                      position: "absolute",
+                      right: "8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--text-muted)",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            )}
             <AppGrid
-              apps={apps}
+              apps={apps.filter((app) =>
+                app.name.toLowerCase().includes(searchQuery.toLowerCase())
+              )}
               onLaunch={launchApp}
               onRemove={requestRemoveApp}
               onToggleSandbox={toggleSandbox}
@@ -516,6 +785,110 @@ function App() {
               </div>
             </div>
 
+            {/* Cleanup Section */}
+            <div style={settingsSectionStyle}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
+                <FolderOpen size={20} color="var(--danger-color)" />
+                <h3 style={{ margin: 0 }}>Storage Cleanup</h3>
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>
+                Find and remove orphaned icons, desktop entries, and leftover temp files from failed
+                installations.
+              </p>
+              {cleanupStats && cleanupStats.reclaimable_bytes > 0 && (
+                <div
+                  style={{
+                    background: "var(--bg-input)",
+                    padding: "15px",
+                    borderRadius: "6px",
+                    marginBottom: "15px",
+                  }}
+                >
+                  <div
+                    style={{ color: "var(--text-primary)", fontWeight: 500, marginBottom: "8px" }}
+                  >
+                    Found {cleanupStats.orphaned_icons} orphaned icons,{" "}
+                    {cleanupStats.orphaned_desktops} orphaned desktops, and{" "}
+                    {cleanupStats.temp_files} temp files
+                  </div>
+                  <div style={{ color: "var(--danger-color)", fontWeight: 600 }}>
+                    {formatBytes(cleanupStats.reclaimable_bytes)} can be reclaimed
+                  </div>
+                </div>
+              )}
+              {cleanupStats && cleanupStats.reclaimable_bytes === 0 && (
+                <div
+                  style={{
+                    background: "var(--accent-bg)",
+                    padding: "15px",
+                    borderRadius: "6px",
+                    marginBottom: "15px",
+                    color: "var(--accent-color)",
+                  }}
+                >
+                  No cleanup needed. Everything looks clean!
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={async () => {
+                    setAnalyzingCleanup(true);
+                    try {
+                      const stats = await invoke<typeof cleanupStats>("analyze_storage");
+                      setCleanupStats(stats);
+                    } catch (err) {
+                      setError(String(err));
+                    } finally {
+                      setAnalyzingCleanup(false);
+                    }
+                  }}
+                  disabled={analyzingCleanup}
+                  style={{
+                    background: "var(--bg-input)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-color)",
+                    padding: "8px 15px",
+                    borderRadius: "6px",
+                    cursor: analyzingCleanup ? "not-allowed" : "pointer",
+                    fontWeight: 500,
+                    fontSize: "13px",
+                  }}
+                >
+                  {analyzingCleanup ? "Analyzing..." : "Analyze"}
+                </button>
+                {cleanupStats && cleanupStats.reclaimable_bytes > 0 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await invoke("cleanup_storage");
+                        showInfoModal(
+                          "Cleanup Complete",
+                          "Orphaned files and temp files have been removed."
+                        );
+                        setCleanupStats(null);
+                      } catch (err) {
+                        setError(String(err));
+                      }
+                    }}
+                    style={{
+                      background: "var(--danger-color)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "8px 15px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                    }}
+                  >
+                    Clean Up Now
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Security Section */}
             <div style={settingsSectionStyle}>
               <div
@@ -596,6 +969,92 @@ function App() {
                     ? "appimageupdatetool is installed."
                     : "appimageupdatetool is not installed. Update actions are disabled."}
                 </span>
+              </div>
+            </div>
+
+            {/* Backup & Restore Section */}
+            <div style={settingsSectionStyle}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
+                <Save size={20} color="var(--accent-color)" />
+                <h3 style={{ margin: 0 }}>Backup & Restore</h3>
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>
+                Export your app library as a JSON backup file, or restore from a previous backup.
+              </p>
+              <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { save } = await import("@tauri-apps/api/dialog");
+                      const selected = await save({
+                        filters: [{ name: "JSON", extensions: ["json"] }],
+                        defaultPath: `linuxy-backup-${new Date().toISOString().split("T")[0]}.json`,
+                      });
+                      if (typeof selected === "string") {
+                        await invoke("export_library", { backupPath: selected });
+                        showInfoModal("Backup Complete", `Library exported to:\n${selected}`);
+                      }
+                    } catch (err) {
+                      setError(String(err));
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    background: "var(--accent-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 15px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Save size={16} /> Export Library
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { open } = await import("@tauri-apps/api/dialog");
+                      const selected = await open({
+                        multiple: false,
+                        filters: [{ name: "JSON", extensions: ["json"] }],
+                      });
+                      if (typeof selected === "string") {
+                        const result = await invoke<string>("import_library", {
+                          backupPath: selected,
+                        });
+                        showInfoModal("Restore Complete", result);
+                        await loadApps();
+                      }
+                    } catch (err) {
+                      setError(String(err));
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    background: "var(--bg-input)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-color)",
+                    padding: "10px 15px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Upload size={16} /> Import Library
+                </button>
               </div>
             </div>
 

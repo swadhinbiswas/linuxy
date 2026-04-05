@@ -1,6 +1,7 @@
 # Repository Maintenance Guide
 
-This guide provides instructions for maintaining the Linuxy repository and ensuring code quality.
+This guide provides instructions for maintaining the Linuxy repository and
+ensuring code quality.
 
 ## Table of Contents
 
@@ -170,29 +171,29 @@ git push origin v0.1.0
 
 ### Frontend
 
-| Tool | Command | Purpose |
-|------|---------|---------|
+| Tool       | Command             | Purpose       |
+| ---------- | ------------------- | ------------- |
 | TypeScript | `npm run typecheck` | Type checking |
-| ESLint | `npm run lint` | Code quality |
-| Prettier | `npm run format` | Formatting |
+| ESLint     | `npm run lint`      | Code quality  |
+| Prettier   | `npm run format`    | Formatting    |
 
 ### Backend
 
-| Tool | Command | Purpose |
-|------|---------|---------|
-| Cargo Check | `cargo check` | Compilation check |
-| Clippy | `cargo clippy` | Linting |
-| Rustfmt | `cargo fmt` | Formatting |
-| Cargo Audit | `cargo audit` | Security |
+| Tool        | Command        | Purpose           |
+| ----------- | -------------- | ----------------- |
+| Cargo Check | `cargo check`  | Compilation check |
+| Clippy      | `cargo clippy` | Linting           |
+| Rustfmt     | `cargo fmt`    | Formatting        |
+| Cargo Audit | `cargo audit`  | Security          |
 
 ### Automated
 
-| Tool | Configuration | Purpose |
-|------|---------------|---------|
-| GitHub Actions | `.github/workflows/` | CI/CD |
-| CodeRabbit | `.coderabbit.yml` | AI code review |
-| Dependabot | `.github/dependabot.yml` | Dependency updates |
-| Labeler | `.github/labeler.yml` | Auto-labeling |
+| Tool           | Configuration            | Purpose            |
+| -------------- | ------------------------ | ------------------ |
+| GitHub Actions | `.github/workflows/`     | CI/CD              |
+| CodeRabbit     | `.coderabbit.yml`        | AI code review     |
+| Dependabot     | `.github/dependabot.yml` | Dependency updates |
+| Labeler        | `.github/labeler.yml`    | Auto-labeling      |
 
 ---
 
@@ -203,6 +204,7 @@ git push origin v0.1.0
 **Problem**: Status checks failing on PR
 
 **Solutions**:
+
 1. Check workflow logs in Actions tab
 2. Run locally: `npm run check`
 3. Fix reported issues
@@ -213,6 +215,7 @@ git push origin v0.1.0
 **Problem**: npm install fails
 
 **Solutions**:
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
@@ -222,6 +225,7 @@ npm install
 **Problem**: Cargo build fails
 
 **Solutions**:
+
 ```bash
 # Clean and rebuild
 cd src-tauri
@@ -234,6 +238,7 @@ cargo build
 **Problem**: Format check fails in CI
 
 **Solutions**:
+
 ```bash
 # Auto-fix formatting
 npm run format
@@ -245,6 +250,7 @@ cd src-tauri && cargo fmt --all
 **Problem**: Clippy warnings in CI
 
 **Solutions**:
+
 ```bash
 # See all warnings
 cd src-tauri && cargo clippy -- -W clippy::all
@@ -264,6 +270,7 @@ cd src-tauri && cargo clippy --fix
 - Include issue number when applicable
 
 Example:
+
 ```
 feat: add automatic update checking
 
@@ -327,7 +334,7 @@ name: Close Stale Issues
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   stale:
@@ -335,12 +342,17 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          stale-issue-message: 'This issue has been automatically marked as stale because it has not had recent activity.'
-          stale-pr-message: 'This PR has been automatically marked as stale because it has not had recent activity.'
-          close-issue-message: 'This issue has been automatically closed due to inactivity.'
+          stale-issue-message:
+            "This issue has been automatically marked as stale because it has
+            not had recent activity."
+          stale-pr-message:
+            "This PR has been automatically marked as stale because it has not
+            had recent activity."
+          close-issue-message:
+            "This issue has been automatically closed due to inactivity."
           days-before-stale: 30
           days-before-close: 7
-          exempt-issue-labels: 'bug,enhancement,help-wanted'
+          exempt-issue-labels: "bug,enhancement,help-wanted"
 ```
 
 ---
@@ -349,10 +361,9 @@ jobs:
 
 For questions about repository maintenance:
 
-- **Email**: maintainers@linuxy.app
+- **Email**: swadhinbiswas.cse@gmail.com
 - **Discussions**: https://github.com/swadhinbiswas/linuxy/discussions
 
 ---
 
-**Last Updated**: March 2024
-**Maintained by**: Repository Maintainers
+**Last Updated**: March 2024 **Maintained by**: Swadhin Biswas

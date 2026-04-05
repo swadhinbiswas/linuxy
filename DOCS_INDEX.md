@@ -9,11 +9,14 @@ Complete documentation for the Linuxy AppImage Manager project.
 ## 🚀 Quick Start
 
 ### For Users
+
 1. **[Installation Guide](docs/INSTALL.md)** - How to install Linuxy
 2. **[Usage Guide](docs/USAGE.md)** - How to use Linuxy
-3. **[Application Info](APPLICATION_INFO.md)** - Window controls, icons, signatures
+3. **[Application Info](APPLICATION_INFO.md)** - Window controls, icons,
+   signatures
 
 ### For Contributors
+
 1. **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
 2. **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
 3. **[Maintenance Guide](docs/MAINTENANCE.md)** - Repository maintenance
@@ -24,31 +27,31 @@ Complete documentation for the Linuxy AppImage Manager project.
 
 ### Core Documentation
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| [README.md](README.md) | Project overview and quick start | Everyone |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines | Contributors |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community code of conduct | Everyone |
-| [LICENSE](LICENSE) | MIT License | Everyone |
-| [CHANGELOG.md](CHANGELOG.md) | Version history | Everyone |
+| File                                     | Purpose                          | Audience     |
+| ---------------------------------------- | -------------------------------- | ------------ |
+| [README.md](README.md)                   | Project overview and quick start | Everyone     |
+| [CONTRIBUTING.md](CONTRIBUTING.md)       | Contribution guidelines          | Contributors |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community code of conduct        | Everyone     |
+| [LICENSE](LICENSE)                       | MIT License                      | Everyone     |
+| [CHANGELOG.md](CHANGELOG.md)             | Version history                  | Everyone     |
 
 ### User Documentation
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| [docs/INSTALL.md](docs/INSTALL.md) | Installation instructions | Users |
-| [docs/USAGE.md](docs/USAGE.md) | Usage guide and tips | Users |
-| [APPLICATION_INFO.md](APPLICATION_INFO.md) | App info (icons, signatures, etc.) | Users |
-| [website.html](website.html) | Landing page | Visitors |
+| File                                       | Purpose                            | Audience |
+| ------------------------------------------ | ---------------------------------- | -------- |
+| [docs/INSTALL.md](docs/INSTALL.md)         | Installation instructions          | Users    |
+| [docs/USAGE.md](docs/USAGE.md)             | Usage guide and tips               | Users    |
+| [APPLICATION_INFO.md](APPLICATION_INFO.md) | App info (icons, signatures, etc.) | Users    |
+| [website.html](website.html)               | Landing page                       | Visitors |
 
 ### Developer Documentation
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | Repository maintenance | Maintainers |
-| [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md) | Code signing guide | Maintainers |
-| [SECURITY.md](SECURITY.md) | Security policy | Security researchers |
-| [.github/BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) | Branch protection rules | Maintainers |
+| File                                                         | Purpose                 | Audience             |
+| ------------------------------------------------------------ | ----------------------- | -------------------- |
+| [docs/MAINTENANCE.md](docs/MAINTENANCE.md)                   | Repository maintenance  | Maintainers          |
+| [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md)                 | Code signing guide      | Maintainers          |
+| [SECURITY.md](SECURITY.md)                                   | Security policy         | Security researchers |
+| [.github/BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) | Branch protection rules | Maintainers          |
 
 ---
 
@@ -56,36 +59,36 @@ Complete documentation for the Linuxy AppImage Manager project.
 
 ### GitHub Configuration
 
-| File | Purpose |
-|------|---------|
-| [.github/workflows/ci.yml](.github/workflows/ci.yml) | CI/CD pipeline |
-| [.github/workflows/release.yml](.github/workflows/release.yml) | Release automation |
-| [.github/workflows/codeql.yml](.github/workflows/codeql.yml) | Security analysis |
-| [.github/workflows/stale.yml](.github/workflows/stale.yml) | Close stale issues |
+| File                                                           | Purpose                  |
+| -------------------------------------------------------------- | ------------------------ |
+| [.github/workflows/ci.yml](.github/workflows/ci.yml)           | CI/CD pipeline           |
+| [.github/workflows/release.yml](.github/workflows/release.yml) | Release automation       |
+| [.github/workflows/codeql.yml](.github/workflows/codeql.yml)   | Security analysis        |
+| [.github/workflows/stale.yml](.github/workflows/stale.yml)     | Close stale issues       |
 | [.github/workflows/welcome.yml](.github/workflows/welcome.yml) | Welcome new contributors |
-| [.github/workflows/labeler.yml](.github/workflows/labeler.yml) | Auto-label PRs |
-| [.github/dependabot.yml](.github/dependabot.yml) | Dependency updates |
-| [.github/CODEOWNERS](.github/CODEOWNERS) | Code ownership |
-| [.github/labeler.yml](.github/labeler.yml) | Label configuration |
-| [.github/release-drafter.yml](.github/release-drafter.yml) | Release notes draft |
+| [.github/workflows/labeler.yml](.github/workflows/labeler.yml) | Auto-label PRs           |
+| [.github/dependabot.yml](.github/dependabot.yml)               | Dependency updates       |
+| [.github/CODEOWNERS](.github/CODEOWNERS)                       | Code ownership           |
+| [.github/labeler.yml](.github/labeler.yml)                     | Label configuration      |
+| [.github/release-drafter.yml](.github/release-drafter.yml)     | Release notes draft      |
 
 ### Code Quality
 
-| File | Purpose |
-|------|---------|
-| [.eslintrc.yml](.eslintrc.yml) | ESLint configuration |
-| [.prettierrc.yml](.prettierrc.yml) | Prettier formatting |
-| [.editorconfig](.editorconfig) | Editor settings |
-| [src-tauri/rustfmt.toml](src-tauri/rustfmt.toml) | Rust formatting |
-| [src-tauri/clippy.toml](src-tauri/clippy.toml) | Rust linting |
-| [.coderabbit.yml](.coderabbit.yml) | CodeRabbit AI review |
+| File                                             | Purpose              |
+| ------------------------------------------------ | -------------------- |
+| [.eslintrc.yml](.eslintrc.yml)                   | ESLint configuration |
+| [.prettierrc.yml](.prettierrc.yml)               | Prettier formatting  |
+| [.editorconfig](.editorconfig)                   | Editor settings      |
+| [src-tauri/rustfmt.toml](src-tauri/rustfmt.toml) | Rust formatting      |
+| [src-tauri/clippy.toml](src-tauri/clippy.toml)   | Rust linting         |
+| [.coderabbit.yml](.coderabbit.yml)               | CodeRabbit AI review |
 
 ### IDE/Editor
 
-| File | Purpose |
-|------|---------|
-| [.vscode/settings.json](.vscode/settings.json) | VS Code workspace settings |
-| [.vscode/extensions.json](.vscode/extensions.json) | Recommended extensions |
+| File                                               | Purpose                    |
+| -------------------------------------------------- | -------------------------- |
+| [.vscode/settings.json](.vscode/settings.json)     | VS Code workspace settings |
+| [.vscode/extensions.json](.vscode/extensions.json) | Recommended extensions     |
 
 ---
 
@@ -97,7 +100,7 @@ Complete documentation for the Linuxy AppImage Manager project.
 Name: Linuxy
 Version: 0.1.0
 License: MIT (Open Source)
-Maintainer: Linuxy Contributors
+Maintainer: Swadhin Biswas <swadhinbiswas.cse@gmail.com>
 Developer: @swadhinbiswas
 Identifier: com.linuxy.dev
 Repository: https://github.com/swadhinbiswas/linuxy
@@ -131,6 +134,7 @@ cd src-tauri && cargo audit    # Security audit
 ## 🌐 Online Resources
 
 ### GitHub
+
 - **Repository**: https://github.com/swadhinbiswas/linuxy
 - **Issues**: https://github.com/swadhinbiswas/linuxy/issues
 - **Pull Requests**: https://github.com/swadhinbiswas/linuxy/pulls
@@ -139,6 +143,7 @@ cd src-tauri && cargo audit    # Security audit
 - **Actions (CI/CD)**: https://github.com/swadhinbiswas/linuxy/actions
 
 ### External
+
 - **Tauri Framework**: https://tauri.app
 - **AppImage**: https://appimage.org
 - **Firejail**: https://firejail.wordpress.com
@@ -148,6 +153,7 @@ cd src-tauri && cargo audit    # Security audit
 ## 📋 Documentation Status
 
 ### Completed ✅
+
 - [x] README.md - Project overview
 - [x] CONTRIBUTING.md - Contribution guide
 - [x] CODE_OF_CONDUCT.md - Community guidelines
@@ -161,6 +167,7 @@ cd src-tauri && cargo audit    # Security audit
 - [x] website.html - Landing page
 
 ### GitHub Configuration ✅
+
 - [x] CI/CD workflows
 - [x] CodeRabbit AI review
 - [x] Dependabot auto-updates
@@ -172,6 +179,7 @@ cd src-tauri && cargo audit    # Security audit
 - [x] Welcome bot
 
 ### Code Quality ✅
+
 - [x] ESLint configuration
 - [x] Prettier formatting
 - [x] Rust Clippy linting
@@ -185,7 +193,8 @@ cd src-tauri && cargo audit    # Security audit
 
 If you find errors or want to improve documentation:
 
-1. **Create an issue**: https://github.com/swadhinbiswas/linuxy/issues/new?template=docs_issue.yml
+1. **Create an issue**:
+   https://github.com/swadhinbiswas/linuxy/issues/new?template=docs_issue.yml
 2. **Submit a PR**: https://github.com/swadhinbiswas/linuxy/pulls
 3. **Start a discussion**: https://github.com/swadhinbiswas/linuxy/discussions
 
@@ -201,8 +210,10 @@ If you find errors or want to improve documentation:
 
 ## 📞 Support
 
-- **Report a bug**: https://github.com/swadhinbiswas/linuxy/issues/new?template=bug_report.yml
-- **Request a feature**: https://github.com/swadhinbiswas/linuxy/issues/new?template=feature_request.yml
+- **Report a bug**:
+  https://github.com/swadhinbiswas/linuxy/issues/new?template=bug_report.yml
+- **Request a feature**:
+  https://github.com/swadhinbiswas/linuxy/issues/new?template=feature_request.yml
 - **Ask a question**: https://github.com/swadhinbiswas/linuxy/discussions
 
 ---

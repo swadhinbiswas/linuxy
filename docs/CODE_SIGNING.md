@@ -6,13 +6,14 @@ This guide explains how to sign Linuxy packages for secure distribution.
 
 - **Name**: Linuxy
 - **License**: MIT (Open Source)
-- **Maintainer**: Linuxy Contributors
+- **Maintainer**: Swadhin Biswas <swadhinbiswas.cse@gmail.com>
 - **Developer**: @swadhinbiswas
 - **Repository**: https://github.com/swadhinbiswas/linuxy
 
 ## Why Sign Packages?
 
 Package signing provides:
+
 - **Authentication**: Verifies the package comes from you
 - **Integrity**: Ensures the package hasn't been tampered with
 - **Trust**: Users can verify the publisher before installing
@@ -32,6 +33,7 @@ npm run tauri build
 ```
 
 This script will:
+
 - Check for GPG
 - Create a signing key if needed
 - Sign the DEB package
@@ -43,6 +45,7 @@ dpkg-sig --verify src-tauri/target/release/bundle/deb/linuxy_0.1.0_amd64.deb
 ```
 
 Expected output:
+
 ```
 GOODSIG
 ```
@@ -56,14 +59,15 @@ gpg --gen-key
 ```
 
 Provide:
+
 - **Name**: Swadhin Biswas
-- **Email**: your-email@example.com
+- **Email**: swadhinbiswas.cse@gmail.com
 - **Passphrase**: (choose a strong one)
 
 ### Export Public Key
 
 ```bash
-gpg --armor --export your-email@example.com > linuxy-public.key
+gpg --armor --export swadhinbiswas.cse@gmail.com > linuxy-public.key
 ```
 
 Users can import this to verify your packages.
@@ -96,12 +100,12 @@ dpkg-sig --verify linuxy_*.deb
 
 The DEB package includes:
 
-| Field | Value |
-|-------|-------|
-| **Maintainer** | Linuxy Contributors |
-| **Developer** | @swadhinbiswas |
-| **Identifier** | com.linuxy.dev |
-| **License** | MIT (Open Source) |
+| Field          | Value                                        |
+| -------------- | -------------------------------------------- |
+| **Maintainer** | Swadhin Biswas <swadhinbiswas.cse@gmail.com> |
+| **Developer**  | @swadhinbiswas                               |
+| **Identifier** | com.linuxy.dev                               |
+| **License**    | MIT (Open Source)                            |
 
 ## Distribution
 
@@ -110,7 +114,7 @@ The DEB package includes:
 Create PKGBUILD with proper maintainer info:
 
 ```bash
-maintainer='Linuxy Contributors <your-email@example.com>'
+maintainer='Swadhin Biswas <swadhinbiswas.cse@gmail.com>'
 ```
 
 ### For PPA (Ubuntu)
@@ -138,6 +142,7 @@ sudo apt install dpkg-sig
 ### "No secret key"
 
 Generate a new key:
+
 ```bash
 gpg --gen-key
 ```
@@ -149,11 +154,11 @@ The package was modified after signing. Rebuild and re-sign.
 ## Contact
 
 For questions about package signing:
-- **Email**: your-email@example.com
+
+- **Email**: swadhinbiswas.cse@gmail.com
 - **GitHub**: https://github.com/swadhinbiswas/linuxy
 
 ---
 
-**Last Updated**: March 2024
-**Project**: Linuxy - Open Source (MIT License)
+**Last Updated**: March 2024 **Project**: Linuxy - Open Source (MIT License)
 **Repository**: https://github.com/swadhinbiswas/linuxy

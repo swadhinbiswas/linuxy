@@ -158,6 +158,32 @@ sudo pacman -U linuxy-1.2.0-1-x86_64.pkg.tar.zst
 
 ```bash
 yay -S linuxy
+# Or with paru
+paru -S linuxy
+```
+
+### Install from Snap
+
+```bash
+# From Snap Store
+sudo snap install linuxy
+
+# Or from local build
+sudo snap install ./linuxy_*.snap --dangerous
+```
+
+### Install from Flatpak
+
+```bash
+# Add Flathub remote (if not already added)
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Build and install from source
+flatpak-builder --force-clean --user --install-deps-from=flathub --install build-dir flatpak/com.linuxy.App.yaml
+
+# Or run without installing
+flatpak-builder --force-clean build-dir flatpak/com.linuxy.App.yaml
+flatpak run com.linuxy.App
 ```
 
 #### Option 2: Manual Download

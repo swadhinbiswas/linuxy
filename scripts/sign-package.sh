@@ -6,8 +6,8 @@ set -e
 
 PACKAGE_NAME="linuxy"
 VERSION="0.1.0"
-MAINTAINER="Linuxy Contributors"
-EMAIL="swadhin@example.com"  # Replace with your email
+MAINTAINER="Swadhin Biswas"
+EMAIL="swadhinbiswas.cse@gmail.com"
 
 echo "🔐 Linuxy Package Signing Script"
 echo "================================"

@@ -2,7 +2,8 @@
 
 ## Supported Versions
 
-We release patches for security vulnerabilities. Which versions are currently supported:
+We release patches for security vulnerabilities. Which versions are currently
+supported:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,21 +12,25 @@ We release patches for security vulnerabilities. Which versions are currently su
 
 ## Reporting a Vulnerability
 
-We take the security of Linuxy seriously. If you believe you have found a security vulnerability, please report it to us as described below.
+We take the security of Linuxy seriously. If you believe you have found a
+security vulnerability, please report it to us as described below.
 
 ### How to Report
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them via email at: **security@linuxy.app** (or use GitHub's private vulnerability reporting feature)
+Instead, please report them via email at: **swadhinbiswas.cse@gmail.com** (or
+use GitHub's private vulnerability reporting feature)
 
-You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
+You should receive a response within 48 hours. If for some reason you do not,
+please follow up via email to ensure we received your original message.
 
 ### What to Include
 
 Please include the following information in your report:
 
-- **Type of issue**: e.g., buffer overflow, SQL injection, cross-site scripting, etc.
+- **Type of issue**: e.g., buffer overflow, SQL injection, cross-site scripting,
+  etc.
 - **Full paths of source file(s) related to the issue**
 - **Location of the affected source code (tag/branch/commit or direct URL)**
 - **Step-by-step instructions to reproduce the issue**
@@ -112,7 +117,8 @@ For critical vulnerabilities, we may release an out-of-cycle security update.
 
 ## Recognition
 
-We believe in recognizing security researchers who help improve our security. Researchers who report valid security vulnerabilities will be:
+We believe in recognizing security researchers who help improve our security.
+Researchers who report valid security vulnerabilities will be:
 
 - Acknowledged in our security advisories (unless they wish to remain anonymous)
 - Added to our security hall of fame
@@ -120,7 +126,7 @@ We believe in recognizing security researchers who help improve our security. Re
 
 ## Contact
 
-- **Email**: security@linuxy.app
+- **Email**: swadhinbiswas.cse@gmail.com
 - **GitHub**: Use private vulnerability reporting
 - **PGP Key**: Available upon request
 

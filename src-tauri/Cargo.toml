@@ -2,7 +2,7 @@
 name = "linuxy"
 version = "1.0.0"
 description = "A centralized AppImage manager and installer for Linux"
-authors = ["Linuxy Contributors"]
+authors = ["Swadhin Biswas <swadhinbiswas.cse@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/swadhinbiswas/linuxy"
 edition = "2021"

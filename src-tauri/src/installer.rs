@@ -14,6 +14,20 @@ fn is_appimage_path(path: &Path) -> bool {
     )
 }
 
+fn is_deb_path(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|ext| ext.to_str()),
+        Some("deb") | Some("DEB")
+    )
+}
+
+fn is_rpm_path(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|ext| ext.to_str()),
+        Some("rpm") | Some("RPM")
+    )
+}
+
 fn ensure_elf_header(path: &Path) -> Result<(), String> {
     let mut file = fs::File::open(path).map_err(|e| e.to_string())?;
     let mut header = [0_u8; 4];
@@ -99,6 +113,278 @@ fn cleanup_failed_install(app_path: &Path, desktop_path: &Path, icon_paths: &[Pa
     for icon_path in icon_paths {
         let _ = fs::remove_file(icon_path);
     }
+}
+
+fn detect_package_manager() -> Option<(String, String)> {
+    let managers = vec![
+        ("pacman", "sudo pacman -U"),
+        ("apt", "sudo apt install"),
+        ("dpkg", "sudo dpkg -i"),
+        ("dnf", "sudo dnf install"),
+        ("yum", "sudo yum localinstall"),
+        ("zypper", "sudo zypper install"),
+    ];
+
+    for (cmd, _) in &managers {
+        if Command::new("which")
+            .arg(cmd)
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+        {
+            return Some((
+                cmd.to_string(),
+                managers
+                    .iter()
+                    .find(|(c, _)| c == cmd)
+                    .map(|(_, i)| i.to_string())
+                    .unwrap(),
+            ));
+        }
+    }
+    None
+}
+
+fn install_deb_with_debtap(path: &Path, window: Option<&Window>) -> Result<String, String> {
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Checking debtap availability...");
+    }
+
+    let debtap_check = Command::new("which").arg("debtap").output().map_err(|_| {
+        "debtap is not installed. Please install it first: yay -S debtap".to_string()
+    })?;
+
+    if !debtap_check.status.success() {
+        return Err("debtap is not installed. Please install it first: yay -S debtap".to_string());
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Updating debtap database...");
+    }
+
+    let update_output = Command::new("debtap")
+        .arg("-u")
+        .output()
+        .map_err(|e| format!("Failed to run debtap -u: {}", e))?;
+
+    if !update_output.status.success() {
+        let err = String::from_utf8_lossy(&update_output.stderr);
+        return Err(format!("debtap database update failed: {}", err.trim()));
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Converting DEB package...");
+    }
+
+    let convert_output = Command::new("debtap")
+        .arg(path)
+        .output()
+        .map_err(|e| format!("Failed to run debtap: {}", e))?;
+
+    if !convert_output.status.success() {
+        let err = String::from_utf8_lossy(&convert_output.stderr);
+        return Err(format!("debtap conversion failed: {}", err.trim()));
+    }
+
+    let stdout = String::from_utf8_lossy(&convert_output.stdout);
+    let pkg_path = stdout
+        .lines()
+        .find(|line| line.contains(".pkg.tar"))
+        .map(|line| line.trim().to_string())
+        .ok_or("Could not find converted package path from debtap output".to_string())?;
+
+    let pkg_path = Path::new(&pkg_path);
+    if !pkg_path.exists() {
+        return Err("Converted package file not found".to_string());
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Installing converted package...");
+    }
+
+    let install_status = Command::new("sudo")
+        .arg("pacman")
+        .arg("-U")
+        .arg("--noconfirm")
+        .arg(pkg_path)
+        .status()
+        .map_err(|e| format!("Failed to install package: {}", e))?;
+
+    if !install_status.success() {
+        return Err("Package installation failed".to_string());
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Done");
+    }
+
+    Ok("Successfully installed DEB package via debtap".to_string())
+}
+
+fn install_deb_direct(path: &Path, window: Option<&Window>) -> Result<String, String> {
+    let (manager, _install_cmd) = detect_package_manager()
+        .ok_or("No supported package manager found (pacman, apt, dpkg, dnf, zypper)".to_string())?;
+
+    if let Some(ref w) = window {
+        let _ = w.emit(
+            "install-progress",
+            format!("Installing DEB package with {}...", manager),
+        );
+    }
+
+    let install_status = match manager.as_str() {
+        "pacman" => {
+            return install_deb_with_debtap(path, window);
+        },
+        "apt" => Command::new("sudo")
+            .arg("apt")
+            .arg("install")
+            .arg("-y")
+            .arg(path)
+            .status(),
+        "dpkg" => {
+            let dpkg_status = Command::new("sudo")
+                .arg("dpkg")
+                .arg("-i")
+                .arg(path)
+                .status();
+            if dpkg_status.as_ref().map(|s| s.success()).unwrap_or(false) {
+                let _ = Command::new("sudo")
+                    .arg("apt")
+                    .arg("install")
+                    .arg("-f")
+                    .arg("-y")
+                    .status();
+            }
+            dpkg_status
+        },
+        "dnf" => Command::new("sudo")
+            .arg("dnf")
+            .arg("install")
+            .arg("-y")
+            .arg(path)
+            .status(),
+        "yum" => Command::new("sudo")
+            .arg("yum")
+            .arg("localinstall")
+            .arg("-y")
+            .arg(path)
+            .status(),
+        "zypper" => Command::new("sudo")
+            .arg("zypper")
+            .arg("install")
+            .arg("-y")
+            .arg(path)
+            .status(),
+        _ => return Err(format!("Unsupported package manager: {}", manager)),
+    }
+    .map_err(|e| format!("Failed to install package: {}", e))?;
+
+    if !install_status.success() {
+        return Err("Package installation failed. Check terminal output for details.".to_string());
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Done");
+    }
+
+    Ok(format!(
+        "Successfully installed DEB package via {}",
+        manager
+    ))
+}
+
+#[tauri::command]
+pub async fn install_deb(path: String, window: Window) -> Result<String, String> {
+    install_deb_internal(path, Some(window)).await
+}
+
+pub async fn install_deb_internal(path: String, window: Option<Window>) -> Result<String, String> {
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Initializing DEB installation...");
+    }
+
+    let source_path = Path::new(&path);
+    if !source_path.exists() {
+        return Err("DEB file does not exist.".into());
+    }
+    if !is_deb_path(source_path) {
+        return Err("Only .deb files are supported.".into());
+    }
+
+    install_deb_direct(source_path, window.as_ref())
+}
+
+fn install_rpm_direct(path: &Path, window: Option<&Window>) -> Result<String, String> {
+    let managers = vec![
+        ("dnf", vec!["install", "-y"]),
+        ("zypper", vec!["install", "-y"]),
+        ("yum", vec!["localinstall", "-y"]),
+        ("rpm", vec!["-i", "--nodeps"]),
+    ];
+
+    let (manager, args) = managers
+        .into_iter()
+        .find(|(cmd, _)| {
+            Command::new("which")
+                .arg(cmd)
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
+        })
+        .ok_or("No supported RPM package manager found (dnf, zypper, yum, rpm)".to_string())?;
+
+    if let Some(ref w) = window {
+        let _ = w.emit(
+            "install-progress",
+            format!("Installing RPM package with {}...", manager),
+        );
+    }
+
+    let mut cmd = Command::new("sudo");
+    cmd.arg(manager);
+    for arg in &args {
+        cmd.arg(arg);
+    }
+    cmd.arg(path);
+
+    let install_status = cmd
+        .status()
+        .map_err(|e| format!("Failed to install package: {}", e))?;
+
+    if !install_status.success() {
+        return Err("Package installation failed. Check terminal output for details.".to_string());
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Done");
+    }
+
+    Ok(format!(
+        "Successfully installed RPM package via {}",
+        manager
+    ))
+}
+
+#[tauri::command]
+pub async fn install_rpm(path: String, window: Window) -> Result<String, String> {
+    install_rpm_internal(path, Some(window)).await
+}
+
+pub async fn install_rpm_internal(path: String, window: Option<Window>) -> Result<String, String> {
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Initializing RPM installation...");
+    }
+
+    let source_path = Path::new(&path);
+    if !source_path.exists() {
+        return Err("RPM file does not exist.".into());
+    }
+    if !is_rpm_path(source_path) {
+        return Err("Only .rpm files are supported.".into());
+    }
+
+    install_rpm_direct(source_path, window.as_ref())
 }
 
 #[tauri::command]
