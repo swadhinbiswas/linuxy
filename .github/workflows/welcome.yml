@@ -62,7 +62,7 @@ jobs:
 
       - name: Add labels to first-time contributors
         if: github.event_name == 'pull_request_target'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
