@@ -181,7 +181,7 @@ jobs:
           sed -i "s/sha256sums = .*/sha256sums = ${CHECKSUM}/" packaging/aur/.SRCINFO
 
       - name: Publish to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
         with:
           pkgname: linuxy
           pkgbuild: packaging/aur/PKGBUILD
