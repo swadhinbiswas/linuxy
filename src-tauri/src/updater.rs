@@ -38,11 +38,13 @@ pub async fn check_for_update(path: String, window: Window) -> Result<bool, Stri
     let _ = window.emit("install-progress", "Checking for updates...");
 
     let app_handle = window.app_handle();
-    let cmd = app_handle.shell()
+    let cmd = app_handle
+        .shell()
         .sidecar(UPDATE_TOOL)
         .map_err(|e| format!("Failed to create sidecar command: {}", e))?;
 
-    let output = cmd.args(["--check-for-update", &path])
+    let output = cmd
+        .args(["--check-for-update", &path])
         .output()
         .await
         .map_err(|e| format!("Failed to run sidecar: {}", e))?;
@@ -68,11 +70,13 @@ pub async fn apply_update(path: String, window: Window) -> Result<String, String
     let _ = window.emit("install-progress", "Downloading delta update...");
 
     let app_handle = window.app_handle();
-    let cmd = app_handle.shell()
+    let cmd = app_handle
+        .shell()
         .sidecar(UPDATE_TOOL)
         .map_err(|e| format!("Failed to create sidecar command: {}", e))?;
 
-    let output = cmd.args([&path])
+    let output = cmd
+        .args([&path])
         .output()
         .await
         .map_err(|e| format!("Failed to run sidecar: {}", e))?;
@@ -159,17 +163,17 @@ pub async fn check_all_updates(app_handle: AppHandle) -> Result<Vec<UpdateInfo>,
         }
 
         let path_str = path.to_string_lossy().to_string();
-        let cmd_result = app_handle.shell()
+        let cmd_result = app_handle
+            .shell()
             .sidecar(UPDATE_TOOL)
             .map_err(|e| e.to_string());
 
         let output_result = match cmd_result {
-            Ok(cmd) => {
-                cmd.args(["--check-for-update", &path_str])
-                    .output()
-                    .await
-                    .map_err(|e| e.to_string())
-            },
+            Ok(cmd) => cmd
+                .args(["--check-for-update", &path_str])
+                .output()
+                .await
+                .map_err(|e| e.to_string()),
             Err(e) => Err(e),
         };
 
