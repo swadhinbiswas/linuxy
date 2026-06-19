@@ -58,3 +58,9 @@ build-dir/
 
 # Code analysis
 .coderabbit.yml
+
+# Tauri v2 generated files
+src-tauri/gen/
+
+# Flatpak build repository
+flathub/

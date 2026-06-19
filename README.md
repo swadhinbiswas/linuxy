@@ -342,11 +342,11 @@ panel shows the current detection status.
 
 ```bash
 # Ubuntu / Debian
-sudo apt install libwebkit2gtk-4.0-dev build-essential curl wget file \
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
   libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
-# Fedora
-sudo dnf install webkit2gtk4.1-devel openssl-devel libappindicator-gtk3-devel
+# Fedora / Nobara
+sudo dnf install gtk3 gtk3-devel webkit2gtk4.1 webkit2gtk4.1-devel openssl-devel libappindicator-gtk3-devel
 
 # Arch
 sudo pacman -S webkit2gtk-4.1 openssl libappindicator-gtk3
@@ -439,11 +439,8 @@ sudo pacman -S firejail            # Arch
 Install the WebKitGTK development package:
 
 ```bash
-# Ubuntu 24.04+
+# Ubuntu / Debian
 sudo apt install libwebkit2gtk-4.1-dev
-
-# Ubuntu 20.04-22.04
-sudo apt install libwebkit2gtk-4.0-dev
 ```
 
 </details>

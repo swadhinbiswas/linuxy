@@ -1,4 +1,4 @@
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { Upload } from "lucide-react";
 import React from "react";
 
@@ -15,6 +15,8 @@ const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
           { name: "AppImage", extensions: ["AppImage", "appimage"] },
           { name: "DEB Package", extensions: ["deb"] },
           { name: "RPM Package", extensions: ["rpm"] },
+          { name: "Executable", extensions: ["sh", "bin", "run"] },
+          { name: "All Files", extensions: ["*"] },
         ],
       });
       if (typeof selected === "string") {
@@ -43,7 +45,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
       onClick={handleSelectFile}
     >
       <Upload size={32} style={{ marginBottom: "10px", color: "var(--text-muted)" }} />
-      <div>Drag and drop an .AppImage, .deb, or .rpm file here, or click to browse</div>
+      <div>Drag and drop an .AppImage, .deb, .rpm, or executable file here, or click to browse</div>
     </div>
   );
 };

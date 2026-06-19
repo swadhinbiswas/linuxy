@@ -1,10 +1,10 @@
 use std::fs;
-use std::io::Read;
+use std::io::{Read, Seek};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use tauri::Window;
+use tauri::{Emitter, Window};
 use uuid::Uuid;
 
 fn is_appimage_path(path: &Path) -> bool {
@@ -69,9 +69,19 @@ fn copy_icon_from_extract(
     let mut copied_icons = Vec::new();
 
     if !parsed_icon_name.is_empty() {
+        let clean_icon_name = parsed_icon_name
+            .trim_end_matches(".png")
+            .trim_end_matches(".svg")
+            .trim_end_matches(".xpm")
+            .trim_end_matches(".jpg")
+            .trim_end_matches(".jpeg")
+            .to_string();
+
         let possible_icons = vec![
-            squashfs_root.join(format!("{}.png", parsed_icon_name)),
-            squashfs_root.join(format!("{}.svg", parsed_icon_name)),
+            squashfs_root.join(format!("{}.png", clean_icon_name)),
+            squashfs_root.join(format!("{}.svg", clean_icon_name)),
+            squashfs_root.join(format!("{}.xpm", clean_icon_name)),
+            squashfs_root.join(parsed_icon_name),
             squashfs_root.join(".DirIcon"),
         ];
 
@@ -387,6 +397,90 @@ pub async fn install_rpm_internal(path: String, window: Option<Window>) -> Resul
     install_rpm_direct(source_path, window.as_ref())
 }
 
+fn is_fuse_available() -> bool {
+    if !Path::new("/dev/fuse").exists() {
+        return false;
+    }
+
+    let ldconfig_check = Command::new("ldconfig").arg("-p").output();
+
+    if let Ok(output) = ldconfig_check {
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.contains("libfuse.so.2") {
+                return true;
+            }
+        }
+    }
+
+    let common_paths = [
+        "/lib/libfuse.so.2",
+        "/usr/lib/libfuse.so.2",
+        "/lib64/libfuse.so.2",
+        "/usr/lib64/libfuse.so.2",
+        "/lib/x86_64-linux-gnu/libfuse.so.2",
+        "/usr/lib/x86_64-linux-gnu/libfuse.so.2",
+        "/lib/aarch64-linux-gnu/libfuse.so.2",
+        "/usr/lib/aarch64-linux-gnu/libfuse.so.2",
+        "/lib/arm-linux-gnueabihf/libfuse.so.2",
+        "/usr/lib/arm-linux-gnueabihf/libfuse.so.2",
+        "/lib/i386-linux-gnu/libfuse.so.2",
+        "/usr/lib/i386-linux-gnu/libfuse.so.2",
+    ];
+
+    for path in &common_paths {
+        if Path::new(path).exists() {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn find_squashfs_offset(path: &Path) -> Option<u64> {
+    let mut file = fs::File::open(path).ok()?;
+    let mut buffer = vec![0; 65536];
+    let mut offset = 0;
+
+    loop {
+        let bytes_read = file.read(&mut buffer).ok()?;
+        if bytes_read == 0 {
+            break;
+        }
+
+        for i in 0..bytes_read.saturating_sub(3) {
+            let chunk = &buffer[i..i + 4];
+            if chunk == [0x68, 0x73, 0x71, 0x73] || chunk == [0x73, 0x71, 0x73, 0x68] {
+                let absolute_offset = offset + i as u64;
+
+                let status = Command::new("unsquashfs")
+                    .arg("-s")
+                    .arg("-o")
+                    .arg(absolute_offset.to_string())
+                    .arg(path)
+                    .status();
+
+                if let Ok(s) = status {
+                    if s.success() {
+                        return Some(absolute_offset);
+                    }
+                }
+            }
+        }
+
+        if bytes_read < 4 {
+            break;
+        }
+
+        offset += (bytes_read - 3) as u64;
+        if file.seek(std::io::SeekFrom::Start(offset)).is_err() {
+            break;
+        }
+    }
+
+    None
+}
+
 #[tauri::command]
 pub async fn install_appimage(path: String, window: Window) -> Result<String, String> {
     install_appimage_internal(path, Some(window)).await
@@ -427,27 +521,94 @@ pub async fn install_appimage_internal(
     let tmp_dir = std::env::temp_dir().join(format!("linuxy_{}", Uuid::new_v4()));
     fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
 
+    let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
+    let staging_extracted_dir =
+        appimages_dir.join(format!(".{}_extracted.{}.part", base_name, Uuid::new_v4()));
+    let extracted_dir = appimages_dir.join(format!("{}_extracted", base_name));
+
+    // Determine if we need permanent extraction (FUSE missing or cross-architecture)
+    let extraction_binary = tmp_dir.join(&file_name);
+    fs::copy(source_path, &extraction_binary).map_err(|e| e.to_string())?;
+    let _ = set_executable(&extraction_binary);
+
+    let test_run = Command::new(&extraction_binary)
+        .arg("--appimage-version")
+        .output();
+    let can_run_natively = match test_run {
+        Ok(output) => output.status.success(),
+        _ => false,
+    };
+
+    let fuse_ok = is_fuse_available();
+    let use_permanent_extraction = !fuse_ok || !can_run_natively;
+
+    if let Some(ref w) = window {
+        if use_permanent_extraction {
+            let _ = w.emit(
+                "install-progress",
+                if !fuse_ok {
+                    "FUSE not detected. Installing in FUSE-less (extracted) mode..."
+                } else {
+                    "Architecture mismatch detected. Installing in emulation/extracted mode..."
+                },
+            );
+        }
+    }
+
     let install_result = (|| -> Result<String, String> {
-        let extraction_binary = tmp_dir.join(&file_name);
-        fs::copy(source_path, &extraction_binary).map_err(|e| e.to_string())?;
-        set_executable(&extraction_binary)?;
+        let squashfs_root = if use_permanent_extraction {
+            staging_extracted_dir.clone()
+        } else {
+            tmp_dir.join("squashfs-root")
+        };
 
         if let Some(ref w) = window {
             let _ = w.emit("install-progress", "Extracting metadata (SquashFS)...");
         }
 
-        let output = Command::new(&extraction_binary)
-            .arg("--appimage-extract")
-            .current_dir(&tmp_dir)
-            .output()
-            .map_err(|e| format!("Failed to extract AppImage: {}", e))?;
+        if can_run_natively {
+            let output = Command::new(&extraction_binary)
+                .arg("--appimage-extract")
+                .current_dir(if use_permanent_extraction {
+                    &appimages_dir
+                } else {
+                    &tmp_dir
+                })
+                .output()
+                .map_err(|e| format!("Failed to extract AppImage: {}", e))?;
 
-        if !output.status.success() {
-            let err_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("AppImage extraction failed: {}", err_msg.trim()));
+            if !output.status.success() {
+                let err_msg = String::from_utf8_lossy(&output.stderr);
+                return Err(format!("AppImage extraction failed: {}", err_msg.trim()));
+            }
+
+            if use_permanent_extraction {
+                let default_extracted = appimages_dir.join("squashfs-root");
+                if default_extracted.exists() {
+                    fs::rename(&default_extracted, &staging_extracted_dir)
+                        .map_err(|e| format!("Failed to rename squashfs-root: {}", e))?;
+                } else {
+                    return Err("Extraction succeeded but squashfs-root not found".into());
+                }
+            }
+        } else {
+            let offset = find_squashfs_offset(source_path)
+                .ok_or_else(|| "Could not find SquashFS offset in AppImage. Make sure squashfs-tools is installed and the AppImage is valid.".to_string())?;
+
+            let status = Command::new("unsquashfs")
+                .arg("-d")
+                .arg(&squashfs_root)
+                .arg("-o")
+                .arg(offset.to_string())
+                .arg(source_path)
+                .status()
+                .map_err(|e| format!("Failed to run unsquashfs: {}", e))?;
+
+            if !status.success() {
+                return Err("unsquashfs extraction failed".into());
+            }
         }
 
-        let squashfs_root = tmp_dir.join("squashfs-root");
         let desktop_files = fs::read_dir(&squashfs_root)
             .map_err(|e| e.to_string())?
             .filter_map(Result::ok)
@@ -466,11 +627,16 @@ pub async fn install_appimage_internal(
 
         let desktop_content =
             fs::read_to_string(desktop_files[0].path()).map_err(|e| e.to_string())?;
-        let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
         let final_app_path = appimages_dir.join(&file_name);
         let staging_app_path =
             appimages_dir.join(format!(".{}.{}.part.AppImage", base_name, Uuid::new_v4()));
         let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
+
+        let exec_path = if use_permanent_extraction {
+            extracted_dir.join("AppRun").to_string_lossy().to_string()
+        } else {
+            final_app_path.to_string_lossy().to_string()
+        };
 
         let mut new_desktop = String::new();
         let mut parsed_icon_name = String::new();
@@ -495,7 +661,7 @@ pub async fn install_appimage_internal(
                 }
 
                 if trimmed.starts_with("Exec=") {
-                    new_desktop.push_str(&format!("Exec={}\n", final_app_path.to_string_lossy()));
+                    new_desktop.push_str(&format!("Exec={}\n", exec_path));
                 } else if trimmed.starts_with("Icon=") {
                     parsed_icon_name = trimmed.trim_start_matches("Icon=").to_string();
                     new_desktop.push_str(&format!("Icon={}_icon\n", base_name));
@@ -562,6 +728,18 @@ pub async fn install_appimage_internal(
         let _copied_icons =
             copy_icon_from_extract(&squashfs_root, &icons_dir, &base_name, &parsed_icon_name);
 
+        if use_permanent_extraction {
+            let apprun_path = staging_extracted_dir.join("AppRun");
+            if apprun_path.exists() {
+                let _ = set_executable(&apprun_path);
+            }
+            if extracted_dir.exists() {
+                fs::remove_dir_all(&extracted_dir).map_err(|e| e.to_string())?;
+            }
+            fs::rename(&staging_extracted_dir, &extracted_dir)
+                .map_err(|e| format!("Failed to finalize extracted directory: {}", e))?;
+        }
+
         if let Some(ref w) = window {
             let _ = w.emit("install-progress", "Finalizing setup...");
         }
@@ -578,7 +756,85 @@ pub async fn install_appimage_internal(
     })();
 
     let _ = fs::remove_dir_all(&tmp_dir);
+    if install_result.is_err() {
+        let _ = fs::remove_dir_all(&staging_extracted_dir);
+    }
     install_result
+}
+
+#[tauri::command]
+pub async fn install_executable(path: String, window: Window) -> Result<String, String> {
+    install_executable_internal(path, Some(window)).await
+}
+
+pub async fn install_executable_internal(
+    path: String,
+    window: Option<Window>,
+) -> Result<String, String> {
+    if let Some(ref w) = window {
+        let _ = w.emit(
+            "install-progress",
+            "Initializing executable installation...",
+        );
+    }
+
+    let source_path = Path::new(&path);
+    if !source_path.exists() {
+        return Err("File does not exist.".into());
+    }
+
+    let file_name = source_path
+        .file_name()
+        .ok_or("Invalid file name")?
+        .to_string_lossy()
+        .to_string();
+
+    let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
+    let bin_dir = home_dir.join(".local/bin");
+    let apps_dir = home_dir.join(".local/share/applications");
+
+    fs::create_dir_all(&bin_dir).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&apps_dir).map_err(|e| e.to_string())?;
+
+    let final_app_path = bin_dir.join(&file_name);
+    let desktop_path = apps_dir.join(format!("{}.desktop", file_name));
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Copying binary to storage...");
+    }
+
+    fs::copy(source_path, &final_app_path).map_err(|e| format!("Failed to copy file: {}", e))?;
+
+    set_executable(&final_app_path)?;
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Creating desktop entry...");
+    }
+
+    let new_desktop = format!(
+        "[Desktop Entry]\nType=Application\nName={}\nExec={}\nTerminal=false\nCategories=Utility;\n",
+        file_name,
+        final_app_path.to_string_lossy()
+    );
+
+    if let Err(error) = fs::write(&desktop_path, new_desktop) {
+        let _ = fs::remove_file(&final_app_path);
+        return Err(error.to_string());
+    }
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Finalizing setup...");
+    }
+
+    let _ = Command::new("update-desktop-database")
+        .arg(&apps_dir)
+        .output();
+
+    if let Some(ref w) = window {
+        let _ = w.emit("install-progress", "Done");
+    }
+
+    Ok("Successfully installed executable".into())
 }
 
 #[cfg(test)]

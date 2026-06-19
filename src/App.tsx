@@ -1,5 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/tauri";
 import {
   Moon,
   Sun,
@@ -162,6 +162,18 @@ function App() {
     }
   };
 
+  const installExecutable = async (path: string) => {
+    try {
+      setInstallProgress("Initializing Executable installation...");
+      await invoke("install_executable", { path });
+      return true;
+    } catch (err) {
+      console.error(err);
+      setError(String(err));
+      return false;
+    }
+  };
+
   const handleInstall = async (paths: string[]) => {
     try {
       setLoading(true);
@@ -176,7 +188,7 @@ function App() {
         } else if (path.toLowerCase().endsWith(".rpm")) {
           await installRpm(path);
         } else {
-          setError(`Unsupported file type: ${path}`);
+          await installExecutable(path);
         }
       }
       await loadApps();
@@ -280,6 +292,8 @@ function App() {
                 await installDeb(fullPath);
               } else if (fullPath.toLowerCase().endsWith(".rpm")) {
                 await installRpm(fullPath);
+              } else {
+                await installExecutable(fullPath);
               }
               await loadApps();
               setLoading(false);
@@ -403,7 +417,16 @@ function App() {
 
   const updateAppImage = async (path: string) => {
     try {
-      const appName = apps.find((app) => app.path === path)?.name || "This AppImage";
+      const app = apps.find((app) => app.path === path);
+      const appName = app?.name || "This App";
+
+      if (app?.package_type !== "AppImage") {
+        showInfoModal(
+          "Updates Not Supported",
+          `${appName} is not an AppImage and does not support delta updates via appimageupdatetool.`
+        );
+        return;
+      }
 
       if (!updateToolInstalled) {
         showInfoModal(
@@ -443,8 +466,8 @@ function App() {
 
   const requestRemoveApp = (app: AppInfo) => {
     setModal({
-      title: "Remove AppImage",
-      message: `Remove ${app.name} from your library?\n\nThis deletes the AppImage file and its desktop integration.`,
+      title: "Remove App",
+      message: `Remove ${app.name} from your library?\n\nThis deletes the app file and its desktop integration.`,
       actions: [
         { label: "Cancel", variant: "secondary" },
         {
@@ -538,7 +561,7 @@ function App() {
 
         {view === "library" && (
           <>
-            <h2 style={{ color: "var(--text-primary)" }}>AppImage Library</h2>
+            <h2 style={{ color: "var(--text-primary)" }}>App Library</h2>
             <DropZone onInstall={handleInstall} />
             <div
               style={{
@@ -987,7 +1010,7 @@ function App() {
                 <button
                   onClick={async () => {
                     try {
-                      const { save } = await import("@tauri-apps/api/dialog");
+                      const { save } = await import("@tauri-apps/plugin-dialog");
                       const selected = await save({
                         filters: [{ name: "JSON", extensions: ["json"] }],
                         defaultPath: `linuxy-backup-${new Date().toISOString().split("T")[0]}.json`,
@@ -1021,7 +1044,7 @@ function App() {
                 <button
                   onClick={async () => {
                     try {
-                      const { open } = await import("@tauri-apps/api/dialog");
+                      const { open } = await import("@tauri-apps/plugin-dialog");
                       const selected = await open({
                         multiple: false,
                         filters: [{ name: "JSON", extensions: ["json"] }],

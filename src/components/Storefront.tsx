@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import { Download, Search, Github, Globe } from "lucide-react";
 import React, { useState, useEffect } from "react";
 

@@ -1,4 +1,4 @@
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { Play, Trash2, ShieldAlert, ShieldCheck, RefreshCw } from "lucide-react";
 import React from "react";
 
@@ -36,7 +36,7 @@ const AppGrid: React.FC<AppGridProps> = ({
   if (apps.length === 0) {
     return (
       <div style={{ color: "var(--text-muted)", marginTop: "20px" }}>
-        No AppImages installed yet. Drag and drop one to install!
+        No apps installed yet. Drag and drop one to install!
       </div>
     );
   }

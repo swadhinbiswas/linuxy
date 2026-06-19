@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter};
 
 const POLL_INTERVAL_SECS: u64 = 5;
 const STABLE_POLLS_REQUIRED: u8 = 2;
@@ -68,7 +68,7 @@ pub fn start_watcher(app_handle: AppHandle) {
                     update_tracking_state(state, current_size);
 
                     if !state.notified && state.stable_polls >= STABLE_POLLS_REQUIRED {
-                        let _ = app_handle.emit_all("appimage-detected", path.to_string_lossy());
+                        let _ = app_handle.emit("appimage-detected", path.to_string_lossy());
                         state.notified = true;
                     }
                 }

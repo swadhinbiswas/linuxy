@@ -39,17 +39,19 @@ Linuxy requires the following system libraries:
 
 ```bash
 # Debian/Ubuntu
-sudo apt install libwebkit2gtk-4.0-dev \
+sudo apt install libwebkit2gtk-4.1-dev \
     libssl-dev \
     libgtk-3-dev \
     libayatana-appindicator3-dev \
     librsvg2-dev \
     libxdo-dev
 
-# Fedora
-sudo dnf install webkit2gtk3-devel \
-    openssl-devel \
+# Fedora / Nobara
+sudo dnf install gtk3 \
     gtk3-devel \
+    webkit2gtk4.1 \
+    webkit2gtk4.1-devel \
+    openssl-devel \
     libappindicator-gtk3-devel \
     librsvg2-devel \
     libxdo-devel
@@ -230,7 +232,7 @@ source $HOME/.cargo/env
 
 # Install build dependencies (Debian/Ubuntu)
 sudo apt install build-essential \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     libssl-dev \
     libgtk-3-dev \
     libayatana-appindicator3-dev \

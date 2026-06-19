@@ -20,15 +20,18 @@ async fn main() {
     std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             let handle = app.handle();
-            watcher::start_watcher(handle);
+            watcher::start_watcher(handle.clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             installer::install_appimage,
             installer::install_deb,
             installer::install_rpm,
+            installer::install_executable,
             manager::get_installed_apps,
             manager::launch_app,
             manager::remove_app,

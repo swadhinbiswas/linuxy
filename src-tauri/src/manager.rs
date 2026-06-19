@@ -31,7 +31,26 @@ pub struct CleanupStats {
     pub reclaimable_bytes: u64,
 }
 
-fn get_appimage_base_names(appimages_dir: &Path) -> Vec<String> {
+fn get_dir_size(path: &Path) -> u64 {
+    let mut total_size = 0;
+    if path.is_dir() {
+        if let Ok(entries) = fs::read_dir(path) {
+            for entry in entries.flatten() {
+                let entry_path = entry.path();
+                if entry_path.is_file() {
+                    if let Ok(metadata) = fs::metadata(&entry_path) {
+                        total_size += metadata.len();
+                    }
+                } else if entry_path.is_dir() {
+                    total_size += get_dir_size(&entry_path);
+                }
+            }
+        }
+    }
+    total_size
+}
+
+fn get_appimage_base_names(appimages_dir: &Path, bin_dir: &Path) -> Vec<String> {
     let mut names = Vec::new();
     if appimages_dir.exists() {
         if let Ok(entries) = fs::read_dir(appimages_dir) {
@@ -47,6 +66,20 @@ fn get_appimage_base_names(appimages_dir: &Path) -> Vec<String> {
             }
         }
     }
+    if bin_dir.exists() {
+        if let Ok(entries) = fs::read_dir(bin_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    names.push(name);
+                }
+            }
+        }
+    }
     names
 }
 
@@ -54,10 +87,11 @@ fn get_appimage_base_names(appimages_dir: &Path) -> Vec<String> {
 pub async fn analyze_storage() -> Result<CleanupStats, String> {
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let appimages_dir = home_dir.join(".local/appimages");
+    let bin_dir = home_dir.join(".local/bin");
     let apps_dir = home_dir.join(".local/share/applications");
     let icons_dir = home_dir.join(".local/share/icons");
 
-    let app_names = get_appimage_base_names(&appimages_dir);
+    let app_names = get_appimage_base_names(&appimages_dir, &bin_dir);
     let mut orphaned_icons = 0;
     let mut orphaned_desktops = 0;
     let mut reclaimable_bytes = 0;
@@ -138,10 +172,11 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
     let stats = analyze_storage().await?;
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let appimages_dir = home_dir.join(".local/appimages");
+    let bin_dir = home_dir.join(".local/bin");
     let apps_dir = home_dir.join(".local/share/applications");
     let icons_dir = home_dir.join(".local/share/icons");
 
-    let app_names = get_appimage_base_names(&appimages_dir);
+    let app_names = get_appimage_base_names(&appimages_dir, &bin_dir);
 
     if icons_dir.exists() {
         if let Ok(entries) = fs::read_dir(&icons_dir) {
@@ -203,101 +238,189 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
 pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let appimages_dir = home_dir.join(".local/appimages");
+    let bin_dir = home_dir.join(".local/bin");
     let apps_dir = home_dir.join(".local/share/applications");
     let icons_dir = home_dir.join(".local/share/icons");
 
     let mut apps = Vec::new();
 
-    if !appimages_dir.exists() {
-        return Ok(apps);
-    }
+    if appimages_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&appimages_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file()
+                    && (path.extension().and_then(|s| s.to_str()) == Some("AppImage")
+                        || path.extension().and_then(|s| s.to_str()) == Some("appimage"))
+                {
+                    if let Ok(metadata) = fs::metadata(&path) {
+                        let mut size_bytes = metadata.len();
+                        let file_name = path
+                            .file_name()
+                            .map(|n| n.to_string_lossy().to_string())
+                            .unwrap_or_default();
+                        let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
 
-    let entries = fs::read_dir(&appimages_dir).map_err(|e| e.to_string())?;
+                        let extracted_dir = appimages_dir.join(format!("{}_extracted", base_name));
+                        if extracted_dir.exists() {
+                            size_bytes += get_dir_size(&extracted_dir);
+                        }
 
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_file()
-            && (path.extension().and_then(|s| s.to_str()) == Some("AppImage")
-                || path.extension().and_then(|s| s.to_str()) == Some("appimage"))
-        {
-            let metadata = fs::metadata(&path).map_err(|e| e.to_string())?;
-            let size_bytes = metadata.len();
-            let installed_at = metadata
-                .created()
-                .or_else(|_| metadata.modified())
-                .ok()
-                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .map(|d| d.as_secs())
-                .unwrap_or(0);
+                        let installed_at = metadata
+                            .created()
+                            .or_else(|_| metadata.modified())
+                            .ok()
+                            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                            .map(|d| d.as_secs())
+                            .unwrap_or(0);
 
-            let file_name = path
-                .file_name()
-                .map(|n| n.to_string_lossy().to_string())
-                .unwrap_or_default();
-            let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
+                        let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
 
-            let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
+                        let mut name = base_name.clone();
+                        let mut icon_path = None;
+                        let mut sandboxed = false;
+                        let mut categories = Vec::new();
 
-            let mut name = base_name.clone();
-            let mut icon_path = None;
-            let mut sandboxed = false;
-            let mut categories = Vec::new();
-
-            if desktop_path.exists() {
-                if let Ok(content) = fs::read_to_string(&desktop_path) {
-                    for line in content.lines() {
-                        if line.starts_with("Name=") {
-                            name = line.trim_start_matches("Name=").to_string();
-                        } else if line.starts_with("Exec=") {
-                            if line.contains("firejail") {
-                                sandboxed = true;
-                            }
-                        } else if line.starts_with("Icon=") {
-                            let icon_name = line.trim_start_matches("Icon=").to_string();
-                            let possible_png = icons_dir.join(format!("{}.png", icon_name));
-                            let possible_svg = icons_dir.join(format!("{}.svg", icon_name));
-                            if possible_png.exists() {
-                                icon_path = Some(possible_png.to_string_lossy().to_string());
-                            } else if possible_svg.exists() {
-                                icon_path = Some(possible_svg.to_string_lossy().to_string());
-                            } else {
-                                let abs_path = Path::new(&icon_name);
-                                if abs_path.exists() {
-                                    icon_path = Some(abs_path.to_string_lossy().to_string());
+                        if desktop_path.exists() {
+                            if let Ok(content) = fs::read_to_string(&desktop_path) {
+                                for line in content.lines() {
+                                    if line.starts_with("Name=") {
+                                        name = line.trim_start_matches("Name=").to_string();
+                                    } else if line.starts_with("Exec=") {
+                                        if line.contains("firejail") {
+                                            sandboxed = true;
+                                        }
+                                    } else if line.starts_with("Icon=") {
+                                        let icon_name =
+                                            line.trim_start_matches("Icon=").to_string();
+                                        let possible_png =
+                                            icons_dir.join(format!("{}.png", icon_name));
+                                        let possible_svg =
+                                            icons_dir.join(format!("{}.svg", icon_name));
+                                        if possible_png.exists() {
+                                            icon_path =
+                                                Some(possible_png.to_string_lossy().to_string());
+                                        } else if possible_svg.exists() {
+                                            icon_path =
+                                                Some(possible_svg.to_string_lossy().to_string());
+                                        } else {
+                                            let abs_path = Path::new(&icon_name);
+                                            if abs_path.exists() {
+                                                icon_path =
+                                                    Some(abs_path.to_string_lossy().to_string());
+                                            }
+                                        }
+                                    } else if line.starts_with("Categories=") {
+                                        let cats = line.trim_start_matches("Categories=");
+                                        categories = cats
+                                            .split(';')
+                                            .filter(|c| !c.is_empty())
+                                            .map(|c| c.to_string())
+                                            .collect();
+                                    }
                                 }
                             }
-                        } else if line.starts_with("Categories=") {
-                            let cats = line.trim_start_matches("Categories=");
-                            categories = cats
-                                .split(';')
-                                .filter(|c| !c.is_empty())
-                                .map(|c| c.to_string())
-                                .collect();
+                        }
+
+                        let package_type = "AppImage".to_string();
+
+                        apps.push(AppInfo {
+                            name,
+                            exec: path.to_string_lossy().to_string(),
+                            icon: icon_path,
+                            path: path.to_string_lossy().to_string(),
+                            desktop_path: desktop_path.to_string_lossy().to_string(),
+                            sandboxed,
+                            size_bytes,
+                            installed_at,
+                            categories,
+                            package_type,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    if bin_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&bin_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let file_name = path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+
+                    let desktop_path = apps_dir.join(format!("{}.desktop", file_name));
+
+                    // Only list executables that have a corresponding desktop file created by us
+                    if desktop_path.exists() {
+                        if let Ok(metadata) = fs::metadata(&path) {
+                            let size_bytes = metadata.len();
+                            let installed_at = metadata
+                                .created()
+                                .or_else(|_| metadata.modified())
+                                .ok()
+                                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                                .map(|d| d.as_secs())
+                                .unwrap_or(0);
+
+                            let mut name = file_name.clone();
+                            let mut icon_path = None;
+                            let sandboxed = false;
+                            let mut categories = Vec::new();
+
+                            if let Ok(content) = fs::read_to_string(&desktop_path) {
+                                for line in content.lines() {
+                                    if line.starts_with("Name=") {
+                                        name = line.trim_start_matches("Name=").to_string();
+                                    } else if line.starts_with("Icon=") {
+                                        let icon_name =
+                                            line.trim_start_matches("Icon=").to_string();
+                                        let possible_png =
+                                            icons_dir.join(format!("{}.png", icon_name));
+                                        let possible_svg =
+                                            icons_dir.join(format!("{}.svg", icon_name));
+                                        if possible_png.exists() {
+                                            icon_path =
+                                                Some(possible_png.to_string_lossy().to_string());
+                                        } else if possible_svg.exists() {
+                                            icon_path =
+                                                Some(possible_svg.to_string_lossy().to_string());
+                                        } else {
+                                            let abs_path = Path::new(&icon_name);
+                                            if abs_path.exists() {
+                                                icon_path =
+                                                    Some(abs_path.to_string_lossy().to_string());
+                                            }
+                                        }
+                                    } else if line.starts_with("Categories=") {
+                                        let cats = line.trim_start_matches("Categories=");
+                                        categories = cats
+                                            .split(';')
+                                            .filter(|c| !c.is_empty())
+                                            .map(|c| c.to_string())
+                                            .collect();
+                                    }
+                                }
+                            }
+
+                            apps.push(AppInfo {
+                                name,
+                                exec: path.to_string_lossy().to_string(),
+                                icon: icon_path,
+                                path: path.to_string_lossy().to_string(),
+                                desktop_path: desktop_path.to_string_lossy().to_string(),
+                                sandboxed,
+                                size_bytes,
+                                installed_at,
+                                categories,
+                                package_type: "Executable".to_string(),
+                            });
                         }
                     }
                 }
             }
-
-            let package_type = if path.extension().and_then(|s| s.to_str()) == Some("AppImage")
-                || path.extension().and_then(|s| s.to_str()) == Some("appimage")
-            {
-                "AppImage".to_string()
-            } else {
-                "Native".to_string()
-            };
-
-            apps.push(AppInfo {
-                name,
-                exec: path.to_string_lossy().to_string(),
-                icon: icon_path,
-                path: path.to_string_lossy().to_string(),
-                desktop_path: desktop_path.to_string_lossy().to_string(),
-                sandboxed,
-                size_bytes,
-                installed_at,
-                categories,
-                package_type,
-            });
         }
     }
 
@@ -308,6 +431,8 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
 pub async fn get_storage_stats() -> Result<StorageStats, String> {
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let appimages_dir = home_dir.join(".local/appimages");
+    let bin_dir = home_dir.join(".local/bin");
+    let apps_dir = home_dir.join(".local/share/applications");
 
     let mut total_size_bytes = 0;
     let mut app_count = 0;
@@ -322,7 +447,39 @@ pub async fn get_storage_stats() -> Result<StorageStats, String> {
             {
                 if let Ok(metadata) = fs::metadata(&path) {
                     total_size_bytes += metadata.len();
+                    let file_name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
+                    let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
+                    let extracted_dir = appimages_dir.join(format!("{}_extracted", base_name));
+                    if extracted_dir.exists() {
+                        total_size_bytes += get_dir_size(&extracted_dir);
+                    }
                     app_count += 1;
+                }
+            }
+        }
+    }
+
+    if bin_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&bin_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let file_name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
+                    let desktop_path = apps_dir.join(format!("{}.desktop", file_name));
+                    if desktop_path.exists() {
+                        if let Ok(metadata) = fs::metadata(&path) {
+                            total_size_bytes += metadata.len();
+                            app_count += 1;
+                        }
+                    }
                 }
             }
         }
@@ -351,35 +508,33 @@ pub async fn launch_app(path: String) -> Result<(), String> {
         .join(".local/share/applications")
         .join(format!("{}.desktop", base_name));
 
-    let mut use_firejail = false;
+    let mut exec_command = None;
     if desktop_path.exists() {
         if let Ok(content) = fs::read_to_string(&desktop_path) {
             for line in content.lines() {
-                if line.starts_with("Exec=") && line.contains("firejail") {
-                    use_firejail = true;
+                if line.starts_with("Exec=") {
+                    let exec_line = line.trim_start_matches("Exec=").trim().to_string();
+                    let mut parts = Vec::new();
+                    for part in exec_line.split_whitespace() {
+                        if !part.starts_with('%') {
+                            parts.push(part.to_string());
+                        }
+                    }
+                    if !parts.is_empty() {
+                        exec_command = Some(parts.join(" "));
+                    }
+                    break;
                 }
             }
         }
     }
 
-    if use_firejail {
-        // Check if firejail is installed
-        let firejail_check = Command::new("which").arg("firejail").output();
-        match firejail_check {
-            Ok(output) if output.status.success() => {
-                Command::new("firejail")
-                    .arg("--appimage")
-                    .arg(&path)
-                    .spawn()
-                    .map_err(|e| format!("Failed to launch app with firejail: {}", e))?;
-            },
-            _ => {
-                return Err(
-                    "Firejail is not installed. Please install firejail to run sandboxed apps."
-                        .to_string(),
-                );
-            },
-        }
+    if let Some(cmd) = exec_command {
+        Command::new("sh")
+            .arg("-c")
+            .arg(&cmd)
+            .spawn()
+            .map_err(|e| format!("Failed to launch app: {}", e))?;
     } else {
         Command::new(&path)
             .spawn()
@@ -416,12 +571,18 @@ pub async fn toggle_sandbox(desktop_path: String, enable: bool) -> Result<(), St
             let has_firejail = current_exec.contains("firejail");
 
             if enable && !has_firejail {
-                new_content.push_str(&format!(
-                    "Exec=firejail --appimage {}\n",
-                    current_exec.replace("\"", "")
-                ));
+                let clean_exec = current_exec.replace("\"", "");
+                let is_appimage = clean_exec.to_lowercase().contains(".appimage");
+
+                if is_appimage {
+                    new_content.push_str(&format!("Exec=firejail --appimage {}\n", clean_exec));
+                } else {
+                    new_content.push_str(&format!("Exec=firejail {}\n", clean_exec));
+                }
             } else if !enable && has_firejail {
-                let clean_exec = current_exec.replace("firejail --appimage ", "");
+                let clean_exec = current_exec
+                    .replace("firejail --appimage ", "")
+                    .replace("firejail ", "");
                 new_content.push_str(&format!("Exec={}\n", clean_exec));
             } else {
                 new_content.push_str(&format!("{}\n", line));
@@ -458,6 +619,12 @@ pub async fn remove_app(path: String, desktop_path: Option<String>) -> Result<()
     }
 
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
+    let extracted_dir = home_dir
+        .join(".local/appimages")
+        .join(format!("{}_extracted", base_name));
+    if extracted_dir.exists() {
+        let _ = fs::remove_dir_all(&extracted_dir);
+    }
     let resolved_desktop_path = desktop_path.unwrap_or_else(|| {
         home_dir
             .join(".local/share/applications")

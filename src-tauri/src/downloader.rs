@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 
 use futures_util::StreamExt;
-use tauri::Window;
+use tauri::{Emitter, Window};
 
 use crate::installer;
 

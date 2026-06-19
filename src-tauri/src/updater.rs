@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use tauri::api::process::Command;
-use tauri::Window;
+use tauri::{AppHandle, Emitter, Manager, Window};
+use tauri_plugin_shell::ShellExt;
 
 const UPDATE_TOOL: &str = "appimageupdatetool";
 
@@ -22,41 +22,44 @@ fn update_check_indicates_available(code: Option<i32>, stdout: &str, stderr: &st
 }
 
 #[tauri::command]
-pub async fn is_update_tool_installed() -> Result<bool, String> {
-    Ok(Command::new_sidecar(UPDATE_TOOL)
-        .map_err(|e| format!("{}", e))?
-        .args(["--help"])
-        .output()
-        .is_ok())
+pub async fn is_update_tool_installed(app_handle: AppHandle) -> Result<bool, String> {
+    let cmd = app_handle.shell().sidecar(UPDATE_TOOL);
+    match cmd {
+        Ok(c) => {
+            let output = c.args(["--help"]).output().await;
+            Ok(output.is_ok())
+        },
+        _ => Ok(false),
+    }
 }
 
 #[tauri::command]
 pub async fn check_for_update(path: String, window: Window) -> Result<bool, String> {
     let _ = window.emit("install-progress", "Checking for updates...");
 
-    let cmd = Command::new_sidecar(UPDATE_TOOL)
+    let app_handle = window.app_handle();
+    let cmd = app_handle.shell()
+        .sidecar(UPDATE_TOOL)
         .map_err(|e| format!("Failed to create sidecar command: {}", e))?;
 
-    let output = cmd.args(["--check-for-update", &path]).output();
+    let output = cmd.args(["--check-for-update", &path])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to run sidecar: {}", e))?;
 
-    match output {
-        Ok(out) => {
-            let _ = window.emit("install-progress", "Done");
+    let _ = window.emit("install-progress", "Done");
 
-            if out.status.success() || out.status.code() == Some(1) {
-                Ok(update_check_indicates_available(
-                    out.status.code(),
-                    &out.stdout,
-                    &out.stderr,
-                ))
-            } else {
-                Err(format!("Update check failed: {}", out.stderr.trim()))
-            }
-        },
-        Err(e) => {
-            let _ = window.emit("install-progress", "Update tool not found.");
-            Err(e.to_string())
-        },
+    let stdout_str = String::from_utf8_lossy(&output.stdout);
+    let stderr_str = String::from_utf8_lossy(&output.stderr);
+
+    if output.status.success() || output.status.code() == Some(1) {
+        Ok(update_check_indicates_available(
+            output.status.code(),
+            &stdout_str,
+            &stderr_str,
+        ))
+    } else {
+        Err(format!("Update check failed: {}", stderr_str.trim()))
     }
 }
 
@@ -64,22 +67,24 @@ pub async fn check_for_update(path: String, window: Window) -> Result<bool, Stri
 pub async fn apply_update(path: String, window: Window) -> Result<String, String> {
     let _ = window.emit("install-progress", "Downloading delta update...");
 
-    let cmd = Command::new_sidecar(UPDATE_TOOL)
+    let app_handle = window.app_handle();
+    let cmd = app_handle.shell()
+        .sidecar(UPDATE_TOOL)
         .map_err(|e| format!("Failed to create sidecar command: {}", e))?;
 
-    let output = cmd.args([&path]).output();
+    let output = cmd.args([&path])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to run sidecar: {}", e))?;
 
-    match output {
-        Ok(out) => {
-            if out.status.success() {
-                let _ = window.emit("install-progress", "Update applied successfully.");
-                Ok("Update applied successfully.".into())
-            } else {
-                let _ = window.emit("install-progress", "Update failed.");
-                Err(format!("Update failed: {}", out.stderr.trim()))
-            }
-        },
-        Err(e) => Err(e.to_string()),
+    let stderr_str = String::from_utf8_lossy(&output.stderr);
+
+    if output.status.success() {
+        let _ = window.emit("install-progress", "Update applied successfully.");
+        Ok("Update applied successfully.".into())
+    } else {
+        let _ = window.emit("install-progress", "Update failed.");
+        Err(format!("Update failed: {}", stderr_str.trim()))
     }
 }
 
@@ -112,7 +117,7 @@ mod tests {
 }
 
 #[tauri::command]
-pub async fn check_all_updates() -> Result<Vec<UpdateInfo>, String> {
+pub async fn check_all_updates(app_handle: AppHandle) -> Result<Vec<UpdateInfo>, String> {
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let appimages_dir = home_dir.join(".local/appimages");
     let apps_dir = home_dir.join(".local/share/applications");
@@ -154,18 +159,26 @@ pub async fn check_all_updates() -> Result<Vec<UpdateInfo>, String> {
         }
 
         let path_str = path.to_string_lossy().to_string();
-        let cmd_result = Command::new_sidecar(UPDATE_TOOL)
-            .map_err(|e| e.to_string())
-            .and_then(|cmd| {
+        let cmd_result = app_handle.shell()
+            .sidecar(UPDATE_TOOL)
+            .map_err(|e| e.to_string());
+
+        let output_result = match cmd_result {
+            Ok(cmd) => {
                 cmd.args(["--check-for-update", &path_str])
                     .output()
+                    .await
                     .map_err(|e| e.to_string())
-            });
+            },
+            Err(e) => Err(e),
+        };
 
-        match cmd_result {
+        match output_result {
             Ok(out) => {
+                let stdout_str = String::from_utf8_lossy(&out.stdout);
+                let stderr_str = String::from_utf8_lossy(&out.stderr);
                 let has_update =
-                    update_check_indicates_available(out.status.code(), &out.stdout, &out.stderr);
+                    update_check_indicates_available(out.status.code(), &stdout_str, &stderr_str);
                 results.push(UpdateInfo {
                     path: path_str,
                     name,
@@ -176,7 +189,7 @@ pub async fn check_all_updates() -> Result<Vec<UpdateInfo>, String> {
                     {
                         None
                     } else {
-                        Some(out.stderr.trim().to_string())
+                        Some(stderr_str.trim().to_string())
                     },
                 });
             },

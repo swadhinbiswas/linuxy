@@ -2,61 +2,59 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "Linuxy",
-    "version": "1.2.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "dialog": {
-        "all": false,
-        "open": true
-      },
-      "protocol": {
-        "all": false,
-        "asset": true,
-        "assetScope": ["$HOME/.local/share/icons/**"]
-      }
+  "bundle": {
+    "active": true,
+    "category": "Utility",
+    "copyright": "Open Source - MIT License",
+    "targets": [
+      "deb"
+    ],
+    "externalBin": [
+      "bin/appimageupdatetool"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
     },
-    "bundle": {
-      "active": true,
-      "category": "Utility",
-      "copyright": "Open Source - MIT License",
+    "longDescription": "Linuxy is a modern Linux application manager with one-click installation, Firejail sandboxing, optional delta updates, and secure desktop integration.",
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "resources": [],
+    "shortDescription": "One-click Linux Application Manager",
+    "linux": {
       "deb": {
-        "depends": ["firejail", "xdg-utils"],
+        "depends": [
+          "firejail",
+          "xdg-utils"
+        ],
         "files": {},
         "desktopTemplate": "./debian/desktop-template.desktop"
-      },
-      "externalBin": ["bin/appimageupdatetool"],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.linuxy.app",
-      "longDescription": "Linuxy is a modern Linux application manager with one-click installation, Firejail sandboxing, optional delta updates, and secure desktop integration.",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "One-click Linux Application Manager",
-      "targets": ["deb"],
-      "windows": { "certificateThumbprint": null, "digestAlgorithm": "sha256", "timestampUrl": "" }
-    },
-    "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
-    },
+      }
+    }
+  },
+  "productName": "Linuxy",
+  "mainBinaryName": "Linuxy",
+  "version": "1.2.0",
+  "identifier": "com.linuxy.app",
+  "plugins": {},
+  "app": {
     "windows": [
       {
         "url": "app.html",
@@ -65,11 +63,21 @@
         "resizable": true,
         "title": "Linuxy",
         "width": 800,
-        "fileDropEnabled": true,
+        "dragDropEnabled": true,
         "decorations": true,
         "transparent": false,
-        "center": true
+        "center": true,
+        "useHttpsScheme": true
       }
-    ]
+    ],
+    "security": {
+      "assetProtocol": {
+        "scope": [
+          "$HOME/.local/share/icons/**"
+        ],
+        "enable": true
+      },
+      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+    }
   }
 }

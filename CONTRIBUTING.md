@@ -94,7 +94,7 @@ cd src-tauri && cargo fetch
 
 ```bash
 # Debian/Ubuntu
-sudo apt install libwebkit2gtk-4.0-dev \
+sudo apt install libwebkit2gtk-4.1-dev \
     build-essential \
     libssl-dev \
     libgtk-3-dev \
@@ -103,7 +103,7 @@ sudo apt install libwebkit2gtk-4.0-dev \
     libxdo-dev
 
 # Fedora
-sudo dnf install webkit2gtk3-devel \
+sudo dnf install webkit2gtk4.1-devel \
     openssl-devel \
     gtk3-devel \
     libappindicator-gtk3-devel \
