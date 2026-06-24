@@ -2,108 +2,59 @@ use crate::installer;
 use crate::manager;
 
 fn is_appimage_path(arg: &str) -> bool {
-    let lower = arg.to_ascii_lowercase();
-    lower.ends_with(".appimage")
+    arg.to_ascii_lowercase().ends_with(".appimage")
 }
 
 fn is_deb_path(arg: &str) -> bool {
-    let lower = arg.to_ascii_lowercase();
-    lower.ends_with(".deb")
+    arg.to_ascii_lowercase().ends_with(".deb")
 }
 
 fn is_rpm_path(arg: &str) -> bool {
-    let lower = arg.to_ascii_lowercase();
-    lower.ends_with(".rpm")
+    arg.to_ascii_lowercase().ends_with(".rpm")
 }
 
-pub async fn handle_cli(args: Vec<String>) {
-    if args.len() < 2 {
-        return;
-    }
+fn is_exe_path(arg: &str) -> bool {
+    let l = arg.to_ascii_lowercase();
+    l.ends_with(".exe") || l.ends_with(".msi")
+}
 
-    let command = &args[1];
-    match command.as_str() {
-        path if is_appimage_path(path) => {
-            println!("Installing {}...", path);
-            match installer::install_appimage_internal(path.to_string(), None).await {
-                Ok(msg) => println!("{}", msg),
-                Err(err) => {
-                    println!("Error: {}", err);
-                    std::process::exit(1);
-                },
-            }
-            std::process::exit(0);
-        },
-        path if is_deb_path(path) => {
-            println!("Installing {}...", path);
-            match installer::install_deb_internal(path.to_string(), None).await {
-                Ok(msg) => println!("{}", msg),
-                Err(err) => {
-                    println!("Error: {}", err);
-                    std::process::exit(1);
-                },
-            }
-            std::process::exit(0);
-        },
-        path if is_rpm_path(path) => {
-            println!("Installing {}...", path);
-            match installer::install_rpm_internal(path.to_string(), None).await {
-                Ok(msg) => println!("{}", msg),
-                Err(err) => {
-                    println!("Error: {}", err);
-                    std::process::exit(1);
-                },
-            }
-            std::process::exit(0);
-        },
-        "list" => {
-            if let Ok(apps) = manager::get_installed_apps().await {
+pub async fn handle_cli(path: &str) {
+    if is_appimage_path(path) {
+        println!("Installing {}...", path);
+        match installer::install_appimage_internal(path.to_string()).await {
+            Ok(msg) => println!("{}", msg),
+            Err(err) => { eprintln!("Error: {}", err); std::process::exit(1); }
+        }
+        std::process::exit(0);
+    } else if is_deb_path(path) {
+        println!("Installing {}...", path);
+        match installer::install_deb_internal(path.to_string()).await {
+            Ok(msg) => println!("{}", msg),
+            Err(err) => { eprintln!("Error: {}", err); std::process::exit(1); }
+        }
+        std::process::exit(0);
+    } else if is_rpm_path(path) {
+        println!("Installing {}...", path);
+        match installer::install_rpm_internal(path.to_string()).await {
+            Ok(msg) => println!("{}", msg),
+            Err(err) => { eprintln!("Error: {}", err); std::process::exit(1); }
+        }
+        std::process::exit(0);
+    } else if is_exe_path(path) {
+        println!("Installing {}...", path);
+        match installer::install_executable_internal(path.to_string()).await {
+            Ok(msg) => println!("{}", msg),
+            Err(err) => { eprintln!("Error: {}", err); std::process::exit(1); }
+        }
+        std::process::exit(0);
+    } else {
+        match manager::get_installed_apps().await {
+            Ok(apps) => {
                 println!("{:<30} {:<10} {:<20}", "NAME", "SANDBOX", "PATH");
-                for app in apps {
-                    println!("{:<30} {:<10} {:<20}", app.name, app.sandboxed, app.path);
-                }
+                for app in apps { println!("{:<30} {:<10} {:<20}", app.name, app.sandboxed, app.path); }
             }
-            std::process::exit(0);
-        },
-        "install" => {
-            if args.len() < 3 {
-                println!("Usage: linuxy install <path>");
-                std::process::exit(1);
-            }
-            let path = &args[2];
-            println!("Installing {}...", path);
-            if is_appimage_path(path) {
-                match installer::install_appimage_internal(path.clone(), None).await {
-                    Ok(msg) => println!("{}", msg),
-                    Err(err) => println!("Error: {}", err),
-                }
-            } else if is_deb_path(path) {
-                match installer::install_deb_internal(path.clone(), None).await {
-                    Ok(msg) => println!("{}", msg),
-                    Err(err) => println!("Error: {}", err),
-                }
-            } else if is_rpm_path(path) {
-                match installer::install_rpm_internal(path.clone(), None).await {
-                    Ok(msg) => println!("{}", msg),
-                    Err(err) => println!("Error: {}", err),
-                }
-            } else {
-                println!(
-                    "Error: Unsupported file type. Only .AppImage, .deb, and .rpm files are supported."
-                );
-                std::process::exit(1);
-            }
-            std::process::exit(0);
-        },
-        "help" | "--help" | "-h" => {
-            println!("linuxy - AppImage, DEB & RPM Package Manager");
-            println!("Usage:");
-            println!("  linuxy <path>         Install an AppImage, DEB, or RPM by file path");
-            println!("  linuxy install <path> Install an AppImage, DEB, or RPM by file path");
-            println!("  linuxy list           List installed AppImages");
-            println!("  linuxy help           Show this help");
-            std::process::exit(0);
-        },
-        _ => {},
+            Err(e) => eprintln!("Error: {}", e),
+        }
+        std::process::exit(0);
     }
 }

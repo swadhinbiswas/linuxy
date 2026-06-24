@@ -1,4 +1,3 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { Upload } from "lucide-react";
 import React from "react";
 
@@ -9,13 +8,14 @@ interface DropZoneProps {
 const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
   const handleSelectFile = async () => {
     try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
       const selected = await open({
         multiple: true,
         filters: [
           { name: "AppImage", extensions: ["AppImage", "appimage"] },
           { name: "DEB Package", extensions: ["deb"] },
           { name: "RPM Package", extensions: ["rpm"] },
-          { name: "Executable", extensions: ["sh", "bin", "run"] },
+          { name: "Executable", extensions: ["exe", "msi", "sh", "bin", "run"] },
           { name: "All Files", extensions: ["*"] },
         ],
       });

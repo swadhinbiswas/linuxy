@@ -1,6 +1,7 @@
 #!/bin/bash
 # Build RPM package from DEB for Linuxy
 # Requires: fpm (gem install fpm)
+# Run scripts/build.sh first to generate DEB
 
 set -e
 
@@ -15,6 +16,17 @@ if ! command -v fpm &> /dev/null; then
     echo "Error: fpm is not installed."
     echo "To build RPM, install fpm with: gem install fpm"
     echo "Or on Arch Linux: sudo pacman -S ruby base-devel && gem install fpm"
+    exit 1
+fi
+
+# Check if rpmbuild is available
+if ! command -v rpmbuild &> /dev/null; then
+    echo "Error: rpmbuild is not installed."
+    echo "Install it with:"
+    echo "  Debian/Ubuntu: sudo apt install rpm"
+    echo "  Fedora: sudo dnf install rpm-build"
+    echo "  Arch: sudo pacman -S rpm-tools"
+    echo "  Alpine: sudo apk add rpm-build"
     exit 1
 fi
 
@@ -39,8 +51,8 @@ echo "Found DEB package: $DEB_PACKAGE"
 RPM_OUTPUT="$TAURI_TARGET/release/bundle/rpm"
 mkdir -p "$RPM_OUTPUT"
 
-# Extract version from DEB filename
-VERSION=$(basename "$DEB_PACKAGE" | sed 's/linuxy_\([0-9.]*\)_amd64.deb/\1/')
+# Extract version from DEB filename (supports linuxy_X.Y.Z_amd64.deb and Linuxy_X.Y.Z_amd64.deb)
+VERSION=$(basename "$DEB_PACKAGE" | sed 's/[Ll]inuxy_\([0-9.]*\)_amd64.deb/\1/')
 echo "Version: $VERSION"
 
 # Convert DEB to RPM using fpm

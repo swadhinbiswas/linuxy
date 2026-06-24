@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pisi SYSTEM "https://getsol.us/schema/pisi-1.0.dtd">
+<PISI xmlns="https://getsol.us/schema/pisi-1.0">
+  <Package>
+    <Name>linuxy</Name>
+    <History>
+      <Update release="1" date="2026-06-24">
+        <Version>2.0.0</Version>
+        <Comment>Tauri 2.0 migration with cross-platform support</Comment>
+        <Name>Swadhin Biswas</Name>
+        <Email>swadhin.biswas@example.com</Email>
+      </Update>
+    </History>
+  </Package>
+</PISI>

@@ -68,7 +68,7 @@ pub fn start_watcher(app_handle: AppHandle) {
                     update_tracking_state(state, current_size);
 
                     if !state.notified && state.stable_polls >= STABLE_POLLS_REQUIRED {
-                        let _ = app_handle.emit("appimage-detected", path.to_string_lossy());
+                        let _ = app_handle.emit("appimage-detected", path.to_string_lossy().to_string());
                         state.notified = true;
                     }
                 }
@@ -86,13 +86,10 @@ mod tests {
     #[test]
     fn marks_file_stable_only_after_repeated_same_size() {
         let mut state = TrackedFile::default();
-
         update_tracking_state(&mut state, 128);
         assert_eq!(state.stable_polls, 0);
-
         update_tracking_state(&mut state, 128);
         assert_eq!(state.stable_polls, 1);
-
         update_tracking_state(&mut state, 128);
         assert_eq!(state.stable_polls, 2);
     }
@@ -100,11 +97,9 @@ mod tests {
     #[test]
     fn resets_stability_when_size_changes() {
         let mut state = TrackedFile::default();
-
         update_tracking_state(&mut state, 128);
         update_tracking_state(&mut state, 128);
         update_tracking_state(&mut state, 256);
-
         assert_eq!(state.last_size, 256);
         assert_eq!(state.stable_polls, 0);
     }

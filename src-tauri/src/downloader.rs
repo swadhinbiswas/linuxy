@@ -2,21 +2,21 @@ use std::fs::File;
 use std::io::Write;
 
 use futures_util::StreamExt;
-use tauri::{Emitter, Window};
+use tauri::Emitter;
 
 use crate::installer;
 
 #[tauri::command]
 pub async fn download_and_install(
+    app_handle: tauri::AppHandle,
     url: String,
     name: String,
-    window: Window,
 ) -> Result<String, String> {
     if !(url.starts_with("https://") || url.starts_with("http://")) {
         return Err("Only http:// and https:// downloads are allowed.".into());
     }
 
-    let _ = window.emit("install-progress", format!("Downloading {}...", name));
+    let _ = app_handle.emit("install-progress", format!("Downloading {}...", name));
 
     let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
     let status = response.status();
@@ -35,13 +35,12 @@ pub async fn download_and_install(
         if chunk.is_empty() {
             continue;
         }
-
         file.write_all(&chunk).map_err(|e| e.to_string())?;
         downloaded += chunk.len() as u64;
 
         if total_size > 0 {
             let percentage = (downloaded as f64 / total_size as f64) * 100.0;
-            let _ = window.emit(
+            let _ = app_handle.emit(
                 "install-progress",
                 format!("Downloading: {:.1}%", percentage),
             );
@@ -55,11 +54,10 @@ pub async fn download_and_install(
         return Err("Download completed with no data.".into());
     }
 
-    let _ = window.emit("install-progress", "Download complete. Installing...");
+    let _ = app_handle.emit("install-progress", "Download complete. Installing...");
 
     let result = installer::install_appimage_internal(
         temp_path.to_string_lossy().to_string(),
-        Some(window.clone()),
     )
     .await;
 

@@ -1,83 +1,157 @@
 {
+  "productName": "Linuxy",
+  "version": "2.0.0",
+  "identifier": "com.linuxy.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420"
   },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "url": "app.html",
+        "title": "Linuxy",
+        "width": 1000,
+        "height": 700,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "decorations": true,
+        "fullscreen": false,
+        "dragDropEnabled": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+    },
+    "trayIcon": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true,
+      "tooltip": "Linuxy"
+    }
+  },
   "bundle": {
     "active": true,
-    "category": "Utility",
-    "copyright": "Open Source - MIT License",
-    "targets": [
-      "deb"
-    ],
-    "externalBin": [
-      "bin/appimageupdatetool"
-    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
-      "icons/icon.png",
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "windows": {
-      "certificateThumbprint": null,
-      "digestAlgorithm": "sha256",
-      "timestampUrl": ""
-    },
-    "longDescription": "Linuxy is a modern Linux application manager with one-click installation, Firejail sandboxing, optional delta updates, and secure desktop integration.",
-    "macOS": {
-      "entitlements": null,
-      "exceptionDomain": "",
-      "frameworks": [],
-      "providerShortName": null,
-      "signingIdentity": null
-    },
-    "resources": [],
-    "shortDescription": "One-click Linux Application Manager",
+    "targets": ["deb", "appimage", "nsis", "msi", "dmg"],
     "linux": {
       "deb": {
-        "depends": [
-          "firejail",
-          "xdg-utils"
-        ],
-        "files": {},
-        "desktopTemplate": "./debian/desktop-template.desktop"
+        "depends": ["firejail", "xdg-utils"],
+        "desktopTemplate": "./debian/desktop-template.desktop",
+        "files": {}
+      },
+      "appimage": {
+        "bundleMediaFramework": true
       }
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English"]
+      },
+      "wix": {
+        "language": "en-US"
+      }
+    },
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "13.0",
+      "exceptionDomain": "",
+      "signingIdentity": null
     }
   },
-  "productName": "Linuxy",
-  "mainBinaryName": "Linuxy",
-  "version": "1.2.0",
-  "identifier": "com.linuxy.app",
-  "plugins": {},
-  "app": {
-    "windows": [
-      {
-        "url": "app.html",
-        "fullscreen": false,
-        "height": 600,
-        "resizable": true,
-        "title": "Linuxy",
-        "width": 800,
-        "dragDropEnabled": true,
-        "decorations": true,
-        "transparent": false,
-        "center": true,
-        "useHttpsScheme": true
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": ["https://github.com/swadhinbiswas/linuxy/releases/latest/download/updater.json"],
+      "dialog": true,
+      "pubkey": ""
+    },
+    "cli": {
+      "description": "Linuxy - Cross-Platform Application Manager",
+      "longDescription": "Install, organize, and sandbox your applications across Linux, Windows, and macOS.",
+      "args": [
+        {
+          "name": "path",
+          "description": "Install an AppImage, DEB, RPM, EXE, or MSI by file path",
+          "index": 1,
+          "validator": {
+            "regex": "^.*\\.(AppImage|appimage|deb|rpm|exe|msi|dmg|pkg)$"
+          }
+        },
+        {
+          "name": "install",
+          "subcommands": {
+            "description": "Install an application package",
+            "args": [
+              {
+                "name": "path",
+                "description": "Path to the package file",
+                "required": true,
+                "index": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "list",
+          "description": "List installed applications"
+        },
+        {
+          "name": "launch",
+          "subcommands": {
+            "description": "Launch an installed application",
+            "args": [
+              {
+                "name": "name",
+                "description": "Application name to launch",
+                "required": true,
+                "index": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "remove",
+          "subcommands": {
+            "description": "Remove an installed application",
+            "args": [
+              {
+                "name": "name",
+                "description": "Application name to remove",
+                "required": true,
+                "index": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "help",
+          "description": "Show help information"
+        }
+      ]
+    },
+    "deep-link": {
+      "mobile": [],
+      "desktop": {
+        "schemes": ["linuxy"]
       }
-    ],
-    "security": {
-      "assetProtocol": {
-        "scope": [
-          "$HOME/.local/share/icons/**"
-        ],
-        "enable": true
-      },
-      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+    },
+    "log": {
+      "targets": [
+        { "kind": "console", "level": "info" },
+        { "kind": "file", "level": "debug", "path": "$DATA_DIR/logs" }
+      ]
     }
   }
 }

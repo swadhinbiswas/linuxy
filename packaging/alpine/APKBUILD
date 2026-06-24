@@ -1,0 +1,50 @@
+# Maintainer: Swadhin Biswas <swadhin.biswas@example.com>
+# Alpine Linux APKBUILD for Linuxy
+
+pkgname=linuxy
+pkgver=2.0.0
+pkgrel=0
+pkgdesc="Multi-platform Desktop Application Manager with Firejail sandboxing"
+url="https://github.com/swadhinbiswas/linuxy"
+arch="x86_64 aarch64"
+license="MIT"
+depends="firejail xdg-utils gtk+3.0 webkit2gtk-4.1 libappindicator-gtk3 libxdo"
+makedepends="cargo rust nodejs npm openssl-dev cairo-dev pango-dev gdk-pixbuf-dev
+             atk-dev libsoup3-dev harfbuzz-dev freetype-dev"
+options="!check"
+
+source="$pkgname-$pkgver.tar.gz::https://github.com/swadhinbiswas/$pkgname/archive/refs/tags/v$pkgver.tar.gz"
+
+builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+  default_prepare
+  cd "$builddir"
+  npm install
+}
+
+build() {
+  cd "$builddir"
+  npm run build
+  cd src-tauri
+  cargo build --release --locked
+}
+
+package() {
+  cd "$builddir"
+
+  install -Dm755 src-tauri/target/release/linuxy "$pkgdir/usr/bin/linuxy"
+  install -Dm644 src-tauri/debian/desktop-template.desktop "$pkgdir/usr/share/applications/linuxy.desktop"
+
+  for size in 32 128 256 512; do
+    icon="src-tauri/icons/${size}x${size}.png"
+    [ -f "$icon" ] && install -Dm644 "$icon" \
+      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/linuxy.png"
+  done
+  [ -f "src-tauri/icons/icon.png" ] && install -Dm644 "src-tauri/icons/icon.png" \
+    "$pkgdir/usr/share/icons/hicolor/512x512/apps/linuxy.png"
+
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+sha512sums="SKIP"
