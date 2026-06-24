@@ -56,10 +56,8 @@ pub async fn download_and_install(
 
     let _ = app_handle.emit("install-progress", "Download complete. Installing...");
 
-    let result = installer::install_appimage_internal(
-        temp_path.to_string_lossy().to_string(),
-    )
-    .await;
+    let result =
+        installer::install_appimage_internal(temp_path.to_string_lossy().to_string()).await;
 
     let _ = std::fs::remove_file(&temp_path);
     result

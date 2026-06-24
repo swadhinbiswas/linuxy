@@ -29,10 +29,7 @@ pub async fn is_update_tool_installed() -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub async fn check_for_update(
-    app_handle: tauri::AppHandle,
-    path: String,
-) -> Result<bool, String> {
+pub async fn check_for_update(app_handle: tauri::AppHandle, path: String) -> Result<bool, String> {
     let _ = app_handle.emit("install-progress", "Checking for updates...");
 
     let output = app_handle
@@ -61,10 +58,7 @@ pub async fn check_for_update(
 }
 
 #[tauri::command]
-pub async fn apply_update(
-    app_handle: tauri::AppHandle,
-    path: String,
-) -> Result<String, String> {
+pub async fn apply_update(app_handle: tauri::AppHandle, path: String) -> Result<String, String> {
     let _ = app_handle.emit("install-progress", "Downloading delta update...");
 
     let output = app_handle
@@ -89,9 +83,7 @@ pub async fn apply_update(
 }
 
 #[tauri::command]
-pub async fn check_all_updates(
-    app_handle: tauri::AppHandle,
-) -> Result<Vec<UpdateInfo>, String> {
+pub async fn check_all_updates(app_handle: tauri::AppHandle) -> Result<Vec<UpdateInfo>, String> {
     let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
     let appimages_dir = home_dir.join(".local/appimages");
     let apps_dir = home_dir.join(".local/share/applications");
@@ -163,7 +155,7 @@ pub async fn check_all_updates(
                         Some(String::from_utf8_lossy(&out.stderr).trim().to_string())
                     },
                 });
-            }
+            },
             Err(e) => {
                 results.push(UpdateInfo {
                     path: path_str,
@@ -171,7 +163,7 @@ pub async fn check_all_updates(
                     has_update: false,
                     error: Some(e),
                 });
-            }
+            },
         }
     }
 

@@ -669,7 +669,9 @@ function App() {
 
             {/* Appearance */}
             <div style={settingsSectionStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
                 <Sun size={20} color="var(--accent-color)" />
                 <h3 style={{ margin: 0 }}>Appearance</h3>
               </div>
@@ -697,36 +699,106 @@ function App() {
 
             {/* Storage */}
             <div style={settingsSectionStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
                 <FolderOpen size={20} color="var(--accent-color)" />
                 <h3 style={{ margin: 0 }}>Library Storage</h3>
               </div>
               {stats && (
                 <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-                  <div style={{ flex: 1, background: "var(--bg-input)", padding: "15px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                    <div style={{ color: "var(--text-muted)", fontSize: "12px", textTransform: "uppercase", fontWeight: "bold" }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      background: "var(--bg-input)",
+                      padding: "15px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "12px",
+                        textTransform: "uppercase",
+                        fontWeight: "bold",
+                      }}
+                    >
                       Total Disk Usage
                     </div>
-                    <div style={{ color: "var(--text-primary)", fontSize: "24px", fontWeight: "bold", marginTop: "5px" }}>
+                    <div
+                      style={{
+                        color: "var(--text-primary)",
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                        marginTop: "5px",
+                      }}
+                    >
                       {formatBytes(stats.total_size_bytes)}
                     </div>
                   </div>
-                  <div style={{ flex: 1, background: "var(--bg-input)", padding: "15px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                    <div style={{ color: "var(--text-muted)", fontSize: "12px", textTransform: "uppercase", fontWeight: "bold" }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      background: "var(--bg-input)",
+                      padding: "15px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "12px",
+                        textTransform: "uppercase",
+                        fontWeight: "bold",
+                      }}
+                    >
                       Installed Apps
                     </div>
-                    <div style={{ color: "var(--text-primary)", fontSize: "24px", fontWeight: "bold", marginTop: "5px" }}>
+                    <div
+                      style={{
+                        color: "var(--text-primary)",
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                        marginTop: "5px",
+                      }}
+                    >
                       {stats.app_count}
                     </div>
                   </div>
                 </div>
               )}
-              <div style={{ background: "var(--bg-input)", padding: "15px", borderRadius: "6px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div
+                style={{
+                  background: "var(--bg-input)",
+                  padding: "15px",
+                  borderRadius: "6px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <div>
-                  <div style={{ color: "var(--text-primary)", fontWeight: "500" }}>Primary Directory</div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>~/.local/appimages/</div>
+                  <div style={{ color: "var(--text-primary)", fontWeight: "500" }}>
+                    Primary Directory
+                  </div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
+                    ~/.local/appimages/
+                  </div>
                 </div>
-                <button onClick={() => invoke("open_directory", { dirName: "appimages" })} style={{ background: "var(--accent-color)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                <button
+                  onClick={() => invoke("open_directory", { dirName: "appimages" })}
+                  style={{
+                    background: "var(--accent-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "8px 15px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
                   Open Folder
                 </button>
               </div>
@@ -734,17 +806,31 @@ function App() {
 
             {/* Cleanup */}
             <div style={settingsSectionStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
                 <FolderOpen size={20} color="var(--danger-color)" />
                 <h3 style={{ margin: 0 }}>Storage Cleanup</h3>
               </div>
               <p style={{ color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>
-                Find and remove orphaned icons, desktop entries, and leftover temp files from failed installations.
+                Find and remove orphaned icons, desktop entries, and leftover temp files from failed
+                installations.
               </p>
               {cleanupStats && cleanupStats.reclaimable_bytes > 0 && (
-                <div style={{ background: "var(--bg-input)", padding: "15px", borderRadius: "6px", marginBottom: "15px" }}>
-                  <div style={{ color: "var(--text-primary)", fontWeight: 500, marginBottom: "8px" }}>
-                    Found {cleanupStats.orphaned_icons} orphaned icons, {cleanupStats.orphaned_desktops} orphaned desktops, and {cleanupStats.temp_files} temp files
+                <div
+                  style={{
+                    background: "var(--bg-input)",
+                    padding: "15px",
+                    borderRadius: "6px",
+                    marginBottom: "15px",
+                  }}
+                >
+                  <div
+                    style={{ color: "var(--text-primary)", fontWeight: 500, marginBottom: "8px" }}
+                  >
+                    Found {cleanupStats.orphaned_icons} orphaned icons,{" "}
+                    {cleanupStats.orphaned_desktops} orphaned desktops, and{" "}
+                    {cleanupStats.temp_files} temp files
                   </div>
                   <div style={{ color: "var(--danger-color)", fontWeight: 600 }}>
                     {formatBytes(cleanupStats.reclaimable_bytes)} can be reclaimed
@@ -752,16 +838,70 @@ function App() {
                 </div>
               )}
               {cleanupStats && cleanupStats.reclaimable_bytes === 0 && (
-                <div style={{ background: "var(--accent-bg)", padding: "15px", borderRadius: "6px", marginBottom: "15px", color: "var(--accent-color)" }}>
+                <div
+                  style={{
+                    background: "var(--accent-bg)",
+                    padding: "15px",
+                    borderRadius: "6px",
+                    marginBottom: "15px",
+                    color: "var(--accent-color)",
+                  }}
+                >
                   No cleanup needed. Everything looks clean!
                 </div>
               )}
               <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={async () => { setAnalyzingCleanup(true); try { const s = await invoke<typeof cleanupStats>("analyze_storage"); setCleanupStats(s); } catch (err) { setError(String(err)); } finally { setAnalyzingCleanup(false); } }} disabled={analyzingCleanup} style={{ background: "var(--bg-input)", color: "var(--text-primary)", border: "1px solid var(--border-color)", padding: "8px 15px", borderRadius: "6px", cursor: analyzingCleanup ? "not-allowed" : "pointer", fontWeight: 500, fontSize: "13px" }}>
+                <button
+                  onClick={async () => {
+                    setAnalyzingCleanup(true);
+                    try {
+                      const s = await invoke<typeof cleanupStats>("analyze_storage");
+                      setCleanupStats(s);
+                    } catch (err) {
+                      setError(String(err));
+                    } finally {
+                      setAnalyzingCleanup(false);
+                    }
+                  }}
+                  disabled={analyzingCleanup}
+                  style={{
+                    background: "var(--bg-input)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-color)",
+                    padding: "8px 15px",
+                    borderRadius: "6px",
+                    cursor: analyzingCleanup ? "not-allowed" : "pointer",
+                    fontWeight: 500,
+                    fontSize: "13px",
+                  }}
+                >
                   {analyzingCleanup ? "Analyzing..." : "Analyze"}
                 </button>
                 {cleanupStats && cleanupStats.reclaimable_bytes > 0 && (
-                  <button onClick={async () => { try { await invoke("cleanup_storage"); showInfoModal("Cleanup Complete", "Orphaned files and temp files have been removed."); setCleanupStats(null); } catch (err) { setError(String(err)); } }} style={{ background: "var(--danger-color)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "6px", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await invoke("cleanup_storage");
+                        showInfoModal(
+                          "Cleanup Complete",
+                          "Orphaned files and temp files have been removed."
+                        );
+                        setCleanupStats(null);
+                      } catch (err) {
+                        setError(String(err));
+                      }
+                    }}
+                    style={{
+                      background: "var(--danger-color)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "8px 15px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                    }}
+                  >
                     Clean Up Now
                   </button>
                 )}
@@ -770,37 +910,78 @@ function App() {
 
             {/* Security */}
             <div style={settingsSectionStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
                 <Shield size={20} color="var(--accent-color)" />
                 <h3 style={{ margin: 0 }}>Security & Sandbox</h3>
               </div>
               <p style={{ color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>
-                Linuxy uses <strong>Firejail</strong> to provide one-click sandboxing for AppImages. When enabled, apps are restricted from accessing your personal files unless explicitly permitted.
+                Linuxy uses <strong>Firejail</strong> to provide one-click sandboxing for AppImages.
+                When enabled, apps are restricted from accessing your personal files unless
+                explicitly permitted.
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", color: firejailInstalled ? "var(--accent-color)" : "var(--danger-color)", fontSize: "13px", marginTop: "10px", padding: "10px", background: firejailInstalled ? "var(--accent-bg)" : "var(--danger-bg)", borderRadius: "6px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  color: firejailInstalled ? "var(--accent-color)" : "var(--danger-color)",
+                  fontSize: "13px",
+                  marginTop: "10px",
+                  padding: "10px",
+                  background: firejailInstalled ? "var(--accent-bg)" : "var(--danger-bg)",
+                  borderRadius: "6px",
+                }}
+              >
                 {firejailInstalled ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
-                <span>{firejailInstalled ? "Firejail is installed and ready to use." : "Firejail is NOT installed. Install it to use sandboxing features."}</span>
+                <span>
+                  {firejailInstalled
+                    ? "Firejail is installed and ready to use."
+                    : "Firejail is NOT installed. Install it to use sandboxing features."}
+                </span>
               </div>
             </div>
 
             {/* Updates */}
             <div style={settingsSectionStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
                 <Monitor size={20} color="var(--accent-color)" />
                 <h3 style={{ margin: 0 }}>Updates</h3>
               </div>
               <p style={{ color: "var(--text-secondary)", fontSize: "14px", lineHeight: "1.5" }}>
-                Linuxy uses <strong>appimageupdatetool</strong> for delta updates on AppImages that publish update metadata.
+                Linuxy uses <strong>appimageupdatetool</strong> for delta updates on AppImages that
+                publish update metadata.
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", color: updateToolInstalled ? "var(--accent-color)" : "var(--danger-color)", fontSize: "13px", marginTop: "10px", padding: "10px", background: updateToolInstalled ? "var(--accent-bg)" : "var(--danger-bg)", borderRadius: "6px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  color: updateToolInstalled ? "var(--accent-color)" : "var(--danger-color)",
+                  fontSize: "13px",
+                  marginTop: "10px",
+                  padding: "10px",
+                  background: updateToolInstalled ? "var(--accent-bg)" : "var(--danger-bg)",
+                  borderRadius: "6px",
+                }}
+              >
                 {updateToolInstalled ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
-                <span>{updateToolInstalled ? "appimageupdatetool is installed." : "appimageupdatetool is not installed. Update actions are disabled."}</span>
+                <span>
+                  {updateToolInstalled
+                    ? "appimageupdatetool is installed."
+                    : "appimageupdatetool is not installed. Update actions are disabled."}
+                </span>
               </div>
             </div>
 
             {/* Backup */}
             <div style={settingsSectionStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}
+              >
                 <Save size={20} color="var(--accent-color)" />
                 <h3 style={{ margin: 0 }}>Backup & Restore</h3>
               </div>
@@ -824,7 +1005,21 @@ function App() {
                       setError(String(err));
                     }
                   }}
-                  style={{ flex: 1, background: "var(--accent-color)", color: "#fff", border: "none", padding: "10px 15px", borderRadius: "6px", cursor: "pointer", fontWeight: 600, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                  style={{
+                    flex: 1,
+                    background: "var(--accent-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 15px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
                 >
                   <Save size={16} /> Export Library
                 </button>
@@ -837,7 +1032,9 @@ function App() {
                         filters: [{ name: "JSON", extensions: ["json"] }],
                       });
                       if (typeof selected === "string") {
-                        const result = await invoke<string>("import_library", { backupPath: selected });
+                        const result = await invoke<string>("import_library", {
+                          backupPath: selected,
+                        });
                         showInfoModal("Restore Complete", result);
                         await loadApps();
                       }
@@ -845,7 +1042,21 @@ function App() {
                       setError(String(err));
                     }
                   }}
-                  style={{ flex: 1, background: "var(--bg-input)", color: "var(--text-primary)", border: "1px solid var(--border-color)", padding: "10px 15px", borderRadius: "6px", cursor: "pointer", fontWeight: 600, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                  style={{
+                    flex: 1,
+                    background: "var(--bg-input)",
+                    color: "var(--text-primary)",
+                    border: "1px solid var(--border-color)",
+                    padding: "10px 15px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
                 >
                   <Upload size={16} /> Import Library
                 </button>
@@ -853,18 +1064,67 @@ function App() {
             </div>
 
             {/* About */}
-            <div style={{ marginTop: "40px", borderTop: "1px solid var(--border-color)", paddingTop: "20px", textAlign: "center", color: "var(--text-muted)", fontSize: "12px" }}>
+            <div
+              style={{
+                marginTop: "40px",
+                borderTop: "1px solid var(--border-color)",
+                paddingTop: "20px",
+                textAlign: "center",
+                color: "var(--text-muted)",
+                fontSize: "12px",
+              }}
+            >
               linuxy v2.0.0 • Built with Rust & Tauri 2
             </div>
           </div>
         )}
 
         {modal && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20, padding: "24px" }} onClick={() => !modalBusy && setModal(null)}>
-            <div style={{ width: "min(420px, 100%)", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "14px", padding: "24px", boxShadow: "0 18px 45px rgba(0, 0, 0, 0.28)" }} onClick={(event) => event.stopPropagation()}>
-              <h3 style={{ marginTop: 0, marginBottom: "10px", color: "var(--text-primary)" }}>{modal.title}</h3>
-              <p style={{ margin: 0, color: "var(--text-secondary)", lineHeight: "1.6", whiteSpace: "pre-line" }}>{modal.message}</p>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.45)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 20,
+              padding: "24px",
+            }}
+            onClick={() => !modalBusy && setModal(null)}
+          >
+            <div
+              style={{
+                width: "min(420px, 100%)",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "14px",
+                padding: "24px",
+                boxShadow: "0 18px 45px rgba(0, 0, 0, 0.28)",
+              }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3 style={{ marginTop: 0, marginBottom: "10px", color: "var(--text-primary)" }}>
+                {modal.title}
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--text-secondary)",
+                  lineHeight: "1.6",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {modal.message}
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "12px",
+                  marginTop: "24px",
+                }}
+              >
                 {modal.actions.map((action) => (
                   <button
                     key={action.label}
@@ -873,7 +1133,8 @@ function App() {
                     style={{
                       background: getModalButtonBackground(action.variant),
                       color: action.variant === "secondary" ? "var(--text-primary)" : "#fff",
-                      border: action.variant === "secondary" ? "1px solid var(--border-color)" : "none",
+                      border:
+                        action.variant === "secondary" ? "1px solid var(--border-color)" : "none",
                       padding: "10px 16px",
                       borderRadius: "8px",
                       cursor: modalBusy ? "not-allowed" : "pointer",
@@ -909,7 +1170,10 @@ const getModalButtonBackground = (variant: ModalAction["variant"]) => {
 };
 
 const ThemeButton = ({
-  active, onClick, icon, label,
+  active,
+  onClick,
+  icon,
+  label,
 }: {
   active: boolean;
   onClick: () => void;

@@ -45,7 +45,8 @@ fn get_appimage_base_names(appimages_dir: &Path, bin_dir: &Path) -> Vec<String> 
             for entry in entries.flatten() {
                 let path = entry.path();
                 if path.is_file() {
-                    let name = path.file_stem()
+                    let name = path
+                        .file_stem()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
                     names.push(name);
@@ -58,7 +59,8 @@ fn get_appimage_base_names(appimages_dir: &Path, bin_dir: &Path) -> Vec<String> 
             for entry in entries.flatten() {
                 let path = entry.path();
                 if path.is_file() {
-                    let name = path.file_name()
+                    let name = path
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
                     names.push(name);
@@ -92,7 +94,11 @@ fn read_desktop_file(desktop_path: &Path) -> Option<(String, Option<String>, Vec
             icon_name = line.trim_start_matches("Icon=").to_string();
         } else if line.starts_with("Categories=") {
             let cats = line.trim_start_matches("Categories=");
-            categories = cats.split(';').filter(|c| !c.is_empty()).map(|c| c.to_string()).collect();
+            categories = cats
+                .split(';')
+                .filter(|c| !c.is_empty())
+                .map(|c| c.to_string())
+                .collect();
         }
     }
 
@@ -163,29 +169,33 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
             if let Ok(entries) = std::fs::read_dir(&appimages_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if !path.is_file() { continue; }
+                    if !path.is_file() {
+                        continue;
+                    }
                     let ext = path.extension().and_then(|s| s.to_str());
-                    if ext != Some("AppImage") && ext != Some("appimage") { continue; }
+                    if ext != Some("AppImage") && ext != Some("appimage") {
+                        continue;
+                    }
 
                     let metadata = std::fs::metadata(&path).map_err(|e| e.to_string())?;
                     let size_bytes = metadata.len();
-                    let installed_at = metadata.created()
+                    let installed_at = metadata
+                        .created()
                         .or_else(|_| metadata.modified())
                         .ok()
                         .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
                         .map(|d| d.as_secs())
                         .unwrap_or(0);
 
-                    let file_name = path.file_name()
+                    let file_name = path
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
                     let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
                     let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
 
-                    let (name, icon_path, categories, sandboxed) =
-                        read_desktop_file(&desktop_path).unwrap_or_else(|| {
-                            (base_name.clone(), None, Vec::new(), false)
-                        });
+                    let (name, icon_path, categories, sandboxed) = read_desktop_file(&desktop_path)
+                        .unwrap_or_else(|| (base_name.clone(), None, Vec::new(), false));
 
                     apps.push(AppInfo {
                         name,
@@ -208,16 +218,22 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
             if let Ok(entries) = std::fs::read_dir(&bin_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if !path.is_file() { continue; }
-                    let file_name = path.file_name()
+                    if !path.is_file() {
+                        continue;
+                    }
+                    let file_name = path
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
                     let desktop_path = apps_dir.join(format!("{}.desktop", file_name));
-                    if !desktop_path.exists() { continue; }
+                    if !desktop_path.exists() {
+                        continue;
+                    }
 
                     let metadata = std::fs::metadata(&path).map_err(|e| e.to_string())?;
                     let size_bytes = metadata.len();
-                    let installed_at = metadata.created()
+                    let installed_at = metadata
+                        .created()
                         .or_else(|_| metadata.modified())
                         .ok()
                         .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
@@ -225,9 +241,8 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
                         .unwrap_or(0);
 
                     let (name, icon_path, categories, _sandboxed) =
-                        read_desktop_file(&desktop_path).unwrap_or_else(|| {
-                            (file_name.clone(), None, Vec::new(), false)
-                        });
+                        read_desktop_file(&desktop_path)
+                            .unwrap_or_else(|| (file_name.clone(), None, Vec::new(), false));
 
                     apps.push(AppInfo {
                         name,
@@ -253,24 +268,34 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
             if let Ok(entries) = std::fs::read_dir(&apps_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if !path.is_file() { continue; }
+                    if !path.is_file() {
+                        continue;
+                    }
                     let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("");
-                    if ext != "exe" && ext != "msi" && ext != "bat" && ext != "ps1" { continue; }
+                    if ext != "exe" && ext != "msi" && ext != "bat" && ext != "ps1" {
+                        continue;
+                    }
 
                     let metadata = std::fs::metadata(&path).map_err(|e| e.to_string())?;
-                    let file_name = path.file_name()
+                    let file_name = path
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
 
                     apps.push(AppInfo {
-                        name: file_name.trim_end_matches(&['.', 'e', 'x', 'e', 'm', 's', 'i', 'b', 'a', 't', 'p', 's', '1']).to_string(),
+                        name: file_name
+                            .trim_end_matches(&[
+                                '.', 'e', 'x', 'e', 'm', 's', 'i', 'b', 'a', 't', 'p', 's', '1',
+                            ])
+                            .to_string(),
                         exec: path.to_string_lossy().to_string(),
                         icon: None,
                         path: path.to_string_lossy().to_string(),
                         desktop_path: String::new(),
                         sandboxed: false,
                         size_bytes: metadata.len(),
-                        installed_at: metadata.created()
+                        installed_at: metadata
+                            .created()
                             .or_else(|_| metadata.modified())
                             .ok()
                             .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
@@ -292,13 +317,16 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
                 for entry in entries.flatten() {
                     let path = entry.path();
                     let metadata = std::fs::metadata(&path).map_err(|e| e.to_string())?;
-                    let file_name = path.file_name()
+                    let file_name = path
+                        .file_name()
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_default();
                     let is_app = path.extension().and_then(|s| s.to_str()) == Some("app");
                     let is_exec = path.extension().and_then(|s| s.to_str()) == Some("sh");
 
-                    if !path.is_file() && !is_app { continue; }
+                    if !path.is_file() && !is_app {
+                        continue;
+                    }
 
                     apps.push(AppInfo {
                         name: file_name.trim_end_matches(".app").to_string(),
@@ -310,7 +338,11 @@ pub async fn get_installed_apps() -> Result<Vec<AppInfo>, String> {
                         size_bytes: metadata.len(),
                         installed_at: 0,
                         categories: Vec::new(),
-                        package_type: if is_app { "macOS App".to_string() } else { "Executable".to_string() },
+                        package_type: if is_app {
+                            "macOS App".to_string()
+                        } else {
+                            "Executable".to_string()
+                        },
                     });
                 }
             }
@@ -330,16 +362,26 @@ pub async fn launch_app(path: String) -> Result<(), String> {
     #[cfg(target_os = "linux")]
     {
         // Check if sandboxed
-        let base_name = app_path.file_name()
-            .map(|n| n.to_string_lossy().to_string().replace(".AppImage", "").replace(".appimage", ""))
+        let base_name = app_path
+            .file_name()
+            .map(|n| {
+                n.to_string_lossy()
+                    .to_string()
+                    .replace(".AppImage", "")
+                    .replace(".appimage", "")
+            })
             .ok_or("Invalid app path")?;
         let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
-        let desktop_path = home_dir.join(".local/share/applications").join(format!("{}.desktop", base_name));
+        let desktop_path = home_dir
+            .join(".local/share/applications")
+            .join(format!("{}.desktop", base_name));
 
         let mut use_firejail = false;
         if desktop_path.exists() {
             if let Ok(content) = std::fs::read_to_string(&desktop_path) {
-                use_firejail = content.lines().any(|l| l.starts_with("Exec=") && l.contains("firejail"));
+                use_firejail = content
+                    .lines()
+                    .any(|l| l.starts_with("Exec=") && l.contains("firejail"));
             }
         }
 
@@ -350,7 +392,8 @@ pub async fn launch_app(path: String) -> Result<(), String> {
                     let is_appimage = path.to_lowercase().contains(".appimage");
                     if is_appimage {
                         std::process::Command::new("firejail")
-                            .arg("--appimage").arg(&path)
+                            .arg("--appimage")
+                            .arg(&path)
                             .spawn()
                             .map_err(|e| format!("Failed to launch with firejail: {}", e))?;
                     } else {
@@ -359,8 +402,13 @@ pub async fn launch_app(path: String) -> Result<(), String> {
                             .spawn()
                             .map_err(|e| format!("Failed to launch with firejail: {}", e))?;
                     }
-                }
-                _ => return Err("Firejail is not installed. Please install firejail to run sandboxed apps.".to_string()),
+                },
+                _ => {
+                    return Err(
+                        "Firejail is not installed. Please install firejail to run sandboxed apps."
+                            .to_string(),
+                    )
+                },
             }
         } else {
             std::process::Command::new(&path)
@@ -378,12 +426,12 @@ pub async fn launch_app(path: String) -> Result<(), String> {
                     .args(["/i", app_path.to_string_lossy().as_ref()])
                     .spawn()
                     .map_err(|e| format!("Failed to launch MSI: {}", e))?;
-            }
+            },
             _ => {
                 std::process::Command::new(&path)
                     .spawn()
                     .map_err(|e| format!("Failed to launch app: {}", e))?;
-            }
+            },
         }
     }
 
@@ -414,13 +462,22 @@ pub async fn remove_app(path: String, desktop_path: Option<String>) -> Result<()
 
     #[cfg(target_os = "linux")]
     {
-        let base_name = app_path.file_name()
-            .map(|n| n.to_string_lossy().to_string().replace(".AppImage", "").replace(".appimage", ""))
+        let base_name = app_path
+            .file_name()
+            .map(|n| {
+                n.to_string_lossy()
+                    .to_string()
+                    .replace(".AppImage", "")
+                    .replace(".appimage", "")
+            })
             .unwrap_or_default();
         let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
         let resolved_desktop_path = desktop_path.unwrap_or_else(|| {
-            home_dir.join(".local/share/applications").join(format!("{}.desktop", base_name))
-                .to_string_lossy().to_string()
+            home_dir
+                .join(".local/share/applications")
+                .join(format!("{}.desktop", base_name))
+                .to_string_lossy()
+                .to_string()
         });
 
         let mut icon_name = None;
@@ -453,18 +510,20 @@ pub async fn remove_app(path: String, desktop_path: Option<String>) -> Result<()
         }
 
         let apps_dir = home_dir.join(".local/share/applications");
-        let _ = std::process::Command::new("update-desktop-database").arg(&apps_dir).output();
+        let _ = std::process::Command::new("update-desktop-database")
+            .arg(&apps_dir)
+            .output();
     }
 
     #[cfg(target_os = "windows")]
     {
         // Remove start menu shortcut if present
-        let file_name = app_path.file_name()
+        let file_name = app_path
+            .file_name()
             .map(|n| n.to_string_lossy().to_string())
             .unwrap_or_default();
-        let start_menu = Path::new(
-            &std::env::var("APPDATA").unwrap_or_default()
-        ).join("Microsoft\\Windows\\Start Menu\\Programs\\Linuxy");
+        let start_menu = Path::new(&std::env::var("APPDATA").unwrap_or_default())
+            .join("Microsoft\\Windows\\Start Menu\\Programs\\Linuxy");
         let shortcut = start_menu.join(format!("{}.lnk", file_name));
         let _ = std::fs::remove_file(&shortcut);
     }
@@ -523,7 +582,9 @@ pub async fn toggle_sandbox(desktop_path: String, enable: bool) -> Result<(), St
         }
 
         if enable {
-            let check = std::process::Command::new("which").arg("firejail").output()
+            let check = std::process::Command::new("which")
+                .arg("firejail")
+                .output()
                 .map_err(|_| "Failed to check for firejail".to_string())?;
             if !check.status.success() {
                 return Err("Firejail is not installed. Please install firejail first.".to_string());
@@ -562,7 +623,9 @@ pub async fn toggle_sandbox(desktop_path: String, enable: bool) -> Result<(), St
 
         if let Some(home_dir) = dirs::home_dir() {
             let apps_dir = home_dir.join(".local/share/applications");
-            let _ = std::process::Command::new("update-desktop-database").arg(&apps_dir).output();
+            let _ = std::process::Command::new("update-desktop-database")
+                .arg(&apps_dir)
+                .output();
         }
 
         Ok(())
@@ -577,18 +640,24 @@ pub async fn open_url(url: String) -> Result<(), String> {
 
     #[cfg(target_os = "linux")]
     {
-        std::process::Command::new("xdg-open").arg(&url)
-            .spawn().map_err(|e| format!("Failed to open url: {}", e))?;
+        std::process::Command::new("xdg-open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| format!("Failed to open url: {}", e))?;
     }
     #[cfg(target_os = "windows")]
     {
-        std::process::Command::new("cmd").args(["/c", "start", "", &url])
-            .spawn().map_err(|e| format!("Failed to open url: {}", e))?;
+        std::process::Command::new("cmd")
+            .args(["/c", "start", "", &url])
+            .spawn()
+            .map_err(|e| format!("Failed to open url: {}", e))?;
     }
     #[cfg(target_os = "macos")]
     {
-        std::process::Command::new("open").arg(&url)
-            .spawn().map_err(|e| format!("Failed to open url: {}", e))?;
+        std::process::Command::new("open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| format!("Failed to open url: {}", e))?;
     }
 
     Ok(())
@@ -626,7 +695,9 @@ pub async fn get_storage_stats() -> Result<StorageStats, String> {
             if let Ok(entries) = std::fs::read_dir(&appimages_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if !path.is_file() { continue; }
+                    if !path.is_file() {
+                        continue;
+                    }
                     let ext = path.extension().and_then(|s| s.to_str());
                     if ext == Some("AppImage") || ext == Some("appimage") {
                         if let Ok(meta) = std::fs::metadata(&path) {
@@ -642,8 +713,14 @@ pub async fn get_storage_stats() -> Result<StorageStats, String> {
             if let Ok(entries) = std::fs::read_dir(&bin_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if !path.is_file() { continue; }
-                    let file_name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    if !path.is_file() {
+                        continue;
+                    }
+                    let file_name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
                     let desktop_path = apps_dir.join(format!("{}.desktop", file_name));
                     if desktop_path.exists() {
                         if let Ok(meta) = std::fs::metadata(&path) {
@@ -655,7 +732,10 @@ pub async fn get_storage_stats() -> Result<StorageStats, String> {
             }
         }
 
-        Ok(StorageStats { total_size_bytes, app_count })
+        Ok(StorageStats {
+            total_size_bytes,
+            app_count,
+        })
     }
 
     #[cfg(target_os = "windows")]
@@ -676,7 +756,10 @@ pub async fn get_storage_stats() -> Result<StorageStats, String> {
                 }
             }
         }
-        Ok(StorageStats { total_size_bytes, app_count })
+        Ok(StorageStats {
+            total_size_bytes,
+            app_count,
+        })
     }
 
     #[cfg(target_os = "macos")]
@@ -698,7 +781,10 @@ pub async fn get_storage_stats() -> Result<StorageStats, String> {
                 }
             }
         }
-        Ok(StorageStats { total_size_bytes, app_count })
+        Ok(StorageStats {
+            total_size_bytes,
+            app_count,
+        })
     }
 }
 
@@ -732,7 +818,8 @@ pub async fn analyze_storage() -> Result<CleanupStats, String> {
                 for entry in entries.flatten() {
                     let path = entry.path();
                     if path.is_file() {
-                        let name = path.file_stem()
+                        let name = path
+                            .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
                         let base_name = name.replace("_icon", "");
@@ -751,8 +838,11 @@ pub async fn analyze_storage() -> Result<CleanupStats, String> {
             if let Ok(entries) = std::fs::read_dir(&apps_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("desktop") {
-                        let name = path.file_stem()
+                    if path.is_file()
+                        && path.extension().and_then(|s| s.to_str()) == Some("desktop")
+                    {
+                        let name = path
+                            .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
                         if !app_names.contains(&name) {
@@ -773,7 +863,8 @@ pub async fn analyze_storage() -> Result<CleanupStats, String> {
                 for entry in entries.flatten() {
                     let path = entry.path();
                     if path.is_file() {
-                        let name = path.file_name()
+                        let name = path
+                            .file_name()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
                         if name.starts_with("linuxy_") {
@@ -824,7 +915,8 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
                 for entry in entries.flatten() {
                     let path = entry.path();
                     if path.is_file() {
-                        let name = path.file_stem()
+                        let name = path
+                            .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
                         let base_name = name.replace("_icon", "");
@@ -840,8 +932,11 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
             if let Ok(entries) = std::fs::read_dir(&apps_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("desktop") {
-                        let name = path.file_stem()
+                    if path.is_file()
+                        && path.extension().and_then(|s| s.to_str()) == Some("desktop")
+                    {
+                        let name = path
+                            .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
                         if !app_names.contains(&name) {
@@ -858,7 +953,8 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
                 for entry in entries.flatten() {
                     let path = entry.path();
                     if path.is_file() {
-                        let name = path.file_name()
+                        let name = path
+                            .file_name()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
                         if name.starts_with("linuxy_") {
@@ -917,12 +1013,17 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
             }
         }
 
-        let _ = std::process::Command::new("update-desktop-database").arg(&apps_dir).output();
+        let _ = std::process::Command::new("update-desktop-database")
+            .arg(&apps_dir)
+            .output();
         Ok(format!("Restored {} apps from backup", restored))
     }
 
     #[cfg(not(target_os = "linux"))]
     {
-        Ok(format!("Restored {} apps from backup (metadata only)", backup.apps.len()))
+        Ok(format!(
+            "Restored {} apps from backup (metadata only)",
+            backup.apps.len()
+        ))
     }
 }

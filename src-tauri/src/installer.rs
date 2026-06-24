@@ -155,7 +155,14 @@ fn detect_package_manager() -> Option<(&'static str, &'static str)> {
             .map(|o| o.status.success())
             .unwrap_or(false)
         {
-            return Some((cmd, managers.iter().find(|(c, _)| c == cmd).map(|(_, i)| *i).unwrap()));
+            return Some((
+                cmd,
+                managers
+                    .iter()
+                    .find(|(c, _)| c == cmd)
+                    .map(|(_, i)| *i)
+                    .unwrap(),
+            ));
         }
     }
     None
@@ -170,17 +177,46 @@ fn install_deb_direct(path: &Path, app: Option<&tauri::AppHandle>) -> Result<Str
 
     let install_status = match manager {
         "pacman" => return install_deb_with_debtap(path, app),
-        "apt" => Command::new("sudo").arg("apt").arg("install").arg("-y").arg(path).status(),
+        "apt" => Command::new("sudo")
+            .arg("apt")
+            .arg("install")
+            .arg("-y")
+            .arg(path)
+            .status(),
         "dpkg" => {
-            let s = Command::new("sudo").arg("dpkg").arg("-i").arg(path).status();
+            let s = Command::new("sudo")
+                .arg("dpkg")
+                .arg("-i")
+                .arg(path)
+                .status();
             if s.as_ref().map(|s| s.success()).unwrap_or(false) {
-                let _ = Command::new("sudo").arg("apt").arg("install").arg("-f").arg("-y").status();
+                let _ = Command::new("sudo")
+                    .arg("apt")
+                    .arg("install")
+                    .arg("-f")
+                    .arg("-y")
+                    .status();
             }
             s
-        }
-        "dnf" => Command::new("sudo").arg("dnf").arg("install").arg("-y").arg(path).status(),
-        "yum" => Command::new("sudo").arg("yum").arg("localinstall").arg("-y").arg(path).status(),
-        "zypper" => Command::new("sudo").arg("zypper").arg("install").arg("-y").arg(path).status(),
+        },
+        "dnf" => Command::new("sudo")
+            .arg("dnf")
+            .arg("install")
+            .arg("-y")
+            .arg(path)
+            .status(),
+        "yum" => Command::new("sudo")
+            .arg("yum")
+            .arg("localinstall")
+            .arg("-y")
+            .arg(path)
+            .status(),
+        "zypper" => Command::new("sudo")
+            .arg("zypper")
+            .arg("install")
+            .arg("-y")
+            .arg(path)
+            .status(),
         _ => return Err(format!("Unsupported package manager: {}", manager)),
     }
     .map_err(|e| format!("Failed to install package: {}", e))?;
@@ -189,7 +225,10 @@ fn install_deb_direct(path: &Path, app: Option<&tauri::AppHandle>) -> Result<Str
         return Err("Package installation failed. Check terminal output for details.".to_string());
     }
     emit_progress(app, "Done");
-    Ok(format!("Successfully installed DEB package via {}", manager))
+    Ok(format!(
+        "Successfully installed DEB package via {}",
+        manager
+    ))
 }
 
 #[cfg(target_os = "linux")]
@@ -203,14 +242,26 @@ fn install_deb_with_debtap(path: &Path, app: Option<&tauri::AppHandle>) -> Resul
         return Err("debtap is not installed. Please install it first: yay -S debtap".to_string());
     }
     emit_progress(app, "Updating debtap database...");
-    let update = Command::new("debtap").arg("-u").output().map_err(|e| format!("debtap -u failed: {}", e))?;
+    let update = Command::new("debtap")
+        .arg("-u")
+        .output()
+        .map_err(|e| format!("debtap -u failed: {}", e))?;
     if !update.status.success() {
-        return Err(format!("debtap database update failed: {}", String::from_utf8_lossy(&update.stderr).trim()));
+        return Err(format!(
+            "debtap database update failed: {}",
+            String::from_utf8_lossy(&update.stderr).trim()
+        ));
     }
     emit_progress(app, "Converting DEB package...");
-    let convert = Command::new("debtap").arg(path).output().map_err(|e| format!("debtap failed: {}", e))?;
+    let convert = Command::new("debtap")
+        .arg(path)
+        .output()
+        .map_err(|e| format!("debtap failed: {}", e))?;
     if !convert.status.success() {
-        return Err(format!("debtap conversion failed: {}", String::from_utf8_lossy(&convert.stderr).trim()));
+        return Err(format!(
+            "debtap conversion failed: {}",
+            String::from_utf8_lossy(&convert.stderr).trim()
+        ));
     }
     let stdout = String::from_utf8_lossy(&convert.stdout);
     let pkg_path = stdout
@@ -289,12 +340,17 @@ fn install_rpm_direct(path: &Path, app: Option<&tauri::AppHandle>) -> Result<Str
     }
     cmd.arg(path);
 
-    let status = cmd.status().map_err(|e| format!("Failed to install: {}", e))?;
+    let status = cmd
+        .status()
+        .map_err(|e| format!("Failed to install: {}", e))?;
     if !status.success() {
         return Err("Package installation failed. Check terminal output for details.".to_string());
     }
     emit_progress(app, "Done");
-    Ok(format!("Successfully installed RPM package via {}", manager))
+    Ok(format!(
+        "Successfully installed RPM package via {}",
+        manager
+    ))
 }
 
 #[cfg(target_os = "linux")]
@@ -392,10 +448,12 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
             return Err("No .desktop file found in AppImage".into());
         }
 
-        let desktop_content = std::fs::read_to_string(desktop_files[0].path()).map_err(|e| e.to_string())?;
+        let desktop_content =
+            std::fs::read_to_string(desktop_files[0].path()).map_err(|e| e.to_string())?;
         let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
         let final_app_path = appimages_dir.join(&file_name);
-        let staging_app_path = appimages_dir.join(format!(".{}.{}.part.AppImage", base_name, Uuid::new_v4()));
+        let staging_app_path =
+            appimages_dir.join(format!(".{}.{}.part.AppImage", base_name, Uuid::new_v4()));
         let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
 
         let mut new_desktop = String::new();
@@ -443,16 +501,22 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
         }
 
         if !has_type {
-            new_desktop = new_desktop.replace("[Desktop Entry]\n", "[Desktop Entry]\nType=Application\n");
+            new_desktop =
+                new_desktop.replace("[Desktop Entry]\n", "[Desktop Entry]\nType=Application\n");
         }
         if !has_terminal {
-            new_desktop = new_desktop.replace("[Desktop Entry]\n", "[Desktop Entry]\nTerminal=false\n");
+            new_desktop =
+                new_desktop.replace("[Desktop Entry]\n", "[Desktop Entry]\nTerminal=false\n");
         }
         if !has_categories {
-            new_desktop = new_desktop.replace("[Desktop Entry]\n", "[Desktop Entry]\nCategories=Utility;\n");
+            new_desktop = new_desktop.replace(
+                "[Desktop Entry]\n",
+                "[Desktop Entry]\nCategories=Utility;\n",
+            );
         }
 
-        std::fs::copy(source_path, &staging_app_path).map_err(|e| format!("Failed to copy file: {}", e))?;
+        std::fs::copy(source_path, &staging_app_path)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
         if let Err(error) = set_executable(&staging_app_path) {
             let _ = std::fs::remove_file(&staging_app_path);
             return Err(error);
@@ -468,9 +532,12 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
             return Err(error.to_string());
         }
 
-        let _copied_icons = copy_icon_from_extract(&squashfs_root, &icons_dir, &base_name, &parsed_icon_name);
+        let _copied_icons =
+            copy_icon_from_extract(&squashfs_root, &icons_dir, &base_name, &parsed_icon_name);
 
-        let _ = Command::new("update-desktop-database").arg(&apps_dir).output();
+        let _ = Command::new("update-desktop-database")
+            .arg(&apps_dir)
+            .output();
 
         Ok("Successfully installed AppImage".into())
     })();
@@ -508,7 +575,8 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         let final_app_path = bin_dir.join(&file_name);
         let desktop_path = apps_dir.join(format!("{}.desktop", file_name));
 
-        std::fs::copy(source_path, &final_app_path).map_err(|e| format!("Failed to copy file: {}", e))?;
+        std::fs::copy(source_path, &final_app_path)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
         set_executable(&final_app_path)?;
 
         let new_desktop = format!(
@@ -520,7 +588,9 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
             let _ = std::fs::remove_file(&final_app_path);
             return Err(error.to_string());
         }
-        let _ = Command::new("update-desktop-database").arg(&apps_dir).output();
+        let _ = Command::new("update-desktop-database")
+            .arg(&apps_dir)
+            .output();
         Ok("Successfully installed executable".into())
     }
 
@@ -532,7 +602,8 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         let apps_dir = Path::new(&app_data).join("Linuxy").join("apps");
         std::fs::create_dir_all(&apps_dir).map_err(|e| e.to_string())?;
         let final_app_path = apps_dir.join(&file_name);
-        std::fs::copy(source_path, &final_app_path).map_err(|e| format!("Failed to copy file: {}", e))?;
+        std::fs::copy(source_path, &final_app_path)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
 
         // Create Start Menu shortcut via PowerShell script
         let ps_script = format!(
@@ -556,7 +627,8 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         let apps_dir = home_dir.join("Applications").join("Linuxy");
         std::fs::create_dir_all(&apps_dir).map_err(|e| e.to_string())?;
         let final_app_path = apps_dir.join(&file_name);
-        std::fs::copy(source_path, &final_app_path).map_err(|e| format!("Failed to copy file: {}", e))?;
+        std::fs::copy(source_path, &final_app_path)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
 
         let mut perms = std::fs::metadata(&final_app_path)
             .map_err(|e| e.to_string())?

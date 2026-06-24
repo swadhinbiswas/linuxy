@@ -68,7 +68,8 @@ pub fn start_watcher(app_handle: AppHandle) {
                     update_tracking_state(state, current_size);
 
                     if !state.notified && state.stable_polls >= STABLE_POLLS_REQUIRED {
-                        let _ = app_handle.emit("appimage-detected", path.to_string_lossy().to_string());
+                        let _ = app_handle
+                            .emit("appimage-detected", path.to_string_lossy().to_string());
                         state.notified = true;
                     }
                 }
