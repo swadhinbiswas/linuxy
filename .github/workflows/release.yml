@@ -43,7 +43,7 @@ jobs:
       - run: npm install
       - run: npm run build
       - name: Build Tauri
-        uses: tauri-apps/tauri-action@v2
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NO_STRIP: 1
@@ -124,7 +124,7 @@ jobs:
       - run: npm install
       - run: npm run build
       - name: Build Tauri Windows
-        uses: tauri-apps/tauri-action@v2
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
