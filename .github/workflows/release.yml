@@ -54,7 +54,7 @@ jobs:
           releaseBody: |
             ## Linuxy v${{ github.ref_name }}
 
-            Cross-platform application manager for Linux, Windows, and macOS.
+            One-click Linux Application Manager with Firejail sandboxing.
 
             ### Installation
 
@@ -73,12 +73,16 @@ jobs:
             yay -S linuxy
             ```
 
-            **Windows**
-            - Download and run the NSIS installer (.exe)
-            - Or install via the MSI package
+            **NixOS**
+            ```nix
+            nix run github:swadhinbiswas/linuxy
+            ```
 
-            **macOS**
-            - Download the .dmg and drag to Applications
+            **AppImage (any distro)**
+            ```bash
+            chmod +x Linuxy_*.AppImage
+            ./Linuxy_*.AppImage
+            ```
 
             ### Build from Source
             ```bash
@@ -109,38 +113,6 @@ jobs:
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/rpm/*.rpm
             src-tauri/target/release/bundle/appimage/*.AppImage
-          draft: true
-
-  build-windows:
-    name: Build Windows Release
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-      - uses: dtolnay/rust-toolchain@stable
-      - run: npm install
-      - run: npm run build
-      - name: Build Tauri Windows
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Linuxy ${{ github.ref_name }}"
-          releaseDraft: true
-          prerelease: false
-
-      - name: Upload Windows artifacts
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
           draft: true
 
   publish-aur:

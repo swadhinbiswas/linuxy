@@ -43,7 +43,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "targets": ["deb", "appimage", "nsis", "msi", "dmg"],
+    "targets": ["deb", "appimage"],
     "linux": {
       "deb": {
         "depends": ["firejail", "xdg-utils"],
@@ -54,21 +54,8 @@
         "bundleMediaFramework": true
       }
     },
-    "windows": {
-      "nsis": {
-        "installMode": "currentUser",
-        "languages": ["English"]
-      },
-      "wix": {
-        "language": "en-US"
-      }
-    },
-    "macOS": {
-      "frameworks": [],
-      "minimumSystemVersion": "13.0",
-      "exceptionDomain": "",
-      "signingIdentity": null
-    }
+    "windows": {},
+    "macOS": {}
   },
   "plugins": {
     "updater": {
