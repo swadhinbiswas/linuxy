@@ -629,7 +629,8 @@ pub async fn toggle_sandbox(desktop_path: String, enable: bool) -> Result<(), St
                 if enable && !has_firejail {
                     let clean_exec = current_exec.trim().trim_matches('"');
                     if clean_exec.to_lowercase().contains(".appimage") {
-                        new_content.push_str(&format!("Exec=firejail --appimage \"{}\"\n", clean_exec));
+                        new_content
+                            .push_str(&format!("Exec=firejail --appimage \"{}\"\n", clean_exec));
                     } else {
                         new_content.push_str(&format!("Exec=firejail \"{}\"\n", clean_exec));
                     }
@@ -1123,8 +1124,16 @@ pub async fn recreate_desktop_entry(path: String) -> Result<String, String> {
             .map(|o| String::from_utf8_lossy(&o.stdout).contains("libfuse.so.2"))
             .unwrap_or(true);
 
-        let exec_str = if !has_libfuse && app_path.to_string_lossy().to_lowercase().contains(".appimage") {
-            format!("env APPIMAGE_EXTRACT_AND_RUN=1 \"{}\" %U", app_path.to_string_lossy())
+        let exec_str = if !has_libfuse
+            && app_path
+                .to_string_lossy()
+                .to_lowercase()
+                .contains(".appimage")
+        {
+            format!(
+                "env APPIMAGE_EXTRACT_AND_RUN=1 \"{}\" %U",
+                app_path.to_string_lossy()
+            )
         } else {
             format!("\"{}\" %U", app_path.to_string_lossy())
         };
@@ -1143,7 +1152,10 @@ pub async fn recreate_desktop_entry(path: String) -> Result<String, String> {
             .output();
         let _ = filetime::set_file_mtime(&apps_dir, filetime::FileTime::now());
 
-        Ok(format!("Desktop launcher recreated at {}", desktop_path.to_string_lossy()))
+        Ok(format!(
+            "Desktop launcher recreated at {}",
+            desktop_path.to_string_lossy()
+        ))
     }
 
     #[cfg(not(target_os = "linux"))]

@@ -19,13 +19,13 @@ use tauri::Manager;
 async fn main() {
     #[cfg(target_os = "linux")]
     {
-            // GTK natively handles backend negotiation (Wayland/X11).
-            // We set an env var to prevent WebKit2GTK from freezing or crashing on some Wayland compositors.
-            if std::env::var("WAYLAND_DISPLAY").is_ok() {
-                if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
-                    std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-                }
+        // GTK natively handles backend negotiation (Wayland/X11).
+        // We set an env var to prevent WebKit2GTK from freezing or crashing on some Wayland compositors.
+        if std::env::var("WAYLAND_DISPLAY").is_ok() {
+            if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+                std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
+        }
     }
 
     tauri::Builder::default()
@@ -62,24 +62,24 @@ async fn main() {
             {
                 let handle = app.handle().clone();
                 watcher::start_watcher(handle);
-                
+
                 // Self-register Linuxy in the application menu if running as an AppImage
                 if let Ok(appimage_path) = std::env::var("APPIMAGE") {
                     if let Some(home) = dirs::home_dir() {
                         let apps_dir = home.join(".local/share/applications");
                         let _ = std::fs::create_dir_all(&apps_dir);
                         let desktop_path = apps_dir.join("linuxy.desktop");
-                        
+
                         let content = format!(
                             "[Desktop Entry]\nType=Application\nName=Linuxy\nComment=Application Manager\nExec=\"{}\" %U\nIcon=linuxy\nTerminal=false\nCategories=Utility;\n",
                             appimage_path
                         );
-                        
+
                         // Update if it doesn't exist or if the path has changed
                         let should_write = std::fs::read_to_string(&desktop_path)
                             .map(|existing| existing != content)
                             .unwrap_or(true);
-                            
+
                         if should_write {
                             let _ = std::fs::write(&desktop_path, content);
                             let _ = std::process::Command::new("update-desktop-database")

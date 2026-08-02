@@ -518,7 +518,10 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
             .unwrap_or(true);
 
         let exec_str = if !has_libfuse && file_name.to_lowercase().contains(".appimage") {
-            format!("env APPIMAGE_EXTRACT_AND_RUN=1 \"{}\" %U", final_app_path.to_string_lossy())
+            format!(
+                "env APPIMAGE_EXTRACT_AND_RUN=1 \"{}\" %U",
+                final_app_path.to_string_lossy()
+            )
         } else {
             format!("\"{}\" %U", final_app_path.to_string_lossy())
         };

@@ -52,11 +52,11 @@ pub fn start_watcher(app_handle: AppHandle) {
                     let Ok(file_type) = entry.file_type() else {
                         continue;
                     };
-                    
+
                     if !file_type.is_file() {
                         continue;
                     }
-                    
+
                     let path = entry.path();
                     if !is_appimage_path(&path) {
                         continue;
