@@ -113,7 +113,9 @@ const Storefront: React.FC<StorefrontProps> = ({ installedAppNames = [], onRefre
           }}
         >
           <div>
-            <h2 style={{ color: "var(--text-primary)", margin: "0 0 6px 0" }}>Discover AppImages</h2>
+            <h2 style={{ color: "var(--text-primary)", margin: "0 0 6px 0" }}>
+              Discover AppImages
+            </h2>
             <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: "14px" }}>
               {source === "appimagehub"
                 ? "Browsing AppImageHub Official Catalog"
