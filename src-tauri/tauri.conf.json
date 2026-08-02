@@ -1,6 +1,6 @@
 {
   "productName": "Linuxy",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "identifier": "com.linuxy.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -31,7 +31,8 @@
     "trayIcon": {
       "iconPath": "icons/32x32.png",
       "iconAsTemplate": true,
-      "tooltip": "Linuxy"
+      "tooltip": "Linuxy",
+      "id": "main"
     }
   },
   "bundle": {
@@ -71,74 +72,56 @@
         {
           "name": "path",
           "description": "Install an AppImage, DEB, RPM, EXE, or MSI by file path",
-          "index": 1,
-          "validator": {
-            "regex": "^.*\\.(AppImage|appimage|deb|rpm|exe|msi|dmg|pkg)$"
-          }
+          "index": 1
+        }
+      ],
+      "subcommands": {
+        "install": {
+          "description": "Install an application package",
+          "args": [
+            {
+              "name": "path",
+              "description": "Path to the package file",
+              "required": true,
+              "index": 1
+            }
+          ]
         },
-        {
-          "name": "install",
-          "subcommands": {
-            "description": "Install an application package",
-            "args": [
-              {
-                "name": "path",
-                "description": "Path to the package file",
-                "required": true,
-                "index": 1
-              }
-            ]
-          }
-        },
-        {
-          "name": "list",
+        "list": {
           "description": "List installed applications"
         },
-        {
-          "name": "launch",
-          "subcommands": {
-            "description": "Launch an installed application",
-            "args": [
-              {
-                "name": "name",
-                "description": "Application name to launch",
-                "required": true,
-                "index": 1
-              }
-            ]
-          }
+        "launch": {
+          "description": "Launch an installed application",
+          "args": [
+            {
+              "name": "name",
+              "description": "Application name to launch",
+              "required": true,
+              "index": 1
+            }
+          ]
         },
-        {
-          "name": "remove",
-          "subcommands": {
-            "description": "Remove an installed application",
-            "args": [
-              {
-                "name": "name",
-                "description": "Application name to remove",
-                "required": true,
-                "index": 1
-              }
-            ]
-          }
+        "remove": {
+          "description": "Remove an installed application",
+          "args": [
+            {
+              "name": "name",
+              "description": "Application name to remove",
+              "required": true,
+              "index": 1
+            }
+          ]
         },
-        {
-          "name": "help",
+        "help": {
           "description": "Show help information"
         }
-      ]
+      }
     },
     "deep-link": {
       "mobile": [],
       "desktop": {
         "schemes": ["linuxy"]
       }
-    },
-    "log": {
-      "targets": [
-        { "kind": "console", "level": "info" },
-        { "kind": "file", "level": "debug", "path": "$DATA_DIR/logs" }
-      ]
     }
   }
 }

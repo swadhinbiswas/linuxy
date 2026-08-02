@@ -49,8 +49,16 @@ pub fn start_watcher(app_handle: AppHandle) {
             let mut seen_paths = HashSet::new();
             if let Ok(entries) = fs::read_dir(&downloads_dir) {
                 for entry in entries.flatten() {
+                    let Ok(file_type) = entry.file_type() else {
+                        continue;
+                    };
+                    
+                    if !file_type.is_file() {
+                        continue;
+                    }
+                    
                     let path = entry.path();
-                    if !path.is_file() || !is_appimage_path(&path) {
+                    if !is_appimage_path(&path) {
                         continue;
                     }
 

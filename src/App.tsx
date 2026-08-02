@@ -1,5 +1,11 @@
-import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/plugin-notification";
+import { exit } from "@tauri-apps/plugin-process";
 import {
   Moon,
   Sun,
@@ -14,12 +20,13 @@ import {
   Save,
   Upload,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import AppGrid from "./components/AppGrid";
 import DropZone from "./components/DropZone";
 import Sidebar from "./components/Sidebar";
 import Storefront from "./components/Storefront";
+import ToastContainer, { type ToastMessage } from "./components/Toast";
 
 import "./styles/main.css";
 
@@ -74,24 +81,47 @@ function App() {
     reclaimable_bytes: number;
   } | null>(null);
   const [analyzingCleanup, setAnalyzingCleanup] = useState(false);
+  const [notificationGranted, setNotificationGranted] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<AppInfo | null>(null);
+  const [appChecksum, setAppChecksum] = useState<string | null>(null);
+  const [checksumLoading, setChecksumLoading] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = useCallback(
+    (type: "success" | "error" | "info", title: string, message?: string) => {
+      const id = Math.random().toString(36).substring(2, 9);
+      setToasts((prev) => [...prev, { id, type, title, message }]);
+    },
+    []
+  );
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const quitApp = useCallback(async () => {
+    try {
+      await exit(0);
+    } catch {
+      window.close();
+    }
+  }, []);
+
+  const notifyComplete = useCallback(
+    (title: string, body: string) => {
+      if (notificationGranted) {
+        sendNotification({ title, body });
+      }
+    },
+    [notificationGranted]
+  );
 
   const loadApps = async () => {
     try {
       setLoading(true);
       const appList = await invoke<AppInfo[]>("get_installed_apps");
       setApps(appList);
-
-      const storageStats = await invoke<{ total_size_bytes: number; app_count: number }>(
-        "get_storage_stats"
-      );
-      setStorageStats(storageStats);
-
-      const isInstalled = await invoke<boolean>("is_firejail_installed");
-      setFirejailInstalled(isInstalled);
-
-      const isUpdateToolAvailable = await invoke<boolean>("is_update_tool_installed");
-      setUpdateToolInstalled(isUpdateToolAvailable);
-
       setError(null);
     } catch (err) {
       console.error(err);
@@ -99,10 +129,37 @@ function App() {
     } finally {
       setLoading(false);
     }
+
+    invoke<{ total_size_bytes: number; app_count: number }>("get_storage_stats")
+      .then(setStorageStats)
+      .catch(() => {});
+
+    invoke<boolean>("is_firejail_installed")
+      .then(setFirejailInstalled)
+      .catch(() => {});
+
+    invoke<boolean>("is_update_tool_installed")
+      .then(setUpdateToolInstalled)
+      .catch(() => {});
   };
 
   useEffect(() => {
     loadApps();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let granted = await isPermissionGranted();
+        if (!granted) {
+          const perm = await requestPermission();
+          granted = perm === "granted";
+        }
+        setNotificationGranted(granted);
+      } catch {
+        setNotificationGranted(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -178,7 +235,8 @@ function App() {
       for (let i = 0; i < paths.length; i++) {
         const path = paths[i];
         const prefix = paths.length > 1 ? `[${i + 1}/${paths.length}] ` : "";
-        setInstallProgress(`${prefix}Installing ${path.split("/").pop() || path}...`);
+        const fileName = path.split("/").pop() || path;
+        setInstallProgress(`${prefix}Installing ${fileName}...`);
         if (path.toLowerCase().endsWith(".appimage")) {
           await installAppImage(path);
         } else if (path.toLowerCase().endsWith(".deb")) {
@@ -190,6 +248,7 @@ function App() {
         }
       }
       await loadApps();
+      notifyComplete("Installation Complete", `Installed ${paths.length} package(s) successfully.`);
     } catch (err) {
       console.error(err);
       setError(String(err));
@@ -365,26 +424,44 @@ function App() {
         setView("library");
         return;
       }
+
+      if ((e.key === "?" || (isCtrl && e.key === "/")) && !modal) {
+        e.preventDefault();
+        setShowShortcuts((prev) => !prev);
+        return;
+      }
+
+      if (isCtrl && e.key === "q") {
+        e.preventDefault();
+        quitApp();
+        return;
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [view, modal, updateToolInstalled, apps]);
+  }, [view, modal, updateToolInstalled, apps, quitApp]);
 
   const launchApp = async (path: string) => {
     try {
+      const appName = path.split("/").pop() || "Application";
+      addToast("info", "Launching Application", appName);
       await invoke("launch_app", { path });
     } catch (err) {
+      addToast("error", "Launch Failed", String(err));
       setError(String(err));
     }
   };
 
   const removeApp = async (path: string) => {
     try {
+      const appName = path.split("/").pop() || "Application";
       await invoke("remove_app", { path });
+      addToast("info", "Application Removed", `${appName} removed from library`);
       await loadApps();
       return true;
     } catch (err) {
+      addToast("error", "Removal Failed", String(err));
       setError(String(err));
       return false;
     }
@@ -393,14 +470,25 @@ function App() {
   const toggleSandbox = async (desktop_path: string, enable: boolean) => {
     try {
       if (enable && !firejailInstalled) {
+        addToast(
+          "error",
+          "Firejail Required",
+          "Firejail security sandbox is not installed on this system."
+        );
         setError(
           "Firejail is not installed. Please install firejail first (e.g., sudo apt install firejail)."
         );
         return;
       }
-      await invoke("toggle_sandbox", { desktopPath: desktop_path, enable });
+      await invoke("toggle_sandbox", { desktop_path, enable });
+      addToast(
+        "success",
+        enable ? "Sandbox Enabled" : "Sandbox Disabled",
+        enable ? "App is now running inside Firejail sandbox." : "App sandbox restriction removed."
+      );
       await loadApps();
     } catch (err) {
+      addToast("error", "Sandbox Update Failed", String(err));
       setError(String(err));
     }
   };
@@ -506,67 +594,194 @@ function App() {
 
   return (
     <div style={{ display: "flex", width: "100%", height: "100%", background: "var(--bg-main)" }}>
-      <Sidebar currentView={view} onViewChange={setView} onRefresh={loadApps} />
-      <div style={{ flex: 1, padding: "20px", overflowY: "auto", position: "relative" }}>
+      <Sidebar
+        currentView={view}
+        onViewChange={setView}
+        onRefresh={loadApps}
+        onQuit={quitApp}
+        onOpenShortcuts={() => setShowShortcuts(true)}
+        appCount={apps.length}
+      />
+      <div style={{ flex: 1, padding: "24px", overflowY: "auto", position: "relative" }}>
         {error && (
           <div
             style={{
-              background: "var(--danger-color)",
-              color: "#fff",
-              padding: "10px",
-              marginBottom: "10px",
-              borderRadius: "4px",
+              background: "var(--danger-bg)",
+              border: "1px solid var(--danger-color)",
+              color: "var(--danger-color)",
+              padding: "12px 16px",
+              marginBottom: "16px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: "14px",
             }}
           >
-            {error}{" "}
+            <span>{error}</span>
             <button
               onClick={() => setError(null)}
               style={{
                 background: "none",
                 border: "none",
-                color: "#fff",
+                color: "var(--danger-color)",
                 cursor: "pointer",
                 fontWeight: "bold",
               }}
             >
-              X
+              <X size={16} />
             </button>
           </div>
         )}
         {installProgress && (
           <div
             style={{
-              position: "absolute",
-              top: 20,
-              right: 20,
+              position: "fixed",
+              top: 24,
+              right: 24,
               background: "var(--accent-color)",
               color: "#fff",
-              padding: "10px 20px",
-              borderRadius: "8px",
+              padding: "12px 24px",
+              borderRadius: "10px",
               fontWeight: "bold",
-              zIndex: 10,
-              boxShadow: "0 4px 6px rgba(0,0,0,0.3)",
+              zIndex: 30,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              fontSize: "14px",
             }}
           >
+            <RefreshCw size={16} style={{ animation: "spin 1s linear infinite" }} />
             {installProgress}
           </div>
         )}
         {loading && !installProgress && (
-          <div style={{ position: "absolute", top: 20, right: 20, color: "var(--text-muted)" }}>
+          <div
+            style={{
+              position: "absolute",
+              top: 24,
+              right: 24,
+              color: "var(--text-muted)",
+              fontSize: "13px",
+            }}
+          >
             Loading...
           </div>
         )}
 
         {view === "library" && (
-          <>
-            <h2 style={{ color: "var(--text-primary)" }}>App Library</h2>
+          <div className="animate-fade-in">
+            <h2 style={{ color: "var(--text-primary)", margin: "0 0 16px 0" }}>App Library</h2>
+
+            {/* Quick Stats Header Banner */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: "14px",
+                marginBottom: "20px",
+              }}
+            >
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  padding: "14px 18px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Installed Applications
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: "bold",
+                    color: "var(--text-primary)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {apps.length}
+                </div>
+              </div>
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  padding: "14px 18px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Total Library Size
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: "bold",
+                    color: "var(--accent-color)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {formatBytes(
+                    stats?.total_size_bytes || apps.reduce((acc, a) => acc + a.size_bytes, 0)
+                  )}
+                </div>
+              </div>
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  padding: "14px 18px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Sandboxed Apps
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: "bold",
+                    color: "var(--info-color)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {apps.filter((a) => a.sandboxed).length} / {apps.length}
+                </div>
+              </div>
+            </div>
+
             <DropZone onInstall={handleInstall} />
+
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginTop: "30px",
+                marginTop: "24px",
               }}
             >
               <h3 style={{ color: "var(--text-secondary)", margin: 0 }}>Installed Apps</h3>
@@ -590,15 +805,16 @@ function App() {
                   }}
                 >
                   <RefreshCw
-                    size={16}
+                    size={15}
                     style={{ animation: checkingUpdates ? "spin 1s linear infinite" : "none" }}
                   />
                   {checkingUpdates ? "Checking..." : "Check All Updates"}
                 </button>
               )}
             </div>
+
             {apps.length > 0 && (
-              <div style={{ position: "relative", marginTop: "15px", maxWidth: "400px" }}>
+              <div style={{ position: "relative", marginTop: "12px", maxWidth: "420px" }}>
                 <Search
                   size={18}
                   style={{
@@ -612,7 +828,7 @@ function App() {
                 />
                 <input
                   type="text"
-                  placeholder="Search installed apps..."
+                  placeholder="Search installed apps (Ctrl+K)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
@@ -648,6 +864,7 @@ function App() {
                 )}
               </div>
             )}
+
             <AppGrid
               apps={apps.filter((app) =>
                 app.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -656,12 +873,18 @@ function App() {
               onRemove={requestRemoveApp}
               onToggleSandbox={toggleSandbox}
               onUpdate={updateAppImage}
+              onSelectApp={(app) => {
+                setSelectedApp(app);
+                setAppChecksum(null);
+              }}
               updatesEnabled={updateToolInstalled}
             />
-          </>
+          </div>
         )}
 
-        {view === "discover" && <Storefront />}
+        {view === "discover" && (
+          <Storefront installedAppNames={apps.map((a) => a.name)} onRefreshLibrary={loadApps} />
+        )}
 
         {view === "settings" && (
           <div style={{ maxWidth: "800px" }}>
@@ -1149,6 +1372,424 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* App Details Modal */}
+        {selectedApp && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 25,
+              padding: "24px",
+            }}
+            onClick={() => setSelectedApp(null)}
+          >
+            <div
+              style={{
+                width: "min(520px, 100%)",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "16px",
+                padding: "24px",
+                boxShadow: "var(--shadow-card)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "18px",
+                }}
+              >
+                <div>
+                  <h3
+                    style={{ margin: "0 0 4px 0", color: "var(--text-primary)", fontSize: "20px" }}
+                  >
+                    {selectedApp.name}
+                  </h3>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                    {selectedApp.package_type} Package
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelectedApp(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}
+              >
+                <div
+                  style={{
+                    background: "var(--bg-input)",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "var(--text-muted)",
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Executable Path
+                  </div>
+                  <div
+                    style={{
+                      color: "var(--text-primary)",
+                      wordBreak: "break-all",
+                      fontFamily: "monospace",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {selectedApp.path}
+                  </div>
+                </div>
+
+                {selectedApp.desktop_path && (
+                  <div
+                    style={{
+                      background: "var(--bg-input)",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Desktop Integration Entry
+                    </div>
+                    <div
+                      style={{
+                        color: "var(--text-primary)",
+                        wordBreak: "break-all",
+                        fontFamily: "monospace",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {selectedApp.desktop_path}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      background: "var(--bg-input)",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      File Size
+                    </div>
+                    <div
+                      style={{ color: "var(--text-primary)", fontWeight: "bold", marginTop: "4px" }}
+                    >
+                      {formatBytes(selectedApp.size_bytes)}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      flex: 1,
+                      background: "var(--bg-input)",
+                      padding: "10px 14px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Sandbox Status
+                    </div>
+                    <div
+                      style={{
+                        color: selectedApp.sandboxed
+                          ? "var(--accent-color)"
+                          : "var(--text-secondary)",
+                        fontWeight: "bold",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {selectedApp.sandboxed ? "Protected (Firejail)" : "Unrestricted"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SHA-256 Checksum Calculation */}
+                <div
+                  style={{
+                    background: "var(--bg-input)",
+                    padding: "12px 14px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      SHA-256 Integrity Hash
+                    </div>
+                    {!appChecksum && (
+                      <button
+                        onClick={async () => {
+                          setChecksumLoading(true);
+                          try {
+                            const hash = await invoke<string>("get_app_checksum", {
+                              path: selectedApp.path,
+                            });
+                            setAppChecksum(hash);
+                          } catch (err) {
+                            setAppChecksum("Calculation error: " + String(err));
+                          } finally {
+                            setChecksumLoading(false);
+                          }
+                        }}
+                        disabled={checksumLoading}
+                        style={{
+                          background: "var(--accent-color)",
+                          color: "#fff",
+                          border: "none",
+                          padding: "4px 10px",
+                          borderRadius: "4px",
+                          fontSize: "11px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {checksumLoading ? "Calculating..." : "Calculate Hash"}
+                      </button>
+                    )}
+                  </div>
+                  {appChecksum && (
+                    <div
+                      style={{
+                        color: "var(--accent-color)",
+                        fontFamily: "monospace",
+                        fontSize: "11px",
+                        wordBreak: "break-all",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {appChecksum}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                <button
+                  onClick={() => {
+                    launchApp(selectedApp.path);
+                    setSelectedApp(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    background: "var(--accent-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  Launch App
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await invoke<string>("recreate_desktop_entry", {
+                        path: selectedApp.path,
+                      });
+                      showInfoModal("Launcher Repaired", res);
+                      await loadApps();
+                      setSelectedApp(null);
+                    } catch (err) {
+                      setError(String(err));
+                    }
+                  }}
+                  style={{
+                    background: "var(--info-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Repair Launcher
+                </button>
+                <button
+                  onClick={() => {
+                    const app = selectedApp;
+                    setSelectedApp(null);
+                    requestRemoveApp(app);
+                  }}
+                  style={{
+                    background: "var(--danger-color)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Shortcuts Cheat Sheet Modal */}
+        {showShortcuts && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 25,
+              padding: "24px",
+            }}
+            onClick={() => setShowShortcuts(false)}
+          >
+            <div
+              style={{
+                width: "min(460px, 100%)",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "16px",
+                padding: "24px",
+                boxShadow: "var(--shadow-card)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "18px",
+                }}
+              >
+                <h3 style={{ margin: 0, color: "var(--text-primary)" }}>Keyboard Shortcuts</h3>
+                <button
+                  onClick={() => setShowShortcuts(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {[
+                  { key: "Ctrl + K", desc: "Focus library search bar" },
+                  { key: "Ctrl + R", desc: "Refresh installed application list" },
+                  { key: "Ctrl + U", desc: "Check for delta updates" },
+                  { key: "Ctrl + L", desc: "Switch to Library tab" },
+                  { key: "Ctrl + D", desc: "Switch to Discover tab" },
+                  { key: "Ctrl + S", desc: "Switch to Settings tab" },
+                  { key: "Ctrl + Q", desc: "Quit Linuxy cleanly" },
+                  { key: "?", desc: "Toggle this shortcut modal" },
+                  { key: "Escape", desc: "Close active modal / popup" },
+                ].map((s) => (
+                  <div
+                    key={s.key}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 12px",
+                      background: "var(--bg-input)",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
+                      {s.desc}
+                    </span>
+                    <kbd
+                      style={{
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-color)",
+                        padding: "2px 8px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        fontFamily: "monospace",
+                        color: "var(--accent-color)",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {s.key}
+                    </kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Toast Notification Container */}
+        <ToastContainer toasts={toasts} onDismiss={removeToast} />
       </div>
     </div>
   );

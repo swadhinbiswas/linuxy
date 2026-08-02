@@ -54,57 +54,76 @@
 
 ## Install
 
-### Debian / Ubuntu / Mint / Pop!\_OS
+### Quick Install (Recommended)
+
+The easiest way to install Linuxy on any Linux distribution (Ubuntu, Fedora, Arch, openSUSE, etc.) is using our universal installation script. It will automatically detect your package manager (APT, DNF, Zypper) and download the right package, or fall back to the universal AppImage.
 
 ```bash
-curl -fsSL https://swadhinbiswas.github.io/linuxy/apt/linuxy.gpg.key \
-  | sudo gpg --dearmor -o /etc/apt/keyrings/linuxy.gpg
-echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/linuxy.gpg] https://swadhinbiswas.github.io/linuxy/apt /" \
-  | sudo tee /etc/apt/sources.list.d/linuxy.list
-sudo apt update && sudo apt install linuxy
+curl -fsSL https://raw.githubusercontent.com/swadhinbiswas/linuxy/main/install.sh | bash
 ```
 
-Or download the `.deb` from [releases](https://github.com/swadhinbiswas/linuxy/releases/latest).
+---
 
-### Fedora / RHEL / openSUSE
+### Manual Methods
 
+If you prefer to install things manually, you can choose from the options below:
+
+<details>
+<summary><b>Debian / Ubuntu / Mint / Pop!_OS</b></summary>
+<br>
+
+Download the latest `.deb` from [releases](https://github.com/swadhinbiswas/linuxy/releases/latest) and install it:
 ```bash
-sudo dnf install https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy.rpm
-# openSUSE: replace dnf with zypper
+sudo apt install ./linuxy_*_amd64.deb
 ```
+</details>
 
-### Arch Linux (AUR)
+<details>
+<summary><b>Fedora / RHEL / openSUSE</b></summary>
+<br>
+
+Download the latest `.rpm` from [releases](https://github.com/swadhinbiswas/linuxy/releases/latest) and install it:
+```bash
+# Fedora / RHEL
+sudo dnf install ./linuxy-*.rpm
+
+# openSUSE
+sudo zypper install ./linuxy-*.rpm
+```
+</details>
+
+<details>
+<summary><b>Arch Linux (AUR)</b></summary>
+<br>
 
 ```bash
 yay -S linuxy     # or paru -S linuxy
 ```
+</details>
 
-### NixOS / Nix
+<details>
+<summary><b>Any distro (AppImage)</b></summary>
+<br>
 
-```bash
-nix run github:swadhinbiswas/linuxy
-```
-
-Or add to `environment.systemPackages` in your NixOS config.
-
-### Any distro (AppImage)
-
+Download the `.AppImage` from [releases](https://github.com/swadhinbiswas/linuxy/releases/latest):
 ```bash
 chmod +x Linuxy_*.AppImage
 ./Linuxy_*.AppImage
 ```
+*(Running it once will register the desktop shortcuts automatically)*
+</details>
 
-### Build from source
+<details>
+<summary><b>Build from source</b></summary>
+<br>
 
 ```bash
 git clone https://github.com/swadhinbiswas/linuxy.git
 cd linuxy
 npm install
 npm run tauri build
-# Binary: src-tauri/target/release/linuxy
-# DEB: src-tauri/target/release/bundle/deb/
-# AppImage: src-tauri/target/release/bundle/appimage/
 ```
+</details>
 
 ## Usage
 

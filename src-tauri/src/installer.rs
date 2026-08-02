@@ -98,6 +98,23 @@ fn copy_icon_from_extract(
         let possible_icons = vec![
             squashfs_root.join(format!("{}.png", parsed_icon_name)),
             squashfs_root.join(format!("{}.svg", parsed_icon_name)),
+            squashfs_root.join(format!(
+                "usr/share/icons/hicolor/512x512/apps/{}.png",
+                parsed_icon_name
+            )),
+            squashfs_root.join(format!(
+                "usr/share/icons/hicolor/scalable/apps/{}.svg",
+                parsed_icon_name
+            )),
+            squashfs_root.join(format!(
+                "usr/share/icons/hicolor/256x256/apps/{}.png",
+                parsed_icon_name
+            )),
+            squashfs_root.join(format!(
+                "usr/share/icons/hicolor/128x128/apps/{}.png",
+                parsed_icon_name
+            )),
+            squashfs_root.join(format!("usr/share/pixmaps/{}.png", parsed_icon_name)),
             squashfs_root.join(".DirIcon"),
         ];
         for source in possible_icons {
@@ -117,12 +134,17 @@ fn copy_icon_from_extract(
     }
     if let Ok(entries) = std::fs::read_dir(squashfs_root) {
         for entry in entries.flatten() {
-            if entry.path().extension().and_then(|ext| ext.to_str()) == Some("png") {
-                let dest = icons_dir.join(format!("{}_icon.png", base_name));
+            let ext = entry
+                .path()
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .map(|s| s.to_lowercase());
+            if ext == Some("png".to_string()) || ext == Some("svg".to_string()) {
+                let dest = icons_dir.join(format!("{}_icon.{}", base_name, ext.unwrap()));
                 if std::fs::copy(entry.path(), &dest).is_ok() {
                     copied_icons.push(dest);
+                    break;
                 }
-                break;
             }
         }
     }
@@ -139,30 +161,16 @@ fn cleanup_failed_install(app_path: &Path, desktop_path: &Path, icon_paths: &[Pa
 }
 
 #[cfg(target_os = "linux")]
-fn detect_package_manager() -> Option<(&'static str, &'static str)> {
-    let managers: &[(&str, &str)] = &[
-        ("pacman", "sudo pacman -U"),
-        ("apt", "sudo apt install"),
-        ("dpkg", "sudo dpkg -i"),
-        ("dnf", "sudo dnf install"),
-        ("yum", "sudo yum localinstall"),
-        ("zypper", "sudo zypper install"),
-    ];
-    for (cmd, _) in managers {
+fn detect_deb_package_manager() -> Option<&'static str> {
+    let managers = ["apt", "dpkg", "pacman"];
+    for cmd in managers {
         if Command::new("which")
             .arg(cmd)
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
         {
-            return Some((
-                cmd,
-                managers
-                    .iter()
-                    .find(|(c, _)| c == cmd)
-                    .map(|(_, i)| *i)
-                    .unwrap(),
-            ));
+            return Some(cmd);
         }
     }
     None
@@ -171,26 +179,34 @@ fn detect_package_manager() -> Option<(&'static str, &'static str)> {
 // ── DEB Install (Linux-only) ──
 #[cfg(target_os = "linux")]
 fn install_deb_direct(path: &Path, app: Option<&tauri::AppHandle>) -> Result<String, String> {
-    let (manager, _) =
-        detect_package_manager().ok_or("No supported package manager found".to_string())?;
+    let manager = detect_deb_package_manager().ok_or_else(|| {
+        // Give a helpful error if they are on an RPM system
+        let is_rpm = Command::new("which").arg("rpm").output().map(|o| o.status.success()).unwrap_or(false);
+        if is_rpm {
+            "This is a DEB package, but your system uses RPM (Fedora, openSUSE, RHEL). Please download an RPM or AppImage instead.".to_string()
+        } else {
+            "No supported DEB package manager (apt/dpkg) found on this system.".to_string()
+        }
+    })?;
+
     emit_progress(app, &format!("Installing DEB package with {}...", manager));
 
     let install_status = match manager {
         "pacman" => return install_deb_with_debtap(path, app),
-        "apt" => Command::new("sudo")
+        "apt" => Command::new("pkexec")
             .arg("apt")
             .arg("install")
             .arg("-y")
             .arg(path)
             .status(),
         "dpkg" => {
-            let s = Command::new("sudo")
+            let s = Command::new("pkexec")
                 .arg("dpkg")
                 .arg("-i")
                 .arg(path)
                 .status();
             if s.as_ref().map(|s| s.success()).unwrap_or(false) {
-                let _ = Command::new("sudo")
+                let _ = Command::new("pkexec")
                     .arg("apt")
                     .arg("install")
                     .arg("-f")
@@ -199,24 +215,6 @@ fn install_deb_direct(path: &Path, app: Option<&tauri::AppHandle>) -> Result<Str
             }
             s
         },
-        "dnf" => Command::new("sudo")
-            .arg("dnf")
-            .arg("install")
-            .arg("-y")
-            .arg(path)
-            .status(),
-        "yum" => Command::new("sudo")
-            .arg("yum")
-            .arg("localinstall")
-            .arg("-y")
-            .arg(path)
-            .status(),
-        "zypper" => Command::new("sudo")
-            .arg("zypper")
-            .arg("install")
-            .arg("-y")
-            .arg(path)
-            .status(),
         _ => return Err(format!("Unsupported package manager: {}", manager)),
     }
     .map_err(|e| format!("Failed to install package: {}", e))?;
@@ -274,7 +272,7 @@ fn install_deb_with_debtap(path: &Path, app: Option<&tauri::AppHandle>) -> Resul
         return Err("Converted package file not found".to_string());
     }
     emit_progress(app, "Installing converted package...");
-    let install = Command::new("sudo")
+    let install = Command::new("pkexec")
         .arg("pacman")
         .arg("-U")
         .arg("--noconfirm")
@@ -330,12 +328,20 @@ fn install_rpm_direct(path: &Path, app: Option<&tauri::AppHandle>) -> Result<Str
                 .map(|o| o.status.success())
                 .unwrap_or(false)
         })
-        .ok_or("No supported RPM package manager found".to_string())?;
+        .copied()
+        .ok_or_else(|| {
+            let is_deb = Command::new("which").arg("dpkg").output().map(|o| o.status.success()).unwrap_or(false);
+            if is_deb {
+                "This is an RPM package, but your system uses DEB (Ubuntu, Debian, Mint). Please download a DEB or AppImage instead.".to_string()
+            } else {
+                "No supported RPM package manager (dnf/zypper/yum/rpm) found on this system.".to_string()
+            }
+        })?;
 
     emit_progress(app, &format!("Installing RPM package with {}...", manager));
-    let mut cmd = Command::new("sudo");
+    let mut cmd = Command::new("pkexec");
     cmd.arg(manager);
-    for arg in *args {
+    for arg in args {
         cmd.arg(arg);
     }
     cmd.arg(path);
@@ -416,6 +422,16 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
     std::fs::create_dir_all(&apps_dir).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(&icons_dir).map_err(|e| e.to_string())?;
 
+    // Duplicate detection: prevent silent overwrite of existing app
+    let target_path = appimages_dir.join(&file_name);
+    if target_path.exists() {
+        return Err(format!(
+            "An application named '{}' already exists at {}. Remove it first or rename the file.",
+            file_name,
+            target_path.display()
+        ));
+    }
+
     let tmp_dir = std::env::temp_dir().join(format!("linuxy_{}", Uuid::new_v4()));
     std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
 
@@ -424,15 +440,30 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
         std::fs::copy(source_path, &extraction_binary).map_err(|e| e.to_string())?;
         set_executable(&extraction_binary)?;
 
-        let output = Command::new(&extraction_binary)
-            .arg("--appimage-extract")
-            .current_dir(&tmp_dir)
-            .output()
-            .map_err(|e| format!("Failed to extract AppImage: {}", e))?;
+        // Selective extraction: only pull .desktop files and icons instead of entire squashfs
+        // This avoids extracting hundreds of MB of data just for metadata
+        for pattern in &["*.desktop", "*.png", "*.svg"] {
+            let _ = Command::new(&extraction_binary)
+                .arg("--appimage-extract")
+                .arg(pattern)
+                .current_dir(&tmp_dir)
+                .output();
+        }
 
-        if !output.status.success() {
-            let err_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("AppImage extraction failed: {}", err_msg.trim()));
+        // Verify extraction produced a squashfs-root directory
+        let squashfs_root_check = tmp_dir.join("squashfs-root");
+        if !squashfs_root_check.exists() {
+            // Fallback: full extraction if selective extraction didn't work (Type 1 AppImages)
+            let output = Command::new(&extraction_binary)
+                .arg("--appimage-extract")
+                .current_dir(&tmp_dir)
+                .output()
+                .map_err(|e| format!("Failed to extract AppImage: {}", e))?;
+
+            if !output.status.success() {
+                let err_msg = String::from_utf8_lossy(&output.stderr);
+                return Err(format!("AppImage extraction failed: {}", err_msg.trim()));
+            }
         }
 
         let squashfs_root = tmp_dir.join("squashfs-root");
@@ -456,12 +487,41 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
             appimages_dir.join(format!(".{}.{}.part.AppImage", base_name, Uuid::new_v4()));
         let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
 
-        let mut new_desktop = String::new();
+        // First, extract icon name from desktop content
         let mut parsed_icon_name = String::new();
+        for line in desktop_content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("Icon=") && parsed_icon_name.is_empty() {
+                parsed_icon_name = trimmed.trim_start_matches("Icon=").trim().to_string();
+            }
+        }
+
+        // Copy icon to icons_dir
+        let copied_icons =
+            copy_icon_from_extract(&squashfs_root, &icons_dir, &base_name, &parsed_icon_name);
+        let final_icon_str = if let Some(icon_file) = copied_icons.first() {
+            icon_file.to_string_lossy().to_string()
+        } else {
+            format!("{}_icon", base_name)
+        };
+
+        let mut new_desktop = String::new();
         let mut in_desktop_entry = false;
         let mut has_type = false;
         let mut has_terminal = false;
         let mut has_categories = false;
+
+        let has_libfuse = std::process::Command::new("ldconfig")
+            .arg("-p")
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).contains("libfuse.so.2"))
+            .unwrap_or(true);
+
+        let exec_str = if !has_libfuse && file_name.to_lowercase().contains(".appimage") {
+            format!("env APPIMAGE_EXTRACT_AND_RUN=1 \"{}\" %U", final_app_path.to_string_lossy())
+        } else {
+            format!("\"{}\" %U", final_app_path.to_string_lossy())
+        };
 
         for line in desktop_content.lines() {
             let trimmed = line.trim();
@@ -477,10 +537,9 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
                     continue;
                 }
                 if trimmed.starts_with("Exec=") {
-                    new_desktop.push_str(&format!("Exec={}\n", final_app_path.to_string_lossy()));
+                    new_desktop.push_str(&format!("Exec={}\n", exec_str));
                 } else if trimmed.starts_with("Icon=") {
-                    parsed_icon_name = trimmed.trim_start_matches("Icon=").to_string();
-                    new_desktop.push_str(&format!("Icon={}_icon\n", base_name));
+                    new_desktop.push_str(&format!("Icon={}\n", final_icon_str));
                 } else if trimmed.starts_with("Type=") {
                     has_type = true;
                     new_desktop.push_str(&format!("{}\n", trimmed));
@@ -526,18 +585,20 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
             return Err(format!("Failed to finalize installation: {}", error));
         }
 
-        let copied_icons = Vec::new();
         if let Err(error) = std::fs::write(&desktop_path, new_desktop) {
             cleanup_failed_install(&final_app_path, &desktop_path, &copied_icons);
             return Err(error.to_string());
         }
 
-        let _copied_icons =
-            copy_icon_from_extract(&squashfs_root, &icons_dir, &base_name, &parsed_icon_name);
-
         let _ = Command::new("update-desktop-database")
             .arg(&apps_dir)
             .output();
+        let _ = Command::new("gtk-update-icon-cache")
+            .arg("-f")
+            .arg("-t")
+            .arg(&icons_dir)
+            .output();
+        let _ = filetime::set_file_mtime(&apps_dir, filetime::FileTime::now());
 
         Ok("Successfully installed AppImage".into())
     })();
@@ -580,7 +641,7 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         set_executable(&final_app_path)?;
 
         let new_desktop = format!(
-            "[Desktop Entry]\nType=Application\nName={}\nExec={}\nTerminal=false\nCategories=Utility;\n",
+            "[Desktop Entry]\nType=Application\nName={}\nExec=\"{}\"\nTerminal=false\nCategories=Utility;\n",
             file_name,
             final_app_path.to_string_lossy()
         );

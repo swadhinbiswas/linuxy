@@ -1,6 +1,6 @@
 [package]
 name = "linuxy"
-version = "2.0.0"
+version = "2.0.1"
 description = "A centralized application manager for Linux, Windows, and macOS"
 authors = ["Swadhin Biswas <swadhinbiswas.cse@gmail.com>"]
 license = "MIT"
@@ -41,6 +41,7 @@ once_cell = "1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
+filetime = "0.2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc = "0.2"

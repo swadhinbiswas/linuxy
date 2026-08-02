@@ -82,23 +82,35 @@ fn read_desktop_file(desktop_path: &Path) -> Option<(String, Option<String>, Vec
     let mut icon_name = String::new();
     let mut sandboxed = false;
     let mut categories = Vec::new();
+    let mut in_main_section = false;
 
     for line in content.lines() {
-        if line.starts_with("Name=") {
-            name = line.trim_start_matches("Name=").to_string();
-        } else if line.starts_with("Exec=") {
-            if line.contains("firejail") {
-                sandboxed = true;
+        let trimmed = line.trim();
+        if trimmed == "[Desktop Entry]" {
+            in_main_section = true;
+            continue;
+        } else if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            in_main_section = false;
+            continue;
+        }
+
+        if in_main_section {
+            if trimmed.starts_with("Name=") && name.is_empty() {
+                name = trimmed.trim_start_matches("Name=").to_string();
+            } else if trimmed.starts_with("Exec=") {
+                if trimmed.contains("firejail") {
+                    sandboxed = true;
+                }
+            } else if trimmed.starts_with("Icon=") && icon_name.is_empty() {
+                icon_name = trimmed.trim_start_matches("Icon=").to_string();
+            } else if trimmed.starts_with("Categories=") {
+                let cats = trimmed.trim_start_matches("Categories=");
+                categories = cats
+                    .split(';')
+                    .filter(|c| !c.is_empty())
+                    .map(|c| c.to_string())
+                    .collect();
             }
-        } else if line.starts_with("Icon=") {
-            icon_name = line.trim_start_matches("Icon=").to_string();
-        } else if line.starts_with("Categories=") {
-            let cats = line.trim_start_matches("Categories=");
-            categories = cats
-                .split(';')
-                .filter(|c| !c.is_empty())
-                .map(|c| c.to_string())
-                .collect();
         }
     }
 
@@ -107,9 +119,9 @@ fn read_desktop_file(desktop_path: &Path) -> Option<(String, Option<String>, Vec
     let icon_path = if icon_name.is_empty() {
         None
     } else {
-        let icon_path = Path::new(&icon_name);
-        if icon_path.is_absolute() && icon_path.exists() {
-            Some(icon_path.to_string_lossy().to_string())
+        let icon_path_buf = Path::new(&icon_name);
+        if icon_path_buf.is_absolute() && icon_path_buf.exists() {
+            Some(icon_path_buf.to_string_lossy().to_string())
         } else {
             let png = icons_dir.join(format!("{}.png", icon_name));
             let svg = icons_dir.join(format!("{}.svg", icon_name));
@@ -122,6 +134,10 @@ fn read_desktop_file(desktop_path: &Path) -> Option<(String, Option<String>, Vec
             }
         }
     };
+
+    if name.is_empty() {
+        return None;
+    }
 
     Some((name, icon_path, categories, sandboxed))
 }
@@ -385,23 +401,31 @@ pub async fn launch_app(path: String) -> Result<(), String> {
             }
         }
 
+        let is_appimage = path.to_lowercase().contains(".appimage");
+        let has_libfuse = if is_appimage {
+            std::process::Command::new("ldconfig")
+                .arg("-p")
+                .output()
+                .map(|o| String::from_utf8_lossy(&o.stdout).contains("libfuse.so.2"))
+                .unwrap_or(true)
+        } else {
+            true
+        };
+
         if use_firejail {
             let firejail_check = std::process::Command::new("which").arg("firejail").output();
             match firejail_check {
                 Ok(output) if output.status.success() => {
-                    let is_appimage = path.to_lowercase().contains(".appimage");
+                    let mut cmd = std::process::Command::new("firejail");
                     if is_appimage {
-                        std::process::Command::new("firejail")
-                            .arg("--appimage")
-                            .arg(&path)
-                            .spawn()
-                            .map_err(|e| format!("Failed to launch with firejail: {}", e))?;
-                    } else {
-                        std::process::Command::new("firejail")
-                            .arg(&path)
-                            .spawn()
-                            .map_err(|e| format!("Failed to launch with firejail: {}", e))?;
+                        cmd.arg("--appimage");
                     }
+                    cmd.arg(&path);
+                    if !has_libfuse {
+                        cmd.env("APPIMAGE_EXTRACT_AND_RUN", "1");
+                    }
+                    cmd.spawn()
+                        .map_err(|e| format!("Failed to launch with firejail: {}", e))?;
                 },
                 _ => {
                     return Err(
@@ -411,8 +435,11 @@ pub async fn launch_app(path: String) -> Result<(), String> {
                 },
             }
         } else {
-            std::process::Command::new(&path)
-                .spawn()
+            let mut cmd = std::process::Command::new(&path);
+            if is_appimage && !has_libfuse {
+                cmd.env("APPIMAGE_EXTRACT_AND_RUN", "1");
+            }
+            cmd.spawn()
                 .map_err(|e| format!("Failed to launch app: {}", e))?;
         }
     }
@@ -600,17 +627,20 @@ pub async fn toggle_sandbox(desktop_path: String, enable: bool) -> Result<(), St
                 let has_firejail = current_exec.contains("firejail");
 
                 if enable && !has_firejail {
-                    let clean_exec = current_exec.replace('"', "");
+                    let clean_exec = current_exec.trim().trim_matches('"');
                     if clean_exec.to_lowercase().contains(".appimage") {
-                        new_content.push_str(&format!("Exec=firejail --appimage {}\n", clean_exec));
+                        new_content.push_str(&format!("Exec=firejail --appimage \"{}\"\n", clean_exec));
                     } else {
-                        new_content.push_str(&format!("Exec=firejail {}\n", clean_exec));
+                        new_content.push_str(&format!("Exec=firejail \"{}\"\n", clean_exec));
                     }
                 } else if !enable && has_firejail {
                     let clean_exec = current_exec
                         .replace("firejail --appimage ", "")
-                        .replace("firejail ", "");
-                    new_content.push_str(&format!("Exec={}\n", clean_exec));
+                        .replace("firejail ", "")
+                        .trim()
+                        .trim_matches('"')
+                        .to_string();
+                    new_content.push_str(&format!("Exec=\"{}\"\n", clean_exec));
                 } else {
                     new_content.push_str(&format!("{}\n", line));
                 }
@@ -626,6 +656,7 @@ pub async fn toggle_sandbox(desktop_path: String, enable: bool) -> Result<(), St
             let _ = std::process::Command::new("update-desktop-database")
                 .arg(&apps_dir)
                 .output();
+            let _ = filetime::set_file_mtime(&apps_dir, filetime::FileTime::now());
         }
 
         Ok(())
@@ -1002,7 +1033,7 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
                 let desktop_content = format!(
                     "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories={}\n",
                     app.name,
-                    if app.sandboxed { format!("firejail --appimage {}", app.exec) } else { app.exec.clone() },
+                    if app.sandboxed { format!("firejail --appimage \"{}\"", app.exec) } else { format!("\"{}\"", app.exec) },
                     app.icon.as_deref().unwrap_or(""),
                     app.categories.join(";"),
                 );
@@ -1016,6 +1047,7 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
         let _ = std::process::Command::new("update-desktop-database")
             .arg(&apps_dir)
             .output();
+        let _ = filetime::set_file_mtime(&apps_dir, filetime::FileTime::now());
         Ok(format!("Restored {} apps from backup", restored))
     }
 
@@ -1025,5 +1057,97 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
             "Restored {} apps from backup (metadata only)",
             backup.apps.len()
         ))
+    }
+}
+#[tauri::command]
+pub async fn get_app_checksum(path: String) -> Result<String, String> {
+    let p = Path::new(&path);
+    if !p.exists() {
+        return Err("File does not exist".into());
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let output = std::process::Command::new("sha256sum")
+            .arg(&path)
+            .output()
+            .map_err(|e| format!("Failed to run sha256sum: {}", e))?;
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if let Some(hash) = stdout.split_whitespace().next() {
+                return Ok(hash.to_string());
+            }
+        }
+        Err("Failed to calculate SHA-256 checksum".into())
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok("SHA-256 calculation only supported on Linux".into())
+    }
+}
+
+#[tauri::command]
+pub async fn recreate_desktop_entry(path: String) -> Result<String, String> {
+    let app_path = Path::new(&path);
+    if !app_path.exists() {
+        return Err("Application file does not exist".into());
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let file_name = app_path
+            .file_name()
+            .ok_or("Invalid file name")?
+            .to_string_lossy()
+            .to_string();
+        let base_name = file_name.replace(".AppImage", "").replace(".appimage", "");
+        let home_dir = dirs::home_dir().ok_or("Could not find home directory")?;
+        let apps_dir = home_dir.join(".local/share/applications");
+        let icons_dir = home_dir.join(".local/share/icons");
+        let desktop_path = apps_dir.join(format!("{}.desktop", base_name));
+
+        let icon_png = icons_dir.join(format!("{}_icon.png", base_name));
+        let icon_svg = icons_dir.join(format!("{}_icon.svg", base_name));
+        let icon_str = if icon_png.exists() {
+            icon_png.to_string_lossy().to_string()
+        } else if icon_svg.exists() {
+            icon_svg.to_string_lossy().to_string()
+        } else {
+            format!("{}_icon", base_name)
+        };
+
+        let has_libfuse = std::process::Command::new("ldconfig")
+            .arg("-p")
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).contains("libfuse.so.2"))
+            .unwrap_or(true);
+
+        let exec_str = if !has_libfuse && app_path.to_string_lossy().to_lowercase().contains(".appimage") {
+            format!("env APPIMAGE_EXTRACT_AND_RUN=1 \"{}\" %U", app_path.to_string_lossy())
+        } else {
+            format!("\"{}\" %U", app_path.to_string_lossy())
+        };
+
+        let desktop_content = format!(
+            "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories=Utility;\n",
+            base_name,
+            exec_str,
+            icon_str
+        );
+
+        std::fs::write(&desktop_path, desktop_content).map_err(|e| e.to_string())?;
+
+        let _ = std::process::Command::new("update-desktop-database")
+            .arg(&apps_dir)
+            .output();
+        let _ = filetime::set_file_mtime(&apps_dir, filetime::FileTime::now());
+
+        Ok(format!("Desktop launcher recreated at {}", desktop_path.to_string_lossy()))
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok("Recreating desktop entry is only supported on Linux".into())
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "linuxy",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "homepage": "https://swadhinbiswas.github.io/linuxy",
   "scripts": {
@@ -38,7 +38,7 @@
     "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react-oxc": "^0.4.3",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-react": "^7.34.0",
