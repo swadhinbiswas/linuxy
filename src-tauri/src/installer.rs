@@ -163,17 +163,13 @@ fn cleanup_failed_install(app_path: &Path, desktop_path: &Path, icon_paths: &[Pa
 #[cfg(target_os = "linux")]
 fn detect_deb_package_manager() -> Option<&'static str> {
     let managers = ["apt", "dpkg", "pacman"];
-    for cmd in managers {
-        if Command::new("which")
+    managers.into_iter().find(|&cmd| {
+        Command::new("which")
             .arg(cmd)
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
-        {
-            return Some(cmd);
-        }
-    }
-    None
+    })
 }
 
 // ── DEB Install (Linux-only) ──

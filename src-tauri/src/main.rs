@@ -21,10 +21,10 @@ async fn main() {
     {
         // GTK natively handles backend negotiation (Wayland/X11).
         // We set an env var to prevent WebKit2GTK from freezing or crashing on some Wayland compositors.
-        if std::env::var("WAYLAND_DISPLAY").is_ok() {
-            if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
-                std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-            }
+        if std::env::var("WAYLAND_DISPLAY").is_ok()
+            && std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err()
+        {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }
     }
 

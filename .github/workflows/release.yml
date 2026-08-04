@@ -136,15 +136,10 @@ jobs:
           sed -i "s/sha256sums=.*/sha256sums=('${CHECKSUM}')/" packaging/aur/PKGBUILD
           sed -i "s/sha256sums = .*/sha256sums = ${CHECKSUM}/" packaging/aur/.SRCINFO
       - name: Publish to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
-        with:
-          pkgname: linuxy
-          pkgbuild: packaging/aur/PKGBUILD
-          assets: |
-            packaging/aur/.SRCINFO
-            packaging/aur/linuxy.install
-          commit_username: ${{ secrets.AUR_USERNAME }}
-          commit_email: ${{ secrets.AUR_EMAIL }}
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "chore: update to version ${{ steps.get_version.outputs.VERSION }}"
-          ssh_keyscan_types: rsa,ed25519
+        run: ./scripts/publish-aur.sh
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          AUR_VERSION: ${{ steps.get_version.outputs.VERSION }}
+          AUR_COMMIT_USERNAME: ${{ secrets.AUR_USERNAME }}
+          AUR_COMMIT_EMAIL: ${{ secrets.AUR_EMAIL }}
+          AUR_MAX_ATTEMPTS: "6"
