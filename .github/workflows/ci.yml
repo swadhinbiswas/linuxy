@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-      - run: npm install
+      - run: npm ci
       - run: npm run typecheck
       - run: npm run format:check
       - run: npx eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0
@@ -106,7 +106,7 @@ jobs:
             libcairo2-dev
 
       - name: Install npm deps
-        run: npm install
+        run: npm ci
 
       - name: Build frontend
         run: npm run build
@@ -152,7 +152,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm install
+          cache: "npm"
+      - run: npm ci
       - run: npm audit --audit-level=high
 
   verify-csp:
@@ -201,7 +202,7 @@ jobs:
             libatk1.0-dev \
             libcairo2-dev \
             firejail
-      - run: npm install
+      - run: npm ci
       - run: npm run build
       - run: npm run tauri build
       - name: Install fpm

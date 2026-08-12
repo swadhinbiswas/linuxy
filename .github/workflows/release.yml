@@ -40,7 +40,7 @@ jobs:
             libpango1.0-dev \
             libatk1.0-dev \
             libcairo2-dev
-      - run: npm install
+      - run: npm ci
       - run: npm run build
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
