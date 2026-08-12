@@ -73,6 +73,11 @@ jobs:
             yay -S linuxy
             ```
 
+            **Flathub**
+            ```bash
+            flatpak install flathub com.linuxy.App
+            ```
+
             **NixOS**
             ```nix
             nix run github:swadhinbiswas/linuxy
