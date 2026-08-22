@@ -1,7 +1,7 @@
 {
   "name": "linuxy",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.0.2",
   "type": "module",
   "homepage": "https://swadhinbiswas.github.io/linuxy",
   "scripts": {
