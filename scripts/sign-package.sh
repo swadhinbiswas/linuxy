@@ -57,7 +57,7 @@ DEB_FILE=$(find src-tauri/target/release/bundle/deb -name "*.deb" 2>/dev/null | 
 
 if [ -z "$DEB_FILE" ]; then
     echo "❌ No DEB package found. Please build first:"
-    echo "   npm run tauri build"
+    echo "   bun run tauri build"
     exit 1
 fi
 

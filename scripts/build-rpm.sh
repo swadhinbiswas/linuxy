@@ -41,7 +41,7 @@ fi
 DEB_PACKAGE=$(ls -t "$TAURI_TARGET/release/bundle/deb/"*.deb 2>/dev/null | head -n1)
 
 if [ -z "$DEB_PACKAGE" ]; then
-    echo "Error: No DEB package found. Run 'npm run tauri build' first."
+    echo "Error: No DEB package found. Run 'bun run tauri build' first."
     exit 1
 fi
 

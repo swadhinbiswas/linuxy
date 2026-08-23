@@ -4,10 +4,10 @@ set -e
 echo "Starting build process for linuxy (Tauri 2)..."
 
 echo "1. Installing Node dependencies..."
-npm install
+bun install
 
 echo "2. Building React frontend..."
-npm run build
+bun run build
 
 echo "3. Building Tauri application..."
 
@@ -17,7 +17,7 @@ export NO_STRIP=1
 export APPIMAGE_EXTRACT_AND_RUN=1
 export ARCH=x86_64
 
-npx tauri build
+bunx tauri build
 
 echo "Build complete!"
 echo "Outputs:"

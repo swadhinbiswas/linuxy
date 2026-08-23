@@ -23,7 +23,7 @@ Package signing provides:
 ### 1. Build the Package
 
 ```bash
-npm run tauri build
+bun run tauri build
 ```
 
 ### 2. Sign the Package

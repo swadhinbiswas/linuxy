@@ -222,9 +222,8 @@ chmod +x linuxy-0.1.0-x86_64.AppImage
 #### Prerequisites
 
 ```bash
-# Install Node.js (v18 or later)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
+# Install Bun (v1.1 or later)
+curl -fsSL https://bun.sh/install | bash
 
 # Install Rust (v1.70 or later)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -247,11 +246,11 @@ sudo apt install build-essential \
 git clone https://github.com/swadhinbiswas/linuxy.git
 cd linuxy
 
-# Install Node.js dependencies
-npm install
+# Install Bun dependencies
+bun install
 
 # Build the application
-npm run tauri build
+bun run tauri build
 ```
 
 #### Locate Built Application

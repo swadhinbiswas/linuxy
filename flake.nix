@@ -17,7 +17,7 @@
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
           extensions = [ "rust-src" "rust-analyzer" ];
         };
-        nodejs = pkgs.nodejs_22;
+        bun = pkgs.bun;
 
         linuxy = pkgs.stdenv.mkDerivation rec {
           pname = "linuxy";
@@ -26,7 +26,7 @@
 
           nativeBuildInputs = with pkgs; [
             rustToolchain
-            nodejs
+            bun
             pkg-config
             wrapGAppsHook
             autoPatchelfHook
@@ -58,8 +58,8 @@
 
           buildPhase = ''
             export HOME=$TMPDIR
-            npm install
-            npm run build
+            bun install --frozen-lockfile
+            bun run build
             cd src-tauri
             cargo build --release --locked
             cd ..
@@ -109,7 +109,7 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             rustToolchain
-            nodejs
+            bun
             pkg-config
             webkitgtk_4_1
             gtk3

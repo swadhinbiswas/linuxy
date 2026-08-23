@@ -120,8 +120,8 @@ chmod +x Linuxy_*.AppImage
 ```bash
 git clone https://github.com/swadhinbiswas/linuxy.git
 cd linuxy
-npm install
-npm run tauri build
+bun install
+bun run tauri build
 ```
 </details>
 
@@ -208,12 +208,12 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential libssl-dev \
   libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev
 
 # Start dev server
-npm install
-npm run tauri dev
+bun install
+bun run tauri dev
 
 # Run checks
-npm run typecheck
-npm run lint
+bun run typecheck
+bun run lint
 cd src-tauri && cargo clippy && cargo test
 ```
 

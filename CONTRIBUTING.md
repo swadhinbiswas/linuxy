@@ -56,7 +56,7 @@ Before contributing, ensure you have:
 
 - [ ] A GitHub account
 - [ ] Git installed on your system
-- [ ] Node.js 18+ installed
+- [ ] Bun 1.1+ installed
 - [ ] Rust 1.70+ installed
 - [ ] Basic knowledge of React, TypeScript, and Rust
 
@@ -83,8 +83,8 @@ cd linuxy
 ### 2. Set Up Development Environment
 
 ```bash
-# Install Node.js dependencies
-npm install
+# Install Bun dependencies
+bun install
 
 # Install Rust dependencies (if needed)
 cd src-tauri && cargo fetch
@@ -115,10 +115,10 @@ sudo dnf install webkit2gtk4.1-devel \
 
 ```bash
 # Start the development server
-npm run dev
+bun run dev
 
 # Or run Tauri in development mode
-npm run tauri dev
+bun run tauri dev
 ```
 
 ### 5. Create a Branch
@@ -468,10 +468,10 @@ Describe how you tested these changes
 
 ```bash
 # Run tests (when implemented)
-npm test
+bun run test
 
 # Run with coverage
-npm run test:coverage
+bun run test:coverage
 ```
 
 ### Backend Testing
@@ -488,7 +488,7 @@ cd src-tauri && cargo test -- --nocapture
 
 Test your changes:
 
-1. **Build the app**: `npm run tauri build`
+1. **Build the app**: `bun run tauri build`
 2. **Test affected features** thoroughly
 3. **Check edge cases**
 4. **Verify on different environments** if possible

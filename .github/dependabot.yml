@@ -1,7 +1,7 @@
 version: 2
 updates:
-  # npm (Frontend) dependencies
-  - package-ecosystem: "npm"
+  # Bun (Frontend) dependencies
+  - package-ecosystem: "bun"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -11,7 +11,7 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
-      - "npm"
+      - "bun"
       - "frontend"
     reviewers:
       - "swadhin"

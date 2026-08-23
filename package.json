@@ -14,7 +14,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run format:check && npx eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "check": "bun run typecheck && bun run format:check && bunx eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },

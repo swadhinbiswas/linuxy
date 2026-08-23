@@ -18,10 +18,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: "20"
-          cache: "npm"
+          bun-version: latest
       - uses: dtolnay/rust-toolchain@stable
       - name: Install system deps
         run: |
@@ -40,8 +39,8 @@ jobs:
             libpango1.0-dev \
             libatk1.0-dev \
             libcairo2-dev
-      - run: npm ci
-      - run: npm run build
+      - run: bun install --frozen-lockfile
+      - run: bun run build
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
         env:
@@ -96,8 +95,9 @@ jobs:
             ```bash
             git clone --branch ${{ github.ref_name }} --depth 1 https://github.com/swadhinbiswas/linuxy.git
             cd linuxy
-            npm install
-            npm run tauri build
+            curl -fsSL https://bun.sh/install | bash
+            bun install
+            bun run tauri build
             ```
           releaseDraft: true
           prerelease: false
