@@ -17,7 +17,7 @@ jobs:
     name: Build Linux Release
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -127,7 +127,7 @@ jobs:
     needs: build-linux
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Extract version
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT

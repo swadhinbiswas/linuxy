@@ -16,7 +16,7 @@ jobs:
     name: Frontend Check & Build
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -35,7 +35,7 @@ jobs:
     name: Rust Check & Test
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [frontend-lint, rust-check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -141,7 +141,7 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install cargo-audit
       - run: mkdir -p dist
@@ -157,7 +157,7 @@ jobs:
     name: Verify CSP Configuration
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: |
           CSP=$(grep -o '"csp": *"[^"]*"' src-tauri/tauri.conf.json | sed 's/"csp": "//' | sed 's/"//')
           echo "Checking CSP: $CSP"
@@ -176,7 +176,7 @@ jobs:
     name: Integration Tests (Linux)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: oven-sh/setup-bun@v2
         with:
