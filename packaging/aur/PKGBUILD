@@ -3,7 +3,7 @@
 # AUR Package for Linuxy - One-click Linux Application Manager
 
 pkgname=linuxy
-pkgver=2.0.0
+pkgver=2.0.4
 pkgrel=1
 pkgdesc="Multi-platform Desktop Application Manager with Firejail sandboxing"
 arch=('x86_64' 'aarch64')

@@ -1,5 +1,5 @@
 Name:           linuxy
-Version:        2.0.0
+Version:        2.0.4
 Release:        1%{?dist}
 Summary:        Multi-platform Desktop Application Manager
 
@@ -70,6 +70,11 @@ install -Dm644 LICENSE %{buildroot}%{_datadir}/licenses/linuxy/LICENSE
 %doc README.md
 
 %changelog
+* Sat Aug 29 2026 Swadhin Biswas <swadhin.biswas@example.com> - 2.0.4-1
+- Fix all CodeRabbit review findings (PR #41)
+- Harden desktop entry handling and storage cleanup
+- Fix packaging and CI/CD
+
 * Mon Jun 24 2026 Swadhin Biswas <swadhin.biswas@example.com> - 2.0.0-1
 - Tauri 2.0 migration with cross-platform support
 - Added Windows and macOS support

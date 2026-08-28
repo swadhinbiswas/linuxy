@@ -21,7 +21,7 @@
 
         linuxy = pkgs.stdenv.mkDerivation rec {
           pname = "linuxy";
-          version = "2.0.0";
+          version = "2.0.4";
           src = self;
 
           nativeBuildInputs = with pkgs; [

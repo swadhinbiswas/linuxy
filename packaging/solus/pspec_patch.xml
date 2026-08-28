@@ -5,7 +5,7 @@
     <Name>linuxy</Name>
     <History>
       <Update release="1" date="2026-06-24">
-        <Version>2.0.0</Version>
+        <Version>2.0.4</Version>
         <Comment>Tauri 2.0 migration with cross-platform support</Comment>
         <Name>Swadhin Biswas</Name>
         <Email>swadhin.biswas@example.com</Email>

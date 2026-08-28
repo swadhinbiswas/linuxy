@@ -2,7 +2,7 @@
 # Alpine Linux APKBUILD for Linuxy
 
 pkgname=linuxy
-pkgver=2.0.0
+pkgver=2.0.4
 pkgrel=0
 pkgdesc="Multi-platform Desktop Application Manager with Firejail sandboxing"
 url="https://github.com/swadhinbiswas/linuxy"

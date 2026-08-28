@@ -55,7 +55,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/swadhinbiswas/linuxy
-        tag: v2.0.1
+        tag: v2.0.4
         commit: 744b5349d6cd734debe2d869a2362f732f238e91
         x-checker-data:
           type: git
