@@ -1068,6 +1068,13 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
                 {
                     continue;
                 }
+                if app
+                    .categories
+                    .iter()
+                    .any(|c| c.contains('\n') || c.contains('\r'))
+                {
+                    continue;
+                }
                 let desktop_path = apps_dir.join(file_stem);
                 let desktop_content = format!(
                     "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories={}\nX-Linuxy=true\n",

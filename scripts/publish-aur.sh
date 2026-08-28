@@ -67,7 +67,13 @@ while ! git push --quiet origin master; do
     delay=$((attempt * 30))
     echo "Push failed (attempt ${attempt}/${MAX_ATTEMPTS}); retrying in ${delay}s..." >&2
     sleep "$delay"
-    git fetch --quiet origin master && git rebase --quiet origin/master || true
+    if ! git fetch --quiet origin master; then
+        continue
+    fi
+    if ! git rebase --quiet origin/master; then
+        echo "Cannot rebase AUR changes onto origin/master" >&2
+        exit 1
+    fi
 done
 
 echo "Successfully published ${AUR_PKG} ${AUR_VERSION} to the AUR."

@@ -219,10 +219,12 @@ jobs:
           ls -la src-tauri/target/release/linuxy
           file src-tauri/target/release/linuxy
           ls -la src-tauri/target/release/bundle/
-          for d in deb rpm; do
-            if [ -d "src-tauri/target/release/bundle/$d" ]; then
-              echo "${d^^}: OK"
+          for pattern in \
+            "src-tauri/target/release/bundle/deb/*.deb" \
+            "src-tauri/target/release/bundle/rpm/*.rpm"; do
+            if compgen -G "$pattern" > /dev/null; then
+              echo "$pattern: OK"
             else
-              echo "::error::Missing bundle directory: $d" && exit 1
+              echo "::error::Missing bundle file: $pattern" && exit 1
             fi
           done

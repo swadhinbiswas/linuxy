@@ -1,3 +1,4 @@
+use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use tauri::Emitter;
 use tauri_plugin_shell::ShellExt;
@@ -126,7 +127,7 @@ pub async fn check_all_updates(app_handle: tauri::AppHandle) -> Result<Vec<Updat
         })
         .collect();
 
-    let futures = entries.into_iter().map(|(path_str, name)| {
+    let stream = futures::stream::iter(entries.into_iter().map(|(path_str, name)| {
         let handle = app_handle.clone();
         async move {
             let cmd_result = match handle.shell().sidecar(UPDATE_TOOL) {
@@ -166,9 +167,9 @@ pub async fn check_all_updates(app_handle: tauri::AppHandle) -> Result<Vec<Updat
                 },
             }
         }
-    });
+    }));
 
-    let results = futures::future::join_all(futures).await;
+    let results = stream.buffered(4).collect::<Vec<_>>().await;
     Ok(results)
 }
 

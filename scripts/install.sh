@@ -226,7 +226,7 @@ install_appimage() {
 Type=Application
 Name=Linuxy
 Comment=One-click Linux Application Manager
-Exec=$bin_dest/linuxy.AppImage %U
+Exec="$bin_dest/linuxy.AppImage" %U
 Icon=linuxy
 Categories=Utility;System;
 Terminal=false

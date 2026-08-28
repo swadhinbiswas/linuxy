@@ -14,6 +14,9 @@ def install():
         icon = f"src-tauri/icons/{size}x{size}.png"
         if shelltools.isFile(icon):
             pisitools.insinto(f"/usr/share/icons/hicolor/{size}x{size}/apps", icon, "linuxy.png")
-    if shelltools.isFile("src-tauri/icons/icon.png"):
+    if (
+        not shelltools.isFile("src-tauri/icons/512x512.png")
+        and shelltools.isFile("src-tauri/icons/icon.png")
+    ):
         pisitools.insinto("/usr/share/icons/hicolor/512x512/apps", "src-tauri/icons/icon.png", "linuxy.png")
     pisitools.insinto("/usr/share/licenses/linuxy", "LICENSE")

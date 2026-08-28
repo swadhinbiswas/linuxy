@@ -20,16 +20,20 @@ fn is_exe_path(arg: &str) -> bool {
 
 pub async fn handle_cli(path: &str) {
     let owned = path.to_string();
-    let install_result = if is_appimage_path(path) {
+    // Only treat as installer input if the path exists locally; deep-link URIs
+    // like linuxy://host/file.deb must not trigger install+exit and should
+    // fall through to the GUI-safe path.
+    let is_local_file = !path.contains("://") && std::path::Path::new(path).exists();
+    let install_result = if is_appimage_path(path) && is_local_file {
         println!("Installing {}...", path);
         Some(installer::install_appimage_internal(owned).await)
-    } else if is_deb_path(path) {
+    } else if is_deb_path(path) && is_local_file {
         println!("Installing {}...", path);
         Some(installer::install_deb_internal(owned).await)
-    } else if is_rpm_path(path) {
+    } else if is_rpm_path(path) && is_local_file {
         println!("Installing {}...", path);
         Some(installer::install_rpm_internal(owned).await)
-    } else if is_exe_path(path) {
+    } else if is_exe_path(path) && is_local_file {
         println!("Installing {}...", path);
         Some(installer::install_executable_internal(owned).await)
     } else {

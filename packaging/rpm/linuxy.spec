@@ -22,7 +22,7 @@ Requires:       firejail
 Requires:       xdg-utils
 Requires:       gtk3
 Requires:       webkit2gtk4.1
-Requires:       libappindicator-gtk3
+Requires:       (libappindicator-gtk3 or libayatana-appindicator-gtk3)
 
 %description
 Linuxy is a one-click application manager for Linux (and Windows/macOS)
