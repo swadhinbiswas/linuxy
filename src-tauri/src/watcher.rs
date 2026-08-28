@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter};
 
 const POLL_INTERVAL_SECS: u64 = 5;
 const STABLE_POLLS_REQUIRED: u8 = 2;
@@ -49,8 +49,16 @@ pub fn start_watcher(app_handle: AppHandle) {
             let mut seen_paths = HashSet::new();
             if let Ok(entries) = fs::read_dir(&downloads_dir) {
                 for entry in entries.flatten() {
+                    let Ok(file_type) = entry.file_type() else {
+                        continue;
+                    };
+
+                    if !file_type.is_file() {
+                        continue;
+                    }
+
                     let path = entry.path();
-                    if !path.is_file() || !is_appimage_path(&path) {
+                    if !is_appimage_path(&path) {
                         continue;
                     }
 
@@ -68,7 +76,8 @@ pub fn start_watcher(app_handle: AppHandle) {
                     update_tracking_state(state, current_size);
 
                     if !state.notified && state.stable_polls >= STABLE_POLLS_REQUIRED {
-                        let _ = app_handle.emit_all("appimage-detected", path.to_string_lossy());
+                        let _ = app_handle
+                            .emit("appimage-detected", path.to_string_lossy().to_string());
                         state.notified = true;
                     }
                 }
@@ -86,13 +95,10 @@ mod tests {
     #[test]
     fn marks_file_stable_only_after_repeated_same_size() {
         let mut state = TrackedFile::default();
-
         update_tracking_state(&mut state, 128);
         assert_eq!(state.stable_polls, 0);
-
         update_tracking_state(&mut state, 128);
         assert_eq!(state.stable_polls, 1);
-
         update_tracking_state(&mut state, 128);
         assert_eq!(state.stable_polls, 2);
     }
@@ -100,11 +106,9 @@ mod tests {
     #[test]
     fn resets_stability_when_size_changes() {
         let mut state = TrackedFile::default();
-
         update_tracking_state(&mut state, 128);
         update_tracking_state(&mut state, 128);
         update_tracking_state(&mut state, 256);
-
         assert_eq!(state.last_size, 256);
         assert_eq!(state.stable_polls, 0);
     }

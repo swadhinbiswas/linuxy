@@ -1,0 +1,2167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linuxy - One-Click AppImage Manager for Linux</title>
+    <meta
+      name="description"
+      content="Linuxy is a modern AppImage manager with one-click installation, Firejail sandboxing, and automatic updates. Manage all your AppImages from one beautiful interface."
+    />
+    <meta
+      name="keywords"
+      content="AppImage, Linux, AppImage Manager, Firejail, Sandboxing, Package Manager"
+    />
+    <meta property="og:title" content="Linuxy - One-Click AppImage Manager for Linux" />
+    <meta
+      property="og:description"
+      content="Install, organize, and sandbox your AppImages with a single click. Simple, secure, and beautiful."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://github.com/swadhinbiswas/linuxy" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="assets/linuxy-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #030509;
+        --bg-alt: #080d17;
+        --bg-card: rgba(14, 20, 36, 0.6);
+        --text: #f0f2f5;
+        --text-muted: #8b95a8;
+        --accent: #00e676;
+        --accent-dim: rgba(0, 230, 118, 0.08);
+        --accent-glow: rgba(0, 230, 118, 0.3);
+        --accent-secondary: #00bcd4;
+        --border: rgba(255, 255, 255, 0.04);
+        --border-hover: rgba(0, 230, 118, 0.25);
+        --radius: 20px;
+        --radius-sm: 12px;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.65;
+        overflow-x: hidden;
+      }
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 28px;
+      }
+
+      /* Canvas Background */
+      #canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #gradient-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 230, 118, 0.15), transparent),
+          radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 188, 212, 0.08), transparent),
+          radial-gradient(ellipse 50% 30% at 10% 80%, rgba(0, 230, 118, 0.05), transparent);
+      }
+
+      /* Animated SVG Background */
+      .svg-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.03;
+      }
+
+      /* Nav */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 18px 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      nav.scrolled {
+        background: rgba(3, 5, 9, 0.85);
+        backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 0;
+      }
+      nav .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+      }
+      .logo-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        object-fit: contain;
+        transition: transform 0.3s;
+      }
+      .logo:hover .logo-icon {
+        transform: rotate(-8deg) scale(1.08);
+      }
+      .nav-links {
+        display: flex;
+        gap: 36px;
+        list-style: none;
+      }
+      .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.25s;
+        position: relative;
+      }
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--accent);
+        transition: width 0.3s;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+      }
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+      .nav-right {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 26px;
+        border-radius: 999px;
+        font-weight: 700;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.92rem;
+        font-family: inherit;
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+      }
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+      .btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+      .btn svg {
+        width: 18px;
+        height: 18px;
+        position: relative;
+        z-index: 1;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #00e676, #00c853);
+        color: #030509;
+        box-shadow: 0 4px 24px var(--accent-glow);
+      }
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px var(--accent-glow);
+      }
+      .btn-outline {
+        background: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .btn-outline:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-muted);
+        padding: 12px 18px;
+      }
+      .btn-ghost:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      /* Mobile Menu */
+      .mobile-menu-btn {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        z-index: 1001;
+      }
+      .mobile-menu-btn span {
+        width: 24px;
+        height: 2px;
+        background: var(--text);
+        border-radius: 2px;
+        transition: all 0.3s;
+      }
+      .mobile-menu-btn.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+      .mobile-menu-btn.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .mobile-menu-btn.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+      .mobile-menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(3, 5, 9, 0.98);
+        backdrop-filter: blur(20px);
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .mobile-menu.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .mobile-menu a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 1.5rem;
+        font-weight: 700;
+        transition: color 0.3s;
+      }
+      .mobile-menu a:hover {
+        color: var(--accent);
+      }
+
+      /* Hero */
+      .hero {
+        position: relative;
+        z-index: 1;
+        padding: 180px 0 120px;
+        text-align: center;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--accent-dim);
+        border: 1px solid rgba(0, 230, 118, 0.15);
+        color: var(--accent);
+        padding: 8px 20px;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 32px;
+      }
+      .hero-badge svg {
+        width: 18px;
+        height: 18px;
+      }
+      .hero h1 {
+        font-size: clamp(2.8rem, 7vw, 5rem);
+        font-weight: 900;
+        line-height: 1.05;
+        margin-bottom: 28px;
+        letter-spacing: -0.03em;
+      }
+      .hero h1 .gradient {
+        background: linear-gradient(135deg, #00e676 0%, #00bcd4 50%, #00e676 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: gradient 4s ease infinite;
+      }
+      @keyframes gradient {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      .hero > p {
+        font-size: 1.35rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto 44px;
+        font-family: "Inter", sans-serif;
+      }
+      .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 72px;
+        margin-top: 80px;
+      }
+      .stat {
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+        font-family: "Inter", sans-serif;
+      }
+      .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      /* Animated Hero SVG */
+      .hero-svg-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 600px;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.1;
+      }
+
+      /* Video Section */
+      .video-section {
+        position: relative;
+        z-index: 1;
+        padding: 0 0 100px;
+      }
+      .video-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.5),
+          0 0 60px var(--accent-dim);
+        aspect-ratio: 16/9;
+        background: #000;
+      }
+      .video-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      /* Section */
+      section {
+        position: relative;
+        z-index: 1;
+      }
+      .section-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 14px;
+      }
+      .section-tag svg {
+        width: 20px;
+        height: 20px;
+      }
+      .section-title {
+        font-size: clamp(2.2rem, 4.5vw, 3rem);
+        font-weight: 800;
+        margin-bottom: 18px;
+        letter-spacing: -0.02em;
+      }
+      .section-subtitle {
+        color: var(--text-muted);
+        max-width: 520px;
+        margin: 0 auto 64px;
+        font-size: 1.15rem;
+      }
+      .text-center {
+        text-align: center;
+      }
+
+      /* Screenshots */
+      .screenshots {
+        padding: 100px 0;
+      }
+      .screenshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+      }
+      .screenshot-card {
+        position: relative;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        aspect-ratio: 16/10;
+        background: var(--bg-card);
+      }
+      .screenshot-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: var(--border-hover);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      }
+      .screenshot-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+      }
+      .screenshot-card:hover img {
+        transform: scale(1.08);
+      }
+      .screenshot-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .screenshot-card:hover .screenshot-overlay {
+        opacity: 1;
+      }
+      .screenshot-overlay span {
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      /* Features */
+      .features {
+        padding: 120px 0;
+      }
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+      }
+      .feature-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        padding: 36px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .feature-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s;
+      }
+      .feature-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+      }
+      .feature-card:hover::before {
+        transform: scaleX(1);
+      }
+      .feature-icon {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-dim), rgba(0, 188, 212, 0.08));
+        border-radius: 16px;
+        margin-bottom: 24px;
+      }
+      .feature-icon svg {
+        width: 28px;
+        height: 28px;
+        stroke: var(--accent);
+        fill: none;
+        stroke-width: 1.5;
+      }
+      .feature-card h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .feature-card p {
+        color: var(--text-muted);
+        font-size: 0.98rem;
+        line-height: 1.75;
+      }
+
+      /* How It Works */
+      .how-it-works {
+        padding: 120px 0;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 48px;
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+      }
+      .steps::before {
+        content: "";
+        position: absolute;
+        top: 44px;
+        left: 18%;
+        right: 18%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--border), var(--accent), var(--border));
+      }
+      .step {
+        text-align: center;
+        position: relative;
+      }
+      .step-num {
+        width: 88px;
+        height: 88px;
+        background: linear-gradient(135deg, var(--bg-card), rgba(0, 230, 118, 0.05));
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+        margin: 0 auto 28px;
+        transition: all 0.4s;
+        position: relative;
+        z-index: 1;
+      }
+      .step:hover .step-num {
+        background: var(--accent);
+        color: var(--bg);
+        transform: scale(1.15);
+        box-shadow: 0 0 40px var(--accent-glow);
+      }
+      .step h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .step p {
+        color: var(--text-muted);
+        font-size: 1rem;
+      }
+
+      /* Installation */
+      .installation {
+        padding: 120px 0;
+      }
+      .install-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+      }
+      .install-tab {
+        padding: 12px 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .install-tab svg {
+        width: 18px;
+        height: 18px;
+      }
+      .install-tab:hover {
+        border-color: var(--border-hover);
+      }
+      .install-tab.active {
+        background: var(--accent);
+        color: var(--bg);
+        border-color: var(--accent);
+      }
+      .install-content {
+        display: none;
+        max-width: 700px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease;
+      }
+      .install-content.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .install-card-large {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        padding: 48px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        text-align: center;
+      }
+      .install-card-large:hover {
+        border-color: var(--border-hover);
+      }
+      .install-icon-large {
+        width: 96px;
+        height: 96px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-dim), rgba(0, 188, 212, 0.08));
+        border-radius: 24px;
+        margin: 0 auto 28px;
+      }
+      .install-icon-large svg {
+        width: 48px;
+        height: 48px;
+        stroke: var(--accent);
+        fill: none;
+        stroke-width: 1.5;
+      }
+      .install-card-large h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .install-card-large h3 .badge {
+        font-size: 0.65em;
+        background: var(--accent-dim);
+        color: var(--accent);
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-left: 10px;
+        font-weight: 600;
+      }
+      .install-card-large > p {
+        color: var(--text-muted);
+        margin-bottom: 24px;
+        font-size: 1.05rem;
+      }
+      .install-cmd-large {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 24px 28px;
+        border-radius: 16px;
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 0.95rem;
+        color: var(--accent);
+        margin: 24px 0;
+        text-align: left;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        position: relative;
+      }
+      .install-cmd-large .copy-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+      .install-cmd-large .copy-btn:hover {
+        background: var(--accent-secondary);
+        transform: scale(1.05);
+      }
+      .install-card-large .btn {
+        margin-top: 20px;
+      }
+      .install-note {
+        margin-top: 20px;
+        padding: 16px 20px;
+        background: var(--accent-dim);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        border-left: 3px solid var(--accent);
+      }
+
+      /* CTA */
+      .cta {
+        padding: 140px 0;
+        text-align: center;
+        position: relative;
+      }
+      .cta::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 800px;
+        height: 500px;
+        background: radial-gradient(ellipse, var(--accent-dim), transparent 70%);
+        pointer-events: none;
+      }
+      .cta h2 {
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        font-weight: 800;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+      }
+      .cta p {
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        margin-bottom: 40px;
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* FAQ */
+      .faq {
+        padding: 120px 0;
+      }
+      .faq-list {
+        max-width: 750px;
+        margin: 0 auto;
+      }
+      .faq-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        transition: border-color 0.3s;
+      }
+      .faq-item:hover {
+        border-color: var(--border-hover);
+      }
+      .faq-question {
+        padding: 24px 28px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.05rem;
+        user-select: none;
+      }
+      .faq-chevron {
+        width: 22px;
+        height: 22px;
+        stroke: var(--accent);
+        transition: transform 0.35s;
+      }
+      .faq-item.active .faq-chevron {
+        transform: rotate(180deg);
+      }
+      .faq-answer {
+        padding: 0 28px;
+        max-height: 0;
+        overflow: hidden;
+        color: var(--text-muted);
+        transition: all 0.4s ease;
+        line-height: 1.8;
+        font-size: 1rem;
+      }
+      .faq-item.active .faq-answer {
+        padding: 0 28px 24px;
+        max-height: 300px;
+      }
+
+      /* Footer */
+      footer {
+        padding: 80px 0 40px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+      .footer-brand {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+        font-size: 1.4rem;
+        font-weight: 800;
+      }
+      .footer-brand span {
+        color: var(--accent);
+      }
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        margin-bottom: 28px;
+        list-style: none;
+        flex-wrap: wrap;
+      }
+      .footer-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: color 0.25s;
+      }
+      .footer-links a:hover {
+        color: var(--accent);
+      }
+      .footer-bottom {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .footer-bottom svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--accent);
+      }
+      .footer-bottom a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .footer-bottom a:hover {
+        text-decoration: underline;
+      }
+
+      /* Loading Animation */
+      .loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s;
+      }
+      .loader.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loader-svg {
+        width: 120px;
+        height: 120px;
+      }
+
+      @media (max-width: 900px) {
+        .nav-links,
+        .nav-right {
+          display: none;
+        }
+        .mobile-menu-btn {
+          display: flex;
+        }
+        .hero-stats {
+          gap: 40px;
+        }
+        .steps {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+        .steps::before {
+          display: none;
+        }
+      }
+      @media (max-width: 600px) {
+        .hero {
+          padding: 140px 0 80px;
+        }
+        .hero h1 {
+          font-size: 2.4rem;
+        }
+        .hero > p {
+          font-size: 1.1rem;
+        }
+        .hero-stats {
+          flex-direction: column;
+          gap: 24px;
+        }
+        .install-cmd-large {
+          font-size: 0.8rem;
+          padding: 16px 18px;
+        }
+        .install-card-large {
+          padding: 32px 24px;
+        }
+        .install-tabs {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .install-tab {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+      <svg class="loader-svg" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00e676" />
+            <stop offset="100%" style="stop-color:#00bcd4" />
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="50" r="40" stroke="url(#loaderGradient)" stroke-width="4" fill="none" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round"/>
+        <path d="M50 20 L55 35 L70 35 L58 45 L63 60 L50 50 L37 60 L42 45 L30 35 L45 35 Z" fill="url(#loaderGradient)">
+          <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    <div id="gradient-bg"></div>
+    
+    <!-- Animated SVG Background -->
+    <svg class="svg-bg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+          <path d="M 10 0 L 0 0 0 10" fill="none" stroke="var(--accent)" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100" height="100" fill="url(#grid)"/>
+    </svg>
+
+    <nav id="main-nav">
+      <div class="container">
+        <a href="#" class="logo"
+          ><img src="assets/linuxy-icon.png" alt="Linuxy" class="logo-icon" /> Linuxy</a
+        >
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#screenshots">Screenshots</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#installation">Install</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="nav-right">
+          <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-ghost">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+              />
+            </svg>
+            GitHub
+          </a>
+          <a href="#installation" class="btn btn-primary">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#features" class="mobile-link">Features</a>
+      <a href="#screenshots" class="mobile-link">Screenshots</a>
+      <a href="#how-it-works" class="mobile-link">How It Works</a>
+      <a href="#installation" class="mobile-link">Install</a>
+      <a href="#faq" class="mobile-link">FAQ</a>
+      <a href="https://github.com/swadhinbiswas/linuxy" class="mobile-link">GitHub</a>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <!-- Animated Hero SVG -->
+      <svg class="hero-svg-container" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00e676" />
+            <stop offset="100%" style="stop-color:#00bcd4" />
+          </linearGradient>
+        </defs>
+        <circle class="hero-circle" cx="100" cy="100" r="80" fill="none" stroke="url(#heroGradient)" stroke-width="0.5" opacity="0.3"/>
+        <circle class="hero-circle" cx="100" cy="100" r="60" fill="none" stroke="url(#heroGradient)" stroke-width="0.5" opacity="0.4"/>
+        <circle class="hero-circle" cx="100" cy="100" r="40" fill="none" stroke="url(#heroGradient)" stroke-width="0.5" opacity="0.5"/>
+        <path class="hero-path" d="M100 30 L110 60 L140 60 L115 80 L125 110 L100 90 L75 110 L85 80 L60 60 L90 60 Z" fill="url(#heroGradient)" opacity="0.2"/>
+      </svg>
+
+      <div class="container">
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+            />
+          </svg>
+          Open Source &middot; MIT Licensed &middot; v1.2.0
+        </div>
+        <h1>The Ultimate<br /><span class="gradient">AppImage Manager</span><br />for Linux</h1>
+        <p>
+          Install, organize, and sandbox your AppImages with a single click. Simple, secure, and
+          beautifully designed.
+        </p>
+        <div class="hero-buttons">
+          <a href="#installation" class="btn btn-primary">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download v1.2.0
+          </a>
+          <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              />
+            </svg>
+            Star on GitHub
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-value">100%</div>
+            <div class="stat-label">Free &amp; Open Source</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">MIT</div>
+            <div class="stat-label">License</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">Tauri</div>
+            <div class="stat-label">Powered by Rust</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">Firejail</div>
+            <div class="stat-label">Security Sandboxing</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Video -->
+    <section class="video-section">
+      <div class="container">
+        <div class="text-center" style="margin-bottom: 48px">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+            See It In Action
+          </div>
+          <h2 class="section-title">Watch the Demo</h2>
+        </div>
+        <div class="video-wrapper">
+          <iframe
+            src="https://www.youtube.com/embed/1VJj5NP0NtE?si=KBZoUZafGy5KuLAP"
+            title="Linuxy Demo"
+            loading="lazy"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshots -->
+    <section class="screenshots" id="screenshots">
+      <div class="container">
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+            Screenshots
+          </div>
+          <h2 class="section-title">Beautiful by Design</h2>
+          <p class="section-subtitle">
+            A clean, modern interface that makes managing AppImages a joy
+          </p>
+        </div>
+        <div class="screenshot-grid">
+          <div class="screenshot-card">
+            <img
+              src="docs/images/installed.png"
+              alt="Linuxy Library - Installed Apps"
+              loading="lazy"
+            />
+            <div class="screenshot-overlay"><span>Library View</span></div>
+          </div>
+          <div class="screenshot-card">
+            <img src="docs/images/hub.png" alt="Linuxy Discover - AppImage Hub" loading="lazy" />
+            <div class="screenshot-overlay"><span>AppImage Hub</span></div>
+          </div>
+          <div class="screenshot-card">
+            <img src="docs/images/settings.png" alt="Linuxy Settings Panel" loading="lazy" />
+            <div class="screenshot-overlay"><span>Settings</span></div>
+          </div>
+          <div class="screenshot-card">
+            <img src="docs/images/autodiscover.png" alt="Linuxy Auto-Discovery" loading="lazy" />
+            <div class="screenshot-overlay"><span>Auto-Discovery</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+      <div class="container">
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            Features
+          </div>
+          <h2 class="section-title">Why Linuxy?</h2>
+          <p class="section-subtitle">Everything you need to manage AppImages on Linux</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
+            </div>
+            <h3>One-Click Installation</h3>
+            <p>
+              Drag and drop AppImage files to install them instantly. Automatic desktop entry
+              creation and icon extraction.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <h3>Firejail Sandboxing</h3>
+            <p>
+              Run apps in a secure sandbox with a single click. Toggle sandboxing per application
+              for extra security.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+            </div>
+            <h3>Automatic Updates</h3>
+            <p>
+              Built-in update checking keeps your AppImages up to date. Supports delta updates when
+              available.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="13.5" cy="6.5" r=".5" />
+                <circle cx="17.5" cy="10.5" r=".5" />
+                <circle cx="8.5" cy="7.5" r=".5" />
+                <circle cx="6.5" cy="12.5" r=".5" />
+                <path
+                  d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"
+                />
+              </svg>
+            </div>
+            <h3>Beautiful UI</h3>
+            <p>
+              Modern dark theme with system-follow support. Clean, responsive interface built with
+              React and Tauri.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                <path d="M22 12A10 10 0 0 0 12 2v10z" />
+              </svg>
+            </div>
+            <h3>Storage Management</h3>
+            <p>
+              Monitor disk usage, see installation dates, and manage all your AppImages from one
+              place.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
+            <h3>App Discovery</h3>
+            <p>
+              Browse and discover new AppImages directly from the integrated AppImageHub catalog.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+      <div class="container">
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            Getting Started
+          </div>
+          <h2 class="section-title">How It Works</h2>
+          <p class="section-subtitle">Get started in three simple steps</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <h3>Install Linuxy</h3>
+            <p>Download the DEB/RPM package from GitHub releases or build from source.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3>Add AppImages</h3>
+            <p>Drag and drop files or discover apps from the built-in AppImageHub store.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3>Launch &amp; Enjoy</h3>
+            <p>One-click launch, optional Firejail sandboxing, automatic updates. Done!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation -->
+    <section class="installation" id="installation">
+      <div class="container">
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Installation
+          </div>
+          <h2 class="section-title">Install Linuxy</h2>
+          <p class="section-subtitle">Choose your preferred installation method</p>
+        </div>
+        
+        <!-- Installation Tabs -->
+        <div class="install-tabs">
+          <div class="install-tab active" data-tab="deb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            DEB
+          </div>
+          <div class="install-tab" data-tab="rpm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            RPM
+          </div>
+          <div class="install-tab" data-tab="aur">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            AUR
+          </div>
+          <div class="install-tab" data-tab="source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            Source
+          </div>
+        </div>
+
+        <!-- DEB Content -->
+        <div class="install-content active" id="deb-content">
+          <div class="install-card-large">
+            <div class="install-icon-large">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <h3>DEB Package <span class="badge">Recommended</span></h3>
+            <p>Perfect for Debian, Ubuntu, Linux Mint, Pop!_OS, and derivatives</p>
+            <div class="install-cmd-large">
+              <button class="copy-btn" onclick="copyToClipboard('sudo apt install ./linuxy_1.2.0_amd64.deb')">Copy</button>
+              <code>sudo apt install ./linuxy_1.2.0_amd64.deb</code>
+            </div>
+            <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download DEB
+            </a>
+            <div class="install-note">
+              <strong>Tip:</strong> You can also use <code>dpkg -i linuxy_*.deb && apt install -f</code> for manual installation.
+            </div>
+          </div>
+        </div>
+
+        <!-- RPM Content -->
+        <div class="install-content" id="rpm-content">
+          <div class="install-card-large">
+            <div class="install-icon-large">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <h3>RPM Package</h3>
+            <p>For Fedora, RHEL, CentOS, openSUSE, and derivatives</p>
+            <div class="install-cmd-large">
+              <button class="copy-btn" onclick="copyToClipboard('sudo dnf install ./linuxy-*.rpm')">Copy</button>
+              <code># Fedora / RHEL<br>sudo dnf install ./linuxy-*.rpm<br><br># openSUSE<br>sudo zypper install ./linuxy-*.rpm</code>
+            </div>
+            <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download RPM
+            </a>
+            <div class="install-note">
+              <strong>Note:</strong> Make sure to have RPM fusion repositories enabled on Fedora for best compatibility.
+            </div>
+          </div>
+        </div>
+
+        <!-- AUR Content -->
+        <div class="install-content" id="aur-content">
+          <div class="install-card-large">
+            <div class="install-icon-large">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <h3>AUR Package <span class="badge">Stable</span></h3>
+            <p>For Arch Linux, Manjaro, EndeavourOS, and derivatives</p>
+            <div class="install-cmd-large">
+              <button class="copy-btn" onclick="copyToClipboard('yay -S linuxy')">Copy</button>
+              <code>yay -S linuxy</code>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <a href="https://aur.archlinux.org/packages/linuxy" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                View AUR Page
+              </a>
+              <a href="https://aur.archlinux.org/packages/linuxy" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+                Install with AUR Helper
+              </a>
+            </div>
+            <div class="install-note">
+              <strong>Alternative:</strong> You can also use <code>paru -S linuxy</code> or any other AUR helper of your choice.
+            </div>
+          </div>
+        </div>
+
+        <!-- Source Content -->
+        <div class="install-content" id="source-content">
+          <div class="install-card-large">
+            <div class="install-icon-large">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <h3>Build from Source</h3>
+            <p>For all distributions and custom setups</p>
+            <div class="install-cmd-large">
+              <button class="copy-btn" onclick="copyToClipboard('git clone https://github.com/swadhinbiswas/linuxy && cd linuxy && npm install && npm run tauri build')">Copy</button>
+              <code>git clone https://github.com/swadhinbiswas/linuxy<br>cd linuxy<br>npm install<br>npm run tauri build</code>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                </svg>
+                View on GitHub
+              </a>
+              <a href="https://github.com/swadhinbiswas/linuxy/blob/main/CONTRIBUTING.md" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+                Contributing Guide
+              </a>
+            </div>
+            <div class="install-note">
+              <strong>Requirements:</strong> Node.js, Rust, and Tauri dependencies must be installed. Check the README for detailed instructions.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+      <div class="container">
+        <h2>Ready to Try Linuxy?</h2>
+        <p>Join thousands of Linux users managing their AppImages the modern way.</p>
+        <a
+          href="#installation"
+          class="btn btn-primary"
+          style="padding: 16px 42px; font-size: 1.05rem"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="width: 20px; height: 20px"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+          Get Started Now
+        </a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+      <div class="container">
+        <div class="text-center">
+          <div class="section-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            FAQ
+          </div>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-list">
+          <div class="faq-item">
+            <div class="faq-question">
+              What is an AppImage?<svg
+                class="faq-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div class="faq-answer">
+              <p>
+                AppImage is a universal package format for Linux. It's a single executable file
+                containing an application and all its dependencies, allowing you to run software
+                without installation or root access.
+              </p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question">
+              Do I need Firejail?<svg
+                class="faq-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Firejail is optional but highly recommended. Linuxy works perfectly without it, but
+                Firejail adds an essential security layer by sandboxing your AppImages. Install
+                with: <code>sudo apt install firejail</code>
+              </p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question">
+              Where are AppImages stored?<svg
+                class="faq-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Linuxy stores AppImages in <code>~/.local/appimages/</code> and creates desktop
+                entries in <code>~/.local/share/applications/</code> for easy access from your
+                application menu.
+              </p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question">
+              Is Linuxy free?<svg
+                class="faq-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Yes! Linuxy is 100% free and open source under the MIT license. There are no premium
+                features or payments.
+              </p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question">
+              What distributions are supported?<svg
+                class="faq-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Linuxy runs on any Linux distribution. We provide DEB and RPM packages for major
+                distros, plus AUR for Arch Linux, with source code available for all others.
+              </p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-question">
+              How do I report bugs or request features?<svg
+                class="faq-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Please open an issue on our
+                <a
+                  href="https://github.com/swadhinbiswas/linuxy/issues"
+                  style="color: var(--accent)"
+                  >GitHub Issues page</a
+                >. We welcome bug reports, feature requests, and contributions!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <div class="footer-brand">
+          <img
+            src="assets/linuxy-icon.png"
+            alt="Linuxy"
+            style="width: 32px; height: 32px; border-radius: 10px"
+          />
+          <span>Linuxy</span>
+        </div>
+        <ul class="footer-links">
+          <li><a href="https://github.com/swadhinbiswas/linuxy">GitHub</a></li>
+          <li><a href="https://github.com/swadhinbiswas/linuxy/releases">Releases</a></li>
+          <li><a href="https://github.com/swadhinbiswas/linuxy/issues">Issues</a></li>
+          <li>
+            <a href="https://github.com/swadhinbiswas/linuxy/blob/main/README.md">Documentation</a>
+          </li>
+          <li>
+            <a href="https://github.com/swadhinbiswas/linuxy/blob/main/CONTRIBUTING.md"
+              >Contribute</a
+            >
+          </li>
+        </ul>
+        <p class="footer-bottom">
+          &copy; 2025 Swadhin Biswas. Open source under
+          <a href="https://github.com/swadhinbiswas/linuxy/blob/main/LICENSE">MIT License</a>.
+          <span style="margin-left: 8px; display: inline-flex; align-items: center; gap: 4px">
+            Made with
+            <svg viewBox="0 0 24 24" fill="var(--accent)" stroke="none">
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              />
+            </svg>
+            for the Linux community
+          </span>
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // Copy to clipboard function
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          // Show success feedback
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.style.background = 'var(--accent)';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+          }, 2000);
+        });
+      }
+
+      // Loading animation
+      window.addEventListener('load', () => {
+        const loader = document.getElementById('loader');
+        
+        anime({
+          targets: '.loader-svg circle',
+          strokeDashoffset: [anime.setDashoffset, 0],
+          easing: 'easeInOutSine',
+          duration: 1500,
+          delay: 500,
+          complete: () => {
+            loader.classList.add('hidden');
+          }
+        });
+
+        // Hero animations
+        anime({
+          targets: '.hero-badge',
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 800,
+          easing: 'easeOutQuad'
+        });
+
+        anime({
+          targets: '.hero h1',
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 1000,
+          delay: 200,
+          easing: 'easeOutQuad'
+        });
+
+        anime({
+          targets: '.hero > p',
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 1000,
+          delay: 400,
+          easing: 'easeOutQuad'
+        });
+
+        anime({
+          targets: '.hero-buttons .btn',
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 800,
+          delay: anime.stagger(150, {start: 600}),
+          easing: 'easeOutQuad'
+        });
+
+        anime({
+          targets: '.stat',
+          opacity: [0, 1],
+          scale: [0.8, 1],
+          duration: 800,
+          delay: anime.stagger(100, {start: 1000}),
+          easing: 'easeOutQuad'
+        });
+
+        // Hero SVG animation
+        anime({
+          targets: '.hero-circle',
+          strokeDashoffset: [anime.setDashoffset, 0],
+          easing: 'easeInOutSine',
+          duration: 2000,
+          delay: anime.stagger(300),
+          loop: true,
+          direction: 'alternate'
+        });
+
+        anime({
+          targets: '.hero-path',
+          rotate: 360,
+          duration: 20000,
+          easing: 'linear',
+          loop: true
+        });
+      });
+
+      // Animated particle system
+      (function () {
+        const c = document.getElementById("canvas"),
+          x = c.getContext("2d");
+        let w,
+          h,
+          pts = [];
+        const colors = ["rgba(0,230,118,", "rgba(0,188,212,"];
+
+        function resize() {
+          w = c.width = innerWidth;
+          h = c.height = innerHeight;
+          pts = [];
+          for (let i = 0; i < 80; i++)
+            pts.push({
+              x: Math.random() * w,
+              y: Math.random() * h,
+              r: Math.random() * 2 + 0.5,
+              dx: (Math.random() - 0.5) * 0.4,
+              dy: (Math.random() - 0.5) * 0.4,
+              o: Math.random() * 0.4 + 0.1,
+              color: colors[Math.floor(Math.random() * colors.length)],
+            });
+        }
+        resize();
+        addEventListener("resize", resize);
+
+        function draw() {
+          x.clearRect(0, 0, w, h);
+          // Draw particles
+          for (const p of pts) {
+            p.x += p.dx;
+            p.y += p.dy;
+            if (p.x < 0) p.x = w;
+            if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h;
+            if (p.y > h) p.y = 0;
+            x.beginPath();
+            x.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            x.fillStyle = p.color + p.o + ")";
+            x.fill();
+          }
+          // Draw connections
+          for (let i = 0; i < pts.length; i++) {
+            for (let j = i + 1; j < pts.length; j++) {
+              const dx = pts[i].x - pts[j].x,
+                dy = pts[i].y - pts[j].y,
+                d = Math.sqrt(dx * dx + dy * dy);
+              if (d < 150) {
+                x.beginPath();
+                x.moveTo(pts[i].x, pts[i].y);
+                x.lineTo(pts[j].x, pts[j].y);
+                x.strokeStyle = "rgba(0,230,118," + 0.08 * (1 - d / 150) + ")";
+                x.lineWidth = 1;
+                x.stroke();
+              }
+            }
+          }
+          requestAnimationFrame(draw);
+        }
+        draw();
+      })();
+
+      // Nav scroll effect
+      addEventListener("scroll", () => {
+        const s = scrollY;
+        document.getElementById("main-nav").classList.toggle("scrolled", s > 50);
+      });
+
+      // FAQ accordion
+      document.querySelectorAll(".faq-question").forEach((q) => {
+        q.addEventListener("click", () => {
+          const item = q.parentElement,
+            was = item.classList.contains("active");
+          document.querySelectorAll(".faq-item").forEach((i) => i.classList.remove("active"));
+          if (!was) item.classList.add("active");
+        });
+      });
+
+      // Smooth scroll
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener("click", (e) => {
+          const href = a.getAttribute("href");
+          if (!href) return;
+
+          e.preventDefault();
+          if (href === "#") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+          }
+
+          const t = document.getElementById(href.slice(1));
+          if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      // Installation tabs
+      document.querySelectorAll('.install-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.install-content').forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked tab and corresponding content
+          tab.classList.add('active');
+          const tabId = tab.getAttribute('data-tab');
+          document.getElementById(`${tabId}-content`).classList.add('active');
+          
+          // Animate the content
+          anime({
+            targets: `#${tabId}-content .install-card-large`,
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 400,
+            easing: 'easeOutQuad'
+          });
+        });
+      });
+
+      // Mobile menu
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenuBtn.classList.toggle('active');
+        mobileMenu.classList.toggle('active');
+      });
+
+      document.querySelectorAll('.mobile-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenuBtn.classList.remove('active');
+          mobileMenu.classList.remove('active');
+        });
+      });
+
+      // Scroll reveal animation with Anime.js
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              anime({
+                targets: entry.target,
+                opacity: [0, 1],
+                translateY: [40, 0],
+                duration: 700,
+                easing: 'easeOutQuad'
+              });
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+      );
+
+      document
+        .querySelectorAll(".feature-card,.install-card-large,.step,.faq-item,.screenshot-card")
+        .forEach((el) => {
+          observer.observe(el);
+        });
+
+      // Animate feature cards on hover
+      document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          anime({
+            targets: card.querySelector('.feature-icon'),
+            scale: 1.1,
+            duration: 300,
+            easing: 'easeOutQuad'
+          });
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          anime({
+            targets: card.querySelector('.feature-icon'),
+            scale: 1,
+            duration: 300,
+            easing: 'easeOutQuad'
+          });
+        });
+      });
+
+      // Animate step numbers
+      document.querySelectorAll('.step').forEach((step, index) => {
+        anime({
+          targets: step.querySelector('.step-num'),
+          rotate: [0, 360],
+          duration: 1500,
+          delay: index * 200,
+          easing: 'easeInOutQuad',
+          loop: true
+        });
+      });
+
+      // Screenshot card parallax effect
+      document.querySelectorAll('.screenshot-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          anime({
+            targets: card.querySelector('img'),
+            translateX: (x / rect.width - 0.5) * 20,
+            translateY: (y / rect.height - 0.5) * 20,
+            duration: 400,
+            easing: 'easeOutQuad'
+          });
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          anime({
+            targets: card.querySelector('img'),
+            translateX: 0,
+            translateY: 0,
+            duration: 400,
+            easing: 'easeOutQuad'
+          });
+        });
+      });
+
+      // Button ripple effect
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          const ripple = document.createElement('span');
+          const rect = btn.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          
+          ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            left: ${x}px;
+            top: ${y}px;
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+          `;
+          
+          btn.style.position = 'relative';
+          btn.style.overflow = 'hidden';
+          btn.appendChild(ripple);
+          
+          setTimeout(() => ripple.remove(), 600);
+        });
+      });
+
+      // Add ripple keyframes
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes ripple {
+          to {
+            transform: scale(4);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    </script>
+  </body>
+</html>

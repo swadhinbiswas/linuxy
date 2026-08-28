@@ -1,20 +1,28 @@
-import { open } from "@tauri-apps/api/dialog";
 import { Upload } from "lucide-react";
 import React from "react";
 
 interface DropZoneProps {
-  onInstall: (path: string) => void;
+  onInstall: (paths: string[]) => void;
 }
 
 const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
   const handleSelectFile = async () => {
     try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
       const selected = await open({
-        multiple: false,
-        filters: [{ name: "AppImage", extensions: ["AppImage", "appimage"] }],
+        multiple: true,
+        filters: [
+          { name: "AppImage", extensions: ["AppImage", "appimage"] },
+          { name: "DEB Package", extensions: ["deb"] },
+          { name: "RPM Package", extensions: ["rpm"] },
+          { name: "Executable", extensions: ["exe", "msi", "sh", "bin", "run"] },
+          { name: "All Files", extensions: ["*"] },
+        ],
       });
       if (typeof selected === "string") {
-        onInstall(selected);
+        onInstall([selected]);
+      } else if (Array.isArray(selected)) {
+        onInstall(selected.filter((p): p is string => typeof p === "string"));
       }
     } catch (err) {
       console.error(err);
@@ -37,7 +45,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onInstall }) => {
       onClick={handleSelectFile}
     >
       <Upload size={32} style={{ marginBottom: "10px", color: "var(--text-muted)" }} />
-      <div>Drag and drop an .AppImage here, or click to browse</div>
+      <div>Drag and drop an .AppImage, .deb, .rpm, or executable file here, or click to browse</div>
     </div>
   );
 };

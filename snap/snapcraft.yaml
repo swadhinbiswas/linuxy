@@ -1,0 +1,119 @@
+name: linuxy
+version: "1.2.0"
+summary: One-click Linux Application Manager
+description: |
+  Linuxy is a modern Linux application manager with one-click installation,
+  Firejail sandboxing, optional delta updates, and secure desktop integration.
+
+  Features:
+  - Drag-and-drop installation for AppImage, DEB, and RPM packages
+  - Firejail sandboxing toggle per application
+  - Built-in AppImageHub discovery
+  - Automatic update checking
+  - Dark/light theme with system-follow
+  - Storage management and cleanup
+
+grade: stable
+confinement: strict
+base: core22
+compression: lzo
+
+parts:
+  linuxy:
+    plugin: nil
+    source: .
+    override-build: |
+      # Install Node.js and npm
+      apt-get update
+      apt-get install -y nodejs npm
+
+      # Install frontend dependencies and build
+      cd $CRAFT_PART_SRC
+      npm install
+      npm run build
+
+      # Install Rust build dependencies
+      apt-get install -y \
+        build-essential \
+        pkg-config \
+        libgtk-3-dev \
+        libwebkit2gtk-4.1-dev \
+        libappindicator3-dev \
+        librsvg2-dev \
+        libssl-dev
+
+      # Build the Tauri app
+      cd $CRAFT_PART_SRC/src-tauri
+      cargo build --release
+
+      # Install binary
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      cp target/release/linuxy $CRAFT_PART_INSTALL/bin/
+
+      # Install desktop file
+      mkdir -p $CRAFT_PART_INSTALL/share/applications
+      cp $CRAFT_PART_SRC/snap/linuxy.desktop $CRAFT_PART_INSTALL/share/applications/
+
+      # Install icons
+      mkdir -p $CRAFT_PART_INSTALL/share/icons/hicolor/128x128/apps
+      cp $CRAFT_PART_SRC/src-tauri/icons/128x128.png $CRAFT_PART_INSTALL/share/icons/hicolor/128x128/apps/linuxy.png
+
+    build-packages:
+      - curl
+      - build-essential
+      - pkg-config
+      - libgtk-3-dev
+      - libwebkit2gtk-4.1-dev
+      - libappindicator3-dev
+      - librsvg2-dev
+      - libssl-dev
+      - nodejs
+      - npm
+      - cargo
+      - rustc
+
+plugs:
+  # Desktop integration
+  desktop:
+  desktop-legacy:
+  wayland:
+  x11:
+  unity7:
+
+  # File access
+  home:
+  removable-media:
+
+  # Network access for downloads and updates
+  network:
+  network-bind:
+
+  # System integration
+  mount-observe:
+  process-control:
+  hardware-observe:
+
+  # For firejail sandboxing (optional)
+  system-observe:
+
+apps:
+  linuxy:
+    command: bin/linuxy
+    extensions: [gnome]
+    plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - unity7
+      - home
+      - removable-media
+      - network
+      - network-bind
+      - mount-observe
+      - process-control
+      - hardware-observe
+      - system-observe
+    environment:
+      GTK_USE_PORTAL: "1"
+      NO_AT_BRIDGE: "1"

@@ -816,6 +816,125 @@
           flex: 0 0 85vw;
         }
       }
+      /* Universal Installer */
+      .universal-installer {
+        max-width: 800px;
+        margin: 0 auto 60px;
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--accent);
+        border-radius: 24px;
+        padding: 48px 32px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px var(--accent-dim);
+      }
+      .universal-installer::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      }
+      .universal-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, var(--accent-dim), rgba(0, 188, 212, 0.08));
+        color: var(--accent);
+        border-radius: 50%;
+        margin-bottom: 24px;
+      }
+      .universal-icon svg {
+        width: 36px;
+        height: 36px;
+        stroke: var(--accent);
+        fill: none;
+        stroke-width: 1.5;
+      }
+      .universal-installer h3 {
+        font-size: clamp(1.8rem, 3vw, 2.2rem);
+        font-weight: 800;
+        margin-bottom: 16px;
+      }
+      .universal-installer p {
+        color: var(--text-muted);
+        font-size: 1.15rem;
+        margin-bottom: 32px;
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+      }
+      .universal-cmd {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 24px;
+        border-radius: 16px;
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 1.05rem;
+        color: var(--accent);
+        text-align: center;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s;
+        margin-bottom: 0;
+        word-break: break-all;
+      }
+      @media (max-width: 768px) {
+        .universal-cmd { font-size: 0.9rem; padding: 24px 16px; padding-bottom: 40px; }
+        .copy-hint { top: auto !important; bottom: 8px; right: 50% !important; transform: translateX(50%) !important; }
+      }
+      .universal-cmd:hover {
+        border-color: var(--accent);
+        background: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 20px var(--accent-dim);
+      }
+      .universal-cmd span.keyword {
+        color: #fff;
+      }
+      .copy-hint {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-family: "Space Grotesk", sans-serif;
+        background: var(--bg);
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        transition: all 0.3s;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .universal-cmd:hover .copy-hint {
+        opacity: 1;
+      }
+      .alt-install-title {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 36px;
+        font-weight: 500;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+      }
+      .alt-install-title::before,
+      .alt-install-title::after {
+        content: "";
+        height: 1px;
+        width: 60px;
+        background: var(--border);
+      }
     </style>
   </head>
   <body>
@@ -1196,129 +1315,79 @@
           <h2 class="section-title">Install Linuxy</h2>
           <p class="section-subtitle">Choose your preferred installation method</p>
         </div>
+        <!-- Universal Installer Box (Outside of the scrolling wrapper) -->
+        <div class="universal-installer">
+          <div class="universal-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </div>
+          <h3>Universal Installer</h3>
+          <p>
+            The easiest way to install Linuxy. Automatically detects your OS and installs the perfect package (DEB, RPM, or AppImage).
+          </p>
+          <div class="universal-cmd" onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/swadhinbiswas/linuxy/main/install.sh | bash'); const h = this.querySelector('.copy-hint'); h.innerText='Copied!'; h.style.opacity='1'; setTimeout(() => { h.innerText='Click to copy'; h.style.opacity=''; }, 2000);">
+            <span class="keyword">curl</span> -fsSL https://raw.githubusercontent.com/swadhinbiswas/linuxy/main/install.sh | <span class="keyword">bash</span>
+            <div class="copy-hint">Click to copy</div>
+          </div>
+        </div>
+
+        <h4 class="alt-install-title">Alternative Installation Methods</h4>
+        
         <div class="install-wrapper">
           <div class="install-grid">
             <div class="install-card">
               <div class="install-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                  />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 </svg>
               </div>
               <h3>DEB Package</h3>
               <p>Debian / Ubuntu / Mint</p>
-              <div class="install-cmd">sudo apt install ./linuxy_1.2.0_amd64.deb</div>
-              <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary"
-                >Download DEB</a
-              >
+              <div class="install-cmd">sudo apt install ./linuxy_*_amd64.deb</div>
+              <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">Download DEB</a>
             </div>
             <div class="install-card">
               <div class="install-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                  />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 </svg>
               </div>
               <h3>RPM Package</h3>
               <p>Fedora / RHEL / openSUSE</p>
-              <div class="install-cmd">
-                # Fedora / RHEL<br />
-                sudo dnf install ./linuxy-*.rpm<br /><br />
-                # openSUSE<br />
-                sudo zypper install ./linuxy-*.rpm
-              </div>
-              <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-primary"
-                >Download RPM</a
-              >
+              <div class="install-cmd">sudo dnf install ./linuxy-*.rpm</div>
+              <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">Download RPM</a>
             </div>
             <div class="install-card">
               <div class="install-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                   <line x1="8" y1="21" x2="16" y2="21" />
                   <line x1="12" y1="17" x2="12" y2="21" />
                 </svg>
               </div>
-              <h3>AUR Package <span class="badge">Stable</span></h3>
+              <h3>AUR Package <span class="badge">Arch</span></h3>
               <p>Arch Linux / Manjaro</p>
               <div class="install-cmd">yay -S linuxy</div>
-              <a href="https://aur.archlinux.org/packages/linuxy" class="btn btn-outline"
-                >View AUR</a
-              >
+              <a href="https://aur.archlinux.org/packages/linuxy" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">View on AUR</a>
             </div>
             <div class="install-card">
               <div class="install-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="16 18 22 12 16 6" />
-                  <polyline points="8 6 2 12 8 18" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 16 16 12 12 8" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
                 </svg>
               </div>
-              <h3>Build from Source</h3>
-              <p>All Distributions</p>
-              <div class="install-cmd">
-                git clone https://github.com/swadhinbiswas/linuxy<br />cd linuxy && npm install &&
-                npm run tauri build
-              </div>
-              <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline"
-                >View Source</a
-              >
-            </div>
-            <div class="install-card">
-              <div class="install-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                </svg>
-              </div>
-              <h3>Development</h3>
-              <p>Run from Source</p>
-              <div class="install-cmd">
-                git clone https://github.com/swadhinbiswas/linuxy<br />cd linuxy && npm install &&
-                npm run tauri dev
-              </div>
-              <a href="https://github.com/swadhinbiswas/linuxy" class="btn btn-outline"
-                >Contribute</a
-              >
+              <h3>Universal AppImage</h3>
+              <p>Any Linux Distribution</p>
+              <div class="install-cmd">chmod +x Linuxy_*.AppImage<br/>./Linuxy_*.AppImage</div>
+              <a href="https://github.com/swadhinbiswas/linuxy/releases" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">Download AppImage</a>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </section>

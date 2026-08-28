@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_build:
+	npm install
+	npm run build
+	cd src-tauri && cargo build --release --locked
+
+override_dh_auto_test:
+	cd src-tauri && cargo test --locked || true
+
+override_dh_auto_install:
+	install -Dm755 src-tauri/target/release/linuxy debian/linuxy/usr/bin/linuxy
+	install -Dm644 src-tauri/debian/desktop-template.desktop debian/linuxy/usr/share/applications/linuxy.desktop
+	for size in 32 128 256 512; do \
+		[ -f "src-tauri/icons/$${size}x$${size}.png" ] && \
+		install -Dm644 "src-tauri/icons/$${size}x$${size}.png" \
+			"debian/linuxy/usr/share/icons/hicolor/$${size}x$${size}/apps/linuxy.png" || true; \
+	done
+	[ -f "src-tauri/icons/icon.png" ] && \
+		install -Dm644 src-tauri/icons/icon.png \
+			debian/linuxy/usr/share/icons/hicolor/512x512/apps/linuxy.png || true
+	install -Dm644 LICENSE debian/linuxy/usr/share/doc/linuxy/copyright

@@ -1,75 +1,122 @@
 {
+  "productName": "Linuxy",
+  "version": "2.0.3",
+  "identifier": "com.linuxy.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "Linuxy",
-    "version": "1.2.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "dialog": {
-        "all": false,
-        "open": true
-      },
-      "protocol": {
-        "all": false,
-        "asset": true,
-        "assetScope": ["$HOME/.local/share/icons/**"]
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "Utility",
-      "copyright": "Open Source - MIT License",
-      "deb": {
-        "depends": ["firejail", "xdg-utils"],
-        "files": {},
-        "desktopTemplate": "./debian/desktop-template.desktop"
-      },
-      "externalBin": ["bin/appimageupdatetool"],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.linuxy.app",
-      "longDescription": "Linuxy is a modern Linux application manager with one-click installation, Firejail sandboxing, optional delta updates, and secure desktop integration.",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "One-click Linux Application Manager",
-      "targets": ["deb"],
-      "windows": { "certificateThumbprint": null, "digestAlgorithm": "sha256", "timestampUrl": "" }
-    },
-    "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
-    },
+  "app": {
+    "withGlobalTauri": false,
     "windows": [
       {
         "url": "app.html",
-        "fullscreen": false,
-        "height": 600,
-        "resizable": true,
         "title": "Linuxy",
-        "width": 800,
-        "fileDropEnabled": true,
+        "width": 1000,
+        "height": 700,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
         "decorations": true,
-        "transparent": false,
+        "fullscreen": false,
+        "dragDropEnabled": true,
         "center": true
       }
-    ]
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data: https://avatars.githubusercontent.com https://appimage.github.io; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://avatars.githubusercontent.com https://appimage.github.io; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+    },
+    "trayIcon": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true,
+      "tooltip": "Linuxy",
+      "id": "main"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "targets": ["deb", "appimage"],
+    "linux": {
+      "deb": {
+        "depends": ["firejail", "xdg-utils"],
+        "desktopTemplate": "./debian/desktop-template.desktop",
+        "files": {}
+      },
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    },
+    "windows": {},
+    "macOS": {}
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": ["https://github.com/swadhinbiswas/linuxy/releases/latest/download/updater.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDMyNEU0QUZFODkwNzYwOUQKUldTZFlBZUova3BPTXZ1UG91Z3ROOUdWUDJXWDdlYzRCMTBuSjB3SUo4Ump5dEx5QUFLOVZ0RHQK"
+    },
+    "cli": {
+      "description": "Linuxy - Cross-Platform Application Manager",
+      "longDescription": "Install, organize, and sandbox your applications across Linux, Windows, and macOS.",
+      "args": [
+        {
+          "name": "path",
+          "description": "Install an AppImage, DEB, RPM, EXE, or MSI by file path",
+          "index": 1
+        }
+      ],
+      "subcommands": {
+        "install": {
+          "description": "Install an application package",
+          "args": [
+            {
+              "name": "path",
+              "description": "Path to the package file",
+              "required": true,
+              "index": 1
+            }
+          ]
+        },
+        "list": {
+          "description": "List installed applications"
+        },
+        "launch": {
+          "description": "Launch an installed application",
+          "args": [
+            {
+              "name": "name",
+              "description": "Application name to launch",
+              "required": true,
+              "index": 1
+            }
+          ]
+        },
+        "remove": {
+          "description": "Remove an installed application",
+          "args": [
+            {
+              "name": "name",
+              "description": "Application name to remove",
+              "required": true,
+              "index": 1
+            }
+          ]
+        }
+      }
+    },
+    "deep-link": {
+      "mobile": [],
+      "desktop": {
+        "schemes": ["linuxy"]
+      }
+    }
   }
 }

@@ -1,0 +1,42 @@
+# Template file for 'linuxy'
+pkgname=linuxy
+version=2.0.0
+revision=1
+build_style=cargo
+make_cmd=cargo
+hostmakedepends="cargo nodejs npm pkg-config"
+makedepends="webkit2gtk4.1-devel gtk+3-devel libappindicator-gtk3-devel
+             librsvg-devel openssl-devel libxdo-devel"
+depends="firejail xdg-utils gtk+3 webkit2gtk4.1 libappindicator-gtk3 libXdo"
+short_desc="Multi-platform Desktop Application Manager with Firejail sandboxing"
+maintainer="Swadhin Biswas <swadhin.biswas@example.com>"
+license="MIT"
+homepage="https://github.com/swadhinbiswas/linuxy"
+distfiles="https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v${version}.tar.gz"
+checksum=SKIP
+
+nostrip=yes
+
+post_extract() {
+	npm install
+}
+
+pre_build() {
+	npm run build
+}
+
+post_install() {
+	vbin src-tauri/target/release/linuxy
+
+	vinstall src-tauri/debian/desktop-template.desktop 644 usr/share/applications/linuxy.desktop
+
+	for size in 32 128 256 512; do
+		icon="src-tauri/icons/${size}x${size}.png"
+		[ -f "$icon" ] && vinstall "$icon" 644 \
+			"usr/share/icons/hicolor/${size}x${size}/apps" linuxy.png
+	done
+	[ -f "src-tauri/icons/icon.png" ] && vinstall "src-tauri/icons/icon.png" 644 \
+		"usr/share/icons/hicolor/512x512/apps" linuxy.png
+
+	vlicense LICENSE
+}

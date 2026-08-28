@@ -1,22 +1,26 @@
 # ✅ Linuxy Repository Setup Complete
 
-All documentation and configuration has been updated for: **https://github.com/swadhinbiswas/linuxy**
+All documentation and configuration has been updated for:
+**https://github.com/swadhinbiswas/linuxy**
 
 ---
 
 ## 📋 What Was Fixed
 
 ### 1. GitHub URLs ✅
-- **59 URLs** updated from `github.com/swadhin/linuxy` → `github.com/swadhinbiswas/linuxy`
+
+- **59 URLs** updated from `github.com/swadhin/linuxy` →
+  `github.com/swadhinbiswas/linuxy`
 - All markdown files updated
 - All workflow files updated
 - All HTML files updated
 - CODEOWNERS updated: `@swadhin` → `@swadhinbiswas`
 
 ### 2. Copyright & License ✅
+
 - Removed individual copyright claims
 - Changed to: `Open Source - MIT License`
-- Maintainer: `Linuxy Contributors` (community project)
+- Maintainer: `Swadhin Biswas <swadhinbiswas.cse@gmail.com>`
 - Developer credit: `@swadhinbiswas`
 
 ### 3. Documentation Structure ✅
@@ -79,6 +83,7 @@ linuxy/
 ## 🎯 Key Features Configured
 
 ### CI/CD Automation ✅
+
 - [x] Automated testing on PRs
 - [x] Automated releases on tags
 - [x] Security scanning (CodeQL)
@@ -87,6 +92,7 @@ linuxy/
 - [x] Welcome bot for new contributors
 
 ### Code Quality ✅
+
 - [x] ESLint for TypeScript/React
 - [x] Prettier for formatting
 - [x] Rust Clippy for linting
@@ -94,6 +100,7 @@ linuxy/
 - [x] CodeRabbit AI code review
 
 ### Documentation ✅
+
 - [x] User guides (INSTALL, USAGE)
 - [x] Contributor guides (CONTRIBUTING, CODE_OF_CONDUCT)
 - [x] Maintainer guides (MAINTENANCE, CODE_SIGNING)
@@ -101,6 +108,7 @@ linuxy/
 - [x] Documentation index (DOCS_INDEX.md)
 
 ### GitHub Integration ✅
+
 - [x] Issue templates (bug, feature, docs)
 - [x] PR template
 - [x] Code owners
@@ -148,15 +156,15 @@ Repository: https://github.com/swadhinbiswas/linuxy
 
 ## 🔗 Important Links
 
-| Resource | URL |
-|----------|-----|
-| **Repository** | https://github.com/swadhinbiswas/linuxy |
-| **Issues** | https://github.com/swadhinbiswas/linuxy/issues |
-| **PRs** | https://github.com/swadhinbiswas/linuxy/pulls |
-| **Releases** | https://github.com/swadhinbiswas/linuxy/releases |
+| Resource        | URL                                                 |
+| --------------- | --------------------------------------------------- |
+| **Repository**  | https://github.com/swadhinbiswas/linuxy             |
+| **Issues**      | https://github.com/swadhinbiswas/linuxy/issues      |
+| **PRs**         | https://github.com/swadhinbiswas/linuxy/pulls       |
+| **Releases**    | https://github.com/swadhinbiswas/linuxy/releases    |
 | **Discussions** | https://github.com/swadhinbiswas/linuxy/discussions |
-| **Actions** | https://github.com/swadhinbiswas/linuxy/actions |
-| **Security** | https://github.com/swadhinbiswas/linuxy/security |
+| **Actions**     | https://github.com/swadhinbiswas/linuxy/actions     |
+| **Security**    | https://github.com/swadhinbiswas/linuxy/security    |
 
 ---
 
@@ -179,12 +187,14 @@ Repository: https://github.com/swadhinbiswas/linuxy
 ## 🎉 Ready to Use!
 
 Your Linuxy repository is now fully configured and ready for:
+
 - ✅ Development
 - ✅ Community contributions
 - ✅ Automated CI/CD
 - ✅ Production releases
 
 **Next Steps:**
+
 1. Push to GitHub: `git push origin main`
 2. Enable GitHub Actions in repository settings
 3. Enable CodeRabbit app: https://github.com/apps/coderabbit

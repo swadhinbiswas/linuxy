@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PISI xmlns="https://getsol.us/schema/pisi-1.0">
+  <Source>
+    <Name>linuxy</Name>
+    <Homepage>https://github.com/swadhinbiswas/linuxy</Homepage>
+    <Packager>
+      <Name>Swadhin Biswas</Name>
+      <Email>swadhin.biswas@example.com</Email>
+    </Packager>
+    <License>MIT</License>
+    <PartOf>desktop.utils</PartOf>
+    <Summary xml:lang="en">Multi-platform Desktop Application Manager</Summary>
+    <Description xml:lang="en">Linuxy is a one-click application manager for Linux (and Windows/macOS)
+that lets you discover, install, and manage desktop applications
+with optional Firejail sandboxing for enhanced security.</Description>
+    <Archive type="tarball" sha256sum="SKIP">
+      <URI>https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v2.0.0.tar.gz</URI>
+    </Archive>
+    <BuildDependencies>
+      <Dependency>cargo</Dependency>
+      <Dependency>nodejs</Dependency>
+      <Dependency>npm</Dependency>
+      <Dependency>pkg-config</Dependency>
+      <Dependency>webkit2gtk-4.1-devel</Dependency>
+      <Dependency>gtk3-devel</Dependency>
+      <Dependency>librsvg-devel</Dependency>
+      <Dependency>openssl-devel</Dependency>
+      <Dependency>libxdo-devel</Dependency>
+    </BuildDependencies>
+  </Source>
+  <Package>
+    <Name>linuxy</Name>
+    <RuntimeDependencies>
+      <Dependency>firejail</Dependency>
+      <Dependency>xdg-utils</Dependency>
+      <Dependency>gtk3</Dependency>
+      <Dependency>webkit2gtk-4.1</Dependency>
+      <Dependency>libappindicator-gtk3</Dependency>
+      <Dependency>libxdo</Dependency>
+    </RuntimeDependencies>
+    <Files>
+      <Path fileType="executable">/usr/bin/linuxy</Path>
+      <Path fileType="data">/usr/share/applications/linuxy.desktop</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/32x32/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/128x128/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/256x256/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/512x512/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/licenses/linuxy/LICENSE</Path>
+    </Files>
+  </Package>
+</PISI>

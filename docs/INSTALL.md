@@ -8,6 +8,7 @@ This guide covers all available methods to install Linuxy on your Linux system.
 - [Installation Methods](#installation-methods)
   - [DEB Package (Debian/Ubuntu)](#deb-package-debianubuntu)
   - [AUR Package (Arch Linux)](#aur-package-arch-linux)
+  - [DEB Package (Arch Linux)](#deb-package-arch-linux)
   - [RPM Package (Fedora/openSUSE)](#rpm-package-fedoraopensuse)
   - [AppImage (Universal)](#appimage-universal)
   - [Build from Source](#build-from-source)
@@ -38,17 +39,19 @@ Linuxy requires the following system libraries:
 
 ```bash
 # Debian/Ubuntu
-sudo apt install libwebkit2gtk-4.0-dev \
+sudo apt install libwebkit2gtk-4.1-dev \
     libssl-dev \
     libgtk-3-dev \
     libayatana-appindicator3-dev \
     librsvg2-dev \
     libxdo-dev
 
-# Fedora
-sudo dnf install webkit2gtk3-devel \
-    openssl-devel \
+# Fedora / Nobara
+sudo dnf install gtk3 \
     gtk3-devel \
+    webkit2gtk4.1 \
+    webkit2gtk4.1-devel \
+    openssl-devel \
     libappindicator-gtk3-devel \
     librsvg2-devel \
     libxdo-devel
@@ -70,7 +73,8 @@ sudo pacman -S webkit2gtk \
 
 #### Step 1: Download
 
-Download the latest `.deb` package from the [releases page](https://github.com/swadhinbiswas/linuxy/releases):
+Download the latest `.deb` package from the
+[releases page](https://github.com/swadhinbiswas/linuxy/releases):
 
 ```bash
 # Using wget
@@ -127,6 +131,44 @@ cd linuxy
 makepkg -si
 ```
 
+### DEB Package (Arch Linux)
+
+> **Note**: The AUR package is the recommended installation method for Arch
+> Linux. Use this method only if you prefer installing the pre-built `.deb`
+> package directly.
+
+#### Step 1: Install debtap
+
+```bash
+# Using yay
+yay -S debtap
+
+# Or using paru
+paru -S debtap
+```
+
+#### Step 2: Update debtap Database
+
+```bash
+sudo debtap -u
+```
+
+#### Step 3: Download the DEB Package
+
+```bash
+wget https://github.com/swadhinbiswas/linuxy/releases/latest/download/linuxy_1.2.0_amd64.deb
+```
+
+#### Step 4: Convert and Install
+
+```bash
+# Convert DEB to Arch package
+debtap linuxy_1.2.0_amd64.deb
+
+# Install the converted package
+sudo pacman -U linuxy-1.2.0-1-x86_64.pkg.tar.zst
+```
+
 ---
 
 ### RPM Package (Fedora/openSUSE)
@@ -180,9 +222,8 @@ chmod +x linuxy-0.1.0-x86_64.AppImage
 #### Prerequisites
 
 ```bash
-# Install Node.js (v18 or later)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
+# Install Bun (v1.2 or later)
+curl -fsSL https://bun.sh/install | bash
 
 # Install Rust (v1.70 or later)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -190,7 +231,7 @@ source $HOME/.cargo/env
 
 # Install build dependencies (Debian/Ubuntu)
 sudo apt install build-essential \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     libssl-dev \
     libgtk-3-dev \
     libayatana-appindicator3-dev \
@@ -205,11 +246,11 @@ sudo apt install build-essential \
 git clone https://github.com/swadhinbiswas/linuxy.git
 cd linuxy
 
-# Install Node.js dependencies
-npm install
+# Install Bun dependencies
+bun install
 
 # Build the application
-npm run tauri build
+bun run tauri build
 ```
 
 #### Locate Built Application
@@ -257,13 +298,15 @@ sudo pacman -S firejail
 3. Click to launch
 
 Or from terminal:
+
 ```bash
 linuxy
 ```
 
 ### Configure Desktop Integration
 
-Linuxy automatically creates desktop entries for installed AppImages. If you want to manually refresh the desktop database:
+Linuxy automatically creates desktop entries for installed AppImages. If you
+want to manually refresh the desktop database:
 
 ```bash
 update-desktop-database ~/.local/share/applications/
@@ -287,6 +330,12 @@ sudo apt purge linuxy
 yay -R linuxy
 # Or with paru
 paru -R linuxy
+```
+
+### DEB Package (converted via debtap)
+
+```bash
+sudo pacman -R linuxy
 ```
 
 ### RPM Package
@@ -374,7 +423,8 @@ update-desktop-database
 
 - **Documentation**: [GitHub Wiki](https://github.com/swadhinbiswas/linuxy/wiki)
 - **Issues**: [Report a problem](https://github.com/swadhinbiswas/linuxy/issues)
-- **Discussions**: [Community help](https://github.com/swadhinbiswas/linuxy/discussions)
+- **Discussions**:
+  [Community help](https://github.com/swadhinbiswas/linuxy/discussions)
 
 ---
 

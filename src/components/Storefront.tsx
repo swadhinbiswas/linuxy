@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/tauri";
-import { Download, Search, Github, Globe } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
+import { Download, Search, Github, Globe, CheckCircle } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 interface StoreApp {
@@ -10,14 +10,21 @@ interface StoreApp {
   icons?: string[];
   github_url?: string;
   stargazers_count?: number;
+  categories?: string[];
 }
 
-const Storefront: React.FC = () => {
+interface StorefrontProps {
+  installedAppNames?: string[];
+  onRefreshLibrary?: () => void;
+}
+
+const Storefront: React.FC<StorefrontProps> = ({ installedAppNames = [], onRefreshLibrary }) => {
   const [apps, setApps] = useState<StoreApp[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [source, setSource] = useState<"appimagehub" | "github">("appimagehub");
+  const [downloadingName, setDownloadingName] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -27,14 +34,19 @@ const Storefront: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       if (source === "appimagehub") {
-        const response = await fetch("https://appimage.github.io/feed.json");
+        const response = await fetch("https://appimage.github.io/feed.json", {
+          signal: controller.signal,
+        });
         if (!response.ok) throw new Error("Failed to fetch AppImageHub data");
         const data = await response.json();
         setApps(data.items || []);
       } else {
         const response = await fetch(
-          "https://api.github.com/search/repositories?q=topic:appimage&sort=stars&order=desc&per_page=100"
+          "https://api.github.com/search/repositories?q=topic:appimage&sort=stars&order=desc&per_page=100",
+          { signal: controller.signal }
         );
         if (!response.ok) throw new Error("Failed to fetch GitHub data");
         const data = await response.json();
@@ -49,12 +61,24 @@ const Storefront: React.FC = () => {
         }));
         setApps(githubApps);
       }
-    } catch (err) {
+      clearTimeout(timeout);
+    } catch (err: any) {
       console.error(err);
-      setError(String(err));
+      if (err?.name === "AbortError") {
+        setError("Request timed out. Check your internet connection.");
+      } else {
+        setError(String(err));
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const isInstalled = (appName: string) => {
+    const lowerName = appName.toLowerCase().trim();
+    return installedAppNames.some(
+      (n) => n.toLowerCase().trim() === lowerName || lowerName.includes(n.toLowerCase().trim())
+    );
   };
 
   const filteredApps = apps.filter(
@@ -64,104 +88,145 @@ const Storefront: React.FC = () => {
   );
 
   return (
-    <div style={{ paddingBottom: "40px" }}>
+    <div style={{ paddingBottom: "40px" }} className="animate-fade-in">
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
+          position: "sticky",
+          top: "-24px",
+          zIndex: 10,
+          background: "var(--bg-glass)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderBottom: "1px solid var(--border-color)",
+          margin: "-24px -24px 20px -24px",
+          padding: "24px 24px 20px 24px",
         }}
       >
-        <div>
-          <h2 style={{ color: "var(--text-primary)" }}>Discover AppImages</h2>
-          <p style={{ color: "var(--text-secondary)" }}>
-            {source === "appimagehub"
-              ? "Browsing AppImageHub Catalog"
-              : "Browsing Popular GitHub AppImage Projects"}
-          </p>
-        </div>
         <div
           style={{
             display: "flex",
-            gap: "10px",
-            background: "var(--bg-input)",
-            padding: "5px",
-            borderRadius: "8px",
-            border: "1px solid var(--border-color)",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "15px",
+            marginBottom: "20px",
           }}
         >
-          <button
-            onClick={() => setSource("appimagehub")}
+          <div>
+            <h2 style={{ color: "var(--text-primary)", margin: "0 0 6px 0" }}>
+              Discover AppImages
+            </h2>
+            <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: "14px" }}>
+              {source === "appimagehub"
+                ? "Browsing AppImageHub Official Catalog"
+                : "Browsing Popular GitHub AppImage Projects"}
+            </p>
+          </div>
+          <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "8px 12px",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              background: source === "appimagehub" ? "var(--bg-card)" : "transparent",
-              color: "var(--text-primary)",
-              boxShadow: source === "appimagehub" ? "0 2px 4px rgba(0,0,0,0.2)" : "none",
+              gap: "6px",
+              background: "var(--bg-input)",
+              padding: "4px",
+              borderRadius: "8px",
+              border: "1px solid var(--border-color)",
             }}
           >
-            <Globe size={16} /> Hub
-          </button>
-          <button
-            onClick={() => setSource("github")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "8px 12px",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              background: source === "github" ? "var(--bg-card)" : "transparent",
-              color: "var(--text-primary)",
-              boxShadow: source === "github" ? "0 2px 4px rgba(0,0,0,0.2)" : "none",
-            }}
-          >
-            <Github size={16} /> GitHub
-          </button>
+            <button
+              onClick={() => setSource("appimagehub")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "7px 14px",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 600,
+                background: source === "appimagehub" ? "var(--accent-color)" : "transparent",
+                color: source === "appimagehub" ? "#fff" : "var(--text-primary)",
+              }}
+            >
+              <Globe size={15} /> Hub Catalog
+            </button>
+            <button
+              onClick={() => setSource("github")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "7px 14px",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 600,
+                background: source === "github" ? "var(--accent-color)" : "transparent",
+                color: source === "github" ? "#fff" : "var(--text-primary)",
+              }}
+            >
+              <Github size={15} /> GitHub Trending
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div style={{ position: "relative", marginBottom: "20px", maxWidth: "400px" }}>
-        <Search
-          size={18}
-          style={{ position: "absolute", left: "10px", top: "10px", color: "var(--text-muted)" }}
-        />
-        <input
-          type="text"
-          placeholder="Search catalog..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 10px 10px 35px",
-            background: "var(--bg-input)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "6px",
-            color: "var(--text-primary)",
-            fontSize: "16px",
-          }}
-        />
+        <div style={{ position: "relative", maxWidth: "420px" }}>
+          <Search
+            size={18}
+            style={{
+              position: "absolute",
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-muted)",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search AppImages by name or keyword..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px 10px 40px",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "8px",
+              color: "var(--text-primary)",
+              fontSize: "14px",
+              outline: "none",
+            }}
+          />
+        </div>
       </div>
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>
-          Loading {source === "github" ? "GitHub projects" : "Hub catalog"}...
+        <div style={{ textAlign: "center", padding: "50px", color: "var(--text-secondary)" }}>
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              border: "3px solid var(--border-color)",
+              borderTopColor: "var(--accent-color)",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 15px auto",
+            }}
+          />
+          Fetching {source === "github" ? "GitHub projects" : "Hub catalog"}...
         </div>
       )}
+
       {error && (
         <div
           style={{
             color: "var(--danger-color)",
-            padding: "20px",
-            background: "rgba(255,0,0,0.1)",
-            borderRadius: "8px",
+            padding: "16px 20px",
+            background: "var(--danger-bg)",
+            borderRadius: "10px",
+            border: "1px solid var(--danger-color)",
+            fontSize: "14px",
           }}
         >
           {error}
@@ -171,7 +236,7 @@ const Storefront: React.FC = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
           gap: "20px",
         }}
       >
@@ -181,19 +246,14 @@ const Storefront: React.FC = () => {
           );
           const downloadLink =
             app.links?.find((l) => l.type.toLowerCase() === "download") || githubLink;
+          const installed = isInstalled(app.name);
+          const isBusy = downloadingName === app.name;
 
           return (
             <div
               key={idx}
-              style={{
-                background: "var(--bg-card)",
-                borderRadius: "8px",
-                padding: "20px",
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid var(--border-color)",
-                transition: "background-color 0.3s, border-color 0.3s",
-              }}
+              className="app-card"
+              style={{ padding: "20px", display: "flex", flexDirection: "column" }}
             >
               <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>
                 {app.icons && app.icons.length > 0 ? (
@@ -209,7 +269,8 @@ const Storefront: React.FC = () => {
                       height: "56px",
                       marginRight: "15px",
                       objectFit: "contain",
-                      borderRadius: "8px",
+                      borderRadius: "10px",
+                      background: "var(--bg-input)",
                     }}
                   />
                 ) : (
@@ -217,8 +278,8 @@ const Storefront: React.FC = () => {
                     style={{
                       width: "56px",
                       height: "56px",
-                      background: "var(--border-color)",
-                      borderRadius: "8px",
+                      background: "var(--bg-input)",
+                      borderRadius: "10px",
                       marginRight: "15px",
                       display: "flex",
                       alignItems: "center",
@@ -228,11 +289,11 @@ const Storefront: React.FC = () => {
                     <Globe size={24} color="var(--text-muted)" />
                   </div>
                 )}
-                <div style={{ overflow: "hidden" }}>
+                <div style={{ overflow: "hidden", flex: 1 }}>
                   <div
                     style={{
                       fontWeight: "bold",
-                      fontSize: "18px",
+                      fontSize: "17px",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -243,17 +304,20 @@ const Storefront: React.FC = () => {
                   </div>
                   <div
                     style={{
-                      fontSize: "13px",
+                      fontSize: "12px",
                       color: "var(--text-secondary)",
                       display: "flex",
                       alignItems: "center",
-                      gap: "5px",
+                      gap: "6px",
+                      marginTop: "4px",
                     }}
                   >
-                    {source === "github" && <Github size={12} />}{" "}
-                    {app.authors?.[0]?.name || "Unknown"}
+                    {source === "github" && <Github size={12} />}
+                    <span>{app.authors?.[0]?.name || "Community"}</span>
                     {app.stargazers_count !== undefined && (
-                      <span style={{ color: "#e3b341" }}>★ {app.stargazers_count}</span>
+                      <span style={{ color: "#e3b341", fontWeight: 600 }}>
+                        ★ {app.stargazers_count}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -261,9 +325,9 @@ const Storefront: React.FC = () => {
 
               <div
                 style={{
-                  fontSize: "14px",
+                  fontSize: "13px",
                   color: "var(--text-secondary)",
-                  marginBottom: "20px",
+                  marginBottom: "18px",
                   flex: 1,
                   overflow: "hidden",
                   display: "-webkit-box",
@@ -275,65 +339,89 @@ const Storefront: React.FC = () => {
                 {app.description || "No description available for this project."}
               </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  disabled={!downloadLink && source !== "github"}
-                  onClick={async () => {
-                    try {
-                      if (source === "github" && app.github_url) {
-                        // Extract owner/repo
-                        const parts = app.github_url.split("/");
-                        const owner = parts[parts.length - 2];
-                        const repo = parts[parts.length - 1];
-
-                        // Fetch releases
-                        const res = await fetch(
-                          `https://api.github.com/repos/${owner}/${repo}/releases/latest`
-                        );
-                        const release = await res.json();
-                        const asset = release.assets?.find((a: any) =>
-                          a.name.toLowerCase().endsWith(".appimage")
-                        );
-
-                        if (asset) {
+              <div style={{ display: "flex", gap: "10px", marginTop: "auto" }}>
+                {installed ? (
+                  <div
+                    style={{
+                      flex: 1,
+                      background: "var(--accent-bg)",
+                      color: "var(--accent-color)",
+                      border: "1px solid var(--accent-color)",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: "bold",
+                      fontSize: "13px",
+                      gap: "6px",
+                    }}
+                  >
+                    <CheckCircle size={16} /> Installed
+                  </div>
+                ) : (
+                  <button
+                    disabled={(!downloadLink && source !== "github") || isBusy}
+                    onClick={async () => {
+                      try {
+                        setDownloadingName(app.name);
+                        if (source === "github" && app.github_url) {
+                          const parts = app.github_url.split("/");
+                          const owner = parts[parts.length - 2];
+                          const repo = parts[parts.length - 1];
+                          const res = await fetch(
+                            `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+                          );
+                          const release = await res.json();
+                          const asset = release.assets?.find((a: any) =>
+                            a.name.toLowerCase().endsWith(".appimage")
+                          );
+                          if (asset) {
+                            await invoke("download_and_install", {
+                              url: asset.browser_download_url,
+                              name: app.name,
+                            });
+                          } else {
+                            await invoke("open_url", { url: `${app.github_url}/releases` });
+                          }
+                        } else if (downloadLink) {
                           await invoke("download_and_install", {
-                            url: asset.browser_download_url,
+                            url: downloadLink.url,
                             name: app.name,
                           });
-                        } else {
-                          // Fallback to browser if no asset found
-                          await invoke("open_url", { url: `${app.github_url}/releases` });
                         }
-                      } else if (downloadLink) {
-                        await invoke("download_and_install", {
-                          url: downloadLink.url,
-                          name: app.name,
-                        });
+                        if (onRefreshLibrary) onRefreshLibrary();
+                      } catch (e) {
+                        setError(String(e));
+                      } finally {
+                        setDownloadingName(null);
                       }
-                    } catch (e) {
-                      setError(String(e));
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    background: "#4caf50",
-                    color: "#fff",
-                    border: "none",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: "bold",
-                    gap: "8px",
-                  }}
-                >
-                  <Download size={16} /> Install
-                </button>
+                    }}
+                    style={{
+                      flex: 1,
+                      background: "var(--accent-color)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      cursor: isBusy ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: "bold",
+                      fontSize: "13px",
+                      gap: "8px",
+                      opacity: isBusy ? 0.7 : 1,
+                    }}
+                  >
+                    <Download size={16} /> {isBusy ? "Installing..." : "Install"}
+                  </button>
+                )}
+
                 {app.github_url && (
                   <button
                     onClick={() => invoke("open_url", { url: app.github_url })}
+                    title="View GitHub Repository"
                     style={{
                       background: "var(--bg-input)",
                       color: "var(--text-primary)",
@@ -354,8 +442,18 @@ const Storefront: React.FC = () => {
           );
         })}
       </div>
+
       {!loading && filteredApps.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "40px",
+            color: "var(--text-muted)",
+            background: "var(--bg-card)",
+            borderRadius: "12px",
+            border: "1px dashed var(--border-color)",
+          }}
+        >
           No applications found matching your search.
         </div>
       )}

@@ -1,0 +1,162 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-message",
+    "dialog:allow-ask",
+    "fs:default",
+    "fs:allow-read",
+    "fs:allow-write",
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    "fs:allow-remove",
+    "fs:allow-rename",
+    "fs:allow-read-dir",
+    "fs:allow-copy-file",
+    "fs:allow-stat",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        "$HOME/.local/**",
+        "$HOME/Downloads/**",
+        "$TEMP/**",
+        "$APPDATA/**"
+      ]
+    },
+    "shell:default",
+    "shell:allow-open",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "firejail",
+          "cmd": "firejail",
+          "args": true
+        },
+        {
+          "name": "xdg-open",
+          "cmd": "xdg-open",
+          "args": true
+        },
+        {
+          "name": "update-desktop-database",
+          "cmd": "update-desktop-database",
+          "args": true
+        },
+        {
+          "name": "which",
+          "cmd": "which",
+          "args": true
+        },
+        {
+          "name": "sudo",
+          "cmd": "sudo",
+          "args": true
+        },
+        {
+          "name": "apt",
+          "cmd": "apt",
+          "args": true
+        },
+        {
+          "name": "dpkg",
+          "cmd": "dpkg",
+          "args": true
+        },
+        {
+          "name": "dnf",
+          "cmd": "dnf",
+          "args": true
+        },
+        {
+          "name": "zypper",
+          "cmd": "zypper",
+          "args": true
+        },
+        {
+          "name": "yum",
+          "cmd": "yum",
+          "args": true
+        },
+        {
+          "name": "rpm",
+          "cmd": "rpm",
+          "args": true
+        },
+        {
+          "name": "debtap",
+          "cmd": "debtap",
+          "args": true
+        },
+        {
+          "name": "appimageupdatetool",
+          "cmd": "appimageupdatetool",
+          "args": true
+        },
+        {
+          "name": "wine",
+          "cmd": "wine",
+          "args": true
+        },
+        {
+          "name": "wine64",
+          "cmd": "wine64",
+          "args": true
+        },
+        {
+          "name": "start",
+          "cmd": "start",
+          "args": true
+        },
+        {
+          "name": "explorer",
+          "cmd": "explorer",
+          "args": true
+        },
+        {
+          "name": "open",
+          "cmd": "open",
+          "args": true
+        },
+        {
+          "name": "cmd",
+          "cmd": "cmd",
+          "args": true
+        },
+        {
+          "name": "powershell",
+          "cmd": "powershell",
+          "args": true
+        },
+        {
+          "name": "msiexec",
+          "cmd": "msiexec",
+          "args": true
+        }
+      ]
+    },
+    "process:default",
+    "process:allow-exit",
+    "os:default",
+    "notification:default",
+    "notification:allow-notify",
+    "notification:allow-is-permission-granted",
+    "notification:allow-request-permission",
+    "autostart:default",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled",
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download",
+    "updater:allow-install",
+    "window-state:default",
+    "cli:default",
+    "deep-link:default"
+  ]
+}

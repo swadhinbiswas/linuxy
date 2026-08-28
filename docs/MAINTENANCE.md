@@ -1,6 +1,7 @@
 # Repository Maintenance Guide
 
-This guide provides instructions for maintaining the Linuxy repository and ensuring code quality.
+This guide provides instructions for maintaining the Linuxy repository and
+ensuring code quality.
 
 ## Table of Contents
 
@@ -43,11 +44,11 @@ This guide provides instructions for maintaining the Linuxy repository and ensur
 ### Dependency Updates
 
 ```bash
-# Check for npm updates
-npm outdated
+# Check for bun updates
+bun outdated
 
 # Update dependencies
-npm update
+bun update
 
 # Check for Rust updates
 cd src-tauri && cargo outdated
@@ -59,9 +60,10 @@ cd src-tauri && cargo update
 ### Security Audits
 
 ```bash
-# NPM audit
-npm audit
-npm audit fix
+# Bun audit (inspect, then update affected deps)
+bun audit
+bun update
+bun audit
 
 # Cargo audit
 cd src-tauri && cargo audit
@@ -71,13 +73,13 @@ cd src-tauri && cargo audit
 
 ```bash
 # Run all checks
-npm run check
+bun run check
 
 # Run Clippy
 cd src-tauri && cargo clippy -- -D warnings
 
 # Check formatting
-npm run format:check
+bun run format:check
 cd src-tauri && cargo fmt --all -- --check
 ```
 
@@ -170,29 +172,29 @@ git push origin v0.1.0
 
 ### Frontend
 
-| Tool | Command | Purpose |
-|------|---------|---------|
-| TypeScript | `npm run typecheck` | Type checking |
-| ESLint | `npm run lint` | Code quality |
-| Prettier | `npm run format` | Formatting |
+| Tool       | Command             | Purpose       |
+| ---------- | ------------------- | ------------- |
+| TypeScript | `bun run typecheck` | Type checking |
+| ESLint     | `bun run lint`      | Code quality  |
+| Prettier   | `bun run format`    | Formatting    |
 
 ### Backend
 
-| Tool | Command | Purpose |
-|------|---------|---------|
-| Cargo Check | `cargo check` | Compilation check |
-| Clippy | `cargo clippy` | Linting |
-| Rustfmt | `cargo fmt` | Formatting |
-| Cargo Audit | `cargo audit` | Security |
+| Tool        | Command        | Purpose           |
+| ----------- | -------------- | ----------------- |
+| Cargo Check | `cargo check`  | Compilation check |
+| Clippy      | `cargo clippy` | Linting           |
+| Rustfmt     | `cargo fmt`    | Formatting        |
+| Cargo Audit | `cargo audit`  | Security          |
 
 ### Automated
 
-| Tool | Configuration | Purpose |
-|------|---------------|---------|
-| GitHub Actions | `.github/workflows/` | CI/CD |
-| CodeRabbit | `.coderabbit.yml` | AI code review |
-| Dependabot | `.github/dependabot.yml` | Dependency updates |
-| Labeler | `.github/labeler.yml` | Auto-labeling |
+| Tool           | Configuration            | Purpose            |
+| -------------- | ------------------------ | ------------------ |
+| GitHub Actions | `.github/workflows/`     | CI/CD              |
+| CodeRabbit     | `.coderabbit.yml`        | AI code review     |
+| Dependabot     | `.github/dependabot.yml` | Dependency updates |
+| Labeler        | `.github/labeler.yml`    | Auto-labeling      |
 
 ---
 
@@ -203,25 +205,29 @@ git push origin v0.1.0
 **Problem**: Status checks failing on PR
 
 **Solutions**:
+
 1. Check workflow logs in Actions tab
-2. Run locally: `npm run check`
+2. Run locally: `bun run check`
 3. Fix reported issues
 4. Push new commit to re-run
 
 ### Dependency Conflicts
 
-**Problem**: npm install fails
+**Problem**: bun install fails
 
 **Solutions**:
+
 ```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
+# Clear cache and reinstall (preserve lockfile)
+rm -rf node_modules
+bun install --frozen-lockfile
+# If cache is suspect, optionally: bun pm cache rm
 ```
 
 **Problem**: Cargo build fails
 
 **Solutions**:
+
 ```bash
 # Clean and rebuild
 cd src-tauri
@@ -234,9 +240,10 @@ cargo build
 **Problem**: Format check fails in CI
 
 **Solutions**:
+
 ```bash
 # Auto-fix formatting
-npm run format
+bun run format
 cd src-tauri && cargo fmt --all
 ```
 
@@ -245,6 +252,7 @@ cd src-tauri && cargo fmt --all
 **Problem**: Clippy warnings in CI
 
 **Solutions**:
+
 ```bash
 # See all warnings
 cd src-tauri && cargo clippy -- -W clippy::all
@@ -264,6 +272,7 @@ cd src-tauri && cargo clippy --fix
 - Include issue number when applicable
 
 Example:
+
 ```
 feat: add automatic update checking
 
@@ -299,13 +308,13 @@ Create `.github/dependabot.yml`:
 ```yaml
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "bun"
     directory: "/"
     schedule:
       interval: "weekly"
     labels:
       - "dependencies"
-      - "npm"
+      - "bun"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "cargo"
@@ -327,7 +336,7 @@ name: Close Stale Issues
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   stale:
@@ -335,12 +344,17 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          stale-issue-message: 'This issue has been automatically marked as stale because it has not had recent activity.'
-          stale-pr-message: 'This PR has been automatically marked as stale because it has not had recent activity.'
-          close-issue-message: 'This issue has been automatically closed due to inactivity.'
+          stale-issue-message:
+            "This issue has been automatically marked as stale because it has
+            not had recent activity."
+          stale-pr-message:
+            "This PR has been automatically marked as stale because it has not
+            had recent activity."
+          close-issue-message:
+            "This issue has been automatically closed due to inactivity."
           days-before-stale: 30
           days-before-close: 7
-          exempt-issue-labels: 'bug,enhancement,help-wanted'
+          exempt-issue-labels: "bug,enhancement,help-wanted"
 ```
 
 ---
@@ -349,10 +363,9 @@ jobs:
 
 For questions about repository maintenance:
 
-- **Email**: maintainers@linuxy.app
+- **Email**: swadhinbiswas.cse@gmail.com
 - **Discussions**: https://github.com/swadhinbiswas/linuxy/discussions
 
 ---
 
-**Last Updated**: March 2024
-**Maintained by**: Repository Maintainers
+**Last Updated**: March 2024 **Maintained by**: Swadhin Biswas

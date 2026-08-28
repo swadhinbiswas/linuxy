@@ -6,8 +6,8 @@ set -e
 
 PACKAGE_NAME="linuxy"
 VERSION="0.1.0"
-MAINTAINER="Linuxy Contributors"
-EMAIL="swadhin@example.com"  # Replace with your email
+MAINTAINER="Swadhin Biswas"
+EMAIL="swadhinbiswas.cse@gmail.com"
 
 echo "🔐 Linuxy Package Signing Script"
 echo "================================"
@@ -57,7 +57,7 @@ DEB_FILE=$(find src-tauri/target/release/bundle/deb -name "*.deb" 2>/dev/null | 
 
 if [ -z "$DEB_FILE" ]; then
     echo "❌ No DEB package found. Please build first:"
-    echo "   npm run tauri build"
+    echo "   bun run tauri build"
     exit 1
 fi
 

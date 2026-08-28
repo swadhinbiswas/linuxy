@@ -41,8 +41,26 @@ Cargo.lock
 # Linuxy specific
 pkg/
 
+# Snap build artifacts
+parts/
+prime/
+stage/
+build-dir/
+*.snap
+
+# Flatpak build artifacts
+.flatpak-builder/
+build-dir/
+.repo/
+
 # IDE - Qwen
 .qwen/
 
 # Code analysis
 .coderabbit.yml
+
+# Tauri v2 generated files
+src-tauri/gen/
+
+# Flatpak build repository
+flathub/
