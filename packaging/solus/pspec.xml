@@ -14,7 +14,7 @@
 that lets you discover, install, and manage desktop applications
 with optional Firejail sandboxing for enhanced security.</Description>
     <Archive type="tarball" sha256sum="SKIP">
-      <URI>https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v2.0.0.tar.gz</URI>
+      <URI>https://github.com/swadhinbiswas/linuxy/archive/refs/tags/v2.0.4.tar.gz</URI>
     </Archive>
     <BuildDependencies>
       <Dependency>cargo</Dependency>

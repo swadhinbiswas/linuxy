@@ -1,6 +1,6 @@
 {
   "productName": "Linuxy",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "identifier": "com.linuxy.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",

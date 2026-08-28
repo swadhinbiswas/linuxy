@@ -1,3 +1,13 @@
+linuxy (2.0.4-1) unstable; urgency=medium
+
+  * Fix all CodeRabbit review findings (PR #41) - security, packaging, CI
+  * Harden desktop entry handling, sandboxing, and storage cleanup
+  * Fix Flatpak, AppImage, and cross-platform installer issues
+  * Improve CI/CD, dependency handling, and formatting
+  * Update to Bun, fix Tauri 2 integration, and harden scripts
+
+ -- Swadhin Biswas <swadhin.biswas@example.com>  Sat, 29 Aug 2026 00:00:00 +0000
+
 linuxy (2.0.0-1) unstable; urgency=medium
 
   * Tauri 2.0 migration with cross-platform support
