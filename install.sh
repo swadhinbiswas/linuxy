@@ -112,8 +112,12 @@ install_appimage() {
     fi
 
     echo "Running self-registration to create desktop shortcuts..."
-    # Run once in background so it triggers the desktop entry creation
-    "$BIN_DIR/linuxy" --help >/dev/null 2>&1 || true
+    # Launch briefly in background so the AppImage's setup() can register the
+    # desktop entry, then terminate - avoids blocking if --help still opens the GUI
+    "$BIN_DIR/linuxy" --help >/dev/null 2>&1 & pid=$!
+    sleep 2
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
 
     echo "Linuxy AppImage installed successfully!"
     echo "You can now run 'linuxy' from your terminal or launch it from your application menu."

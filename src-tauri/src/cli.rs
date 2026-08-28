@@ -19,39 +19,25 @@ fn is_exe_path(arg: &str) -> bool {
 }
 
 pub async fn handle_cli(path: &str) {
-    if is_appimage_path(path) {
+    let owned = path.to_string();
+    let install_result = if is_appimage_path(path) {
         println!("Installing {}...", path);
-        match installer::install_appimage_internal(path.to_string()).await {
-            Ok(msg) => println!("{}", msg),
-            Err(err) => {
-                eprintln!("Error: {}", err);
-                std::process::exit(1);
-            },
-        }
-        std::process::exit(0);
+        Some(installer::install_appimage_internal(owned).await)
     } else if is_deb_path(path) {
         println!("Installing {}...", path);
-        match installer::install_deb_internal(path.to_string()).await {
-            Ok(msg) => println!("{}", msg),
-            Err(err) => {
-                eprintln!("Error: {}", err);
-                std::process::exit(1);
-            },
-        }
-        std::process::exit(0);
+        Some(installer::install_deb_internal(owned).await)
     } else if is_rpm_path(path) {
         println!("Installing {}...", path);
-        match installer::install_rpm_internal(path.to_string()).await {
-            Ok(msg) => println!("{}", msg),
-            Err(err) => {
-                eprintln!("Error: {}", err);
-                std::process::exit(1);
-            },
-        }
-        std::process::exit(0);
+        Some(installer::install_rpm_internal(owned).await)
     } else if is_exe_path(path) {
         println!("Installing {}...", path);
-        match installer::install_executable_internal(path.to_string()).await {
+        Some(installer::install_executable_internal(owned).await)
+    } else {
+        None
+    };
+
+    if let Some(result) = install_result {
+        match result {
             Ok(msg) => println!("{}", msg),
             Err(err) => {
                 eprintln!("Error: {}", err);
@@ -60,15 +46,25 @@ pub async fn handle_cli(path: &str) {
         }
         std::process::exit(0);
     } else {
-        match manager::get_installed_apps().await {
-            Ok(apps) => {
-                println!("{:<30} {:<10} {:<20}", "NAME", "SANDBOX", "PATH");
-                for app in apps {
-                    println!("{:<30} {:<10} {:<20}", app.name, app.sandboxed, app.path);
-                }
-            },
-            Err(e) => eprintln!("Error: {}", e),
+        // Unrecognized argument: only treat as CLI "list" when running in a
+        // terminal. Deep links / desktop-file launches that hit this fallback
+        // should not terminate the GUI.
+        if std::io::IsTerminal::is_terminal(&std::io::stdout()) {
+            match manager::get_installed_apps().await {
+                Ok(apps) => {
+                    println!("{:<30} {:<10} {:<20}", "NAME", "SANDBOX", "PATH");
+                    for app in apps {
+                        println!("{:<30} {:<10} {:<20}", app.name, app.sandboxed, app.path);
+                    }
+                },
+                Err(e) => eprintln!("Error: {}", e),
+            }
+            std::process::exit(0);
+        } else {
+            eprintln!(
+                "Unrecognized argument '{}' — ignoring, continuing to GUI",
+                path
+            );
         }
-        std::process::exit(0);
     }
 }

@@ -60,9 +60,10 @@ cd src-tauri && cargo update
 ### Security Audits
 
 ```bash
-# Bun audit
+# Bun audit (inspect, then update affected deps)
 bun audit
-bun audit --fix
+bun update
+bun audit
 
 # Cargo audit
 cd src-tauri && cargo audit
@@ -217,9 +218,10 @@ git push origin v0.1.0
 **Solutions**:
 
 ```bash
-# Clear cache and reinstall
-rm -rf node_modules bun.lock
-bun install
+# Clear cache and reinstall (preserve lockfile)
+rm -rf node_modules
+bun install --frozen-lockfile
+# If cache is suspect, optionally: bun pm cache rm
 ```
 
 **Problem**: Cargo build fails

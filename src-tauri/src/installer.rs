@@ -572,6 +572,10 @@ pub async fn install_appimage_internal(path: String) -> Result<String, String> {
                 "[Desktop Entry]\nCategories=Utility;\n",
             );
         }
+        if !new_desktop.contains("X-Linuxy=") {
+            new_desktop =
+                new_desktop.replace("[Desktop Entry]\n", "[Desktop Entry]\nX-Linuxy=true\n");
+        }
 
         std::fs::copy(source_path, &staging_app_path)
             .map_err(|e| format!("Failed to copy file: {}", e))?;
@@ -640,7 +644,7 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         set_executable(&final_app_path)?;
 
         let new_desktop = format!(
-            "[Desktop Entry]\nType=Application\nName={}\nExec=\"{}\"\nTerminal=false\nCategories=Utility;\n",
+            "[Desktop Entry]\nType=Application\nName={}\nExec=\"{}\"\nTerminal=false\nCategories=Utility;\nX-Linuxy=true\n",
             file_name,
             final_app_path.to_string_lossy()
         );
@@ -665,18 +669,45 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         std::fs::copy(source_path, &final_app_path)
             .map_err(|e| format!("Failed to copy file: {}", e))?;
 
-        // Create Start Menu shortcut via PowerShell script
-        let ps_script = format!(
-            "$WScriptShell = New-Object -ComObject WScript.Shell;\
-             $Shortcut = $WScriptShell.CreateShortcut(\"$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Linuxy\\{file_name}.lnk\");\
-             $Shortcut.TargetPath = \"{target_path}\";\
-             $Shortcut.Save()",
-            file_name = file_name,
-            target_path = final_app_path.to_string_lossy().replace('\\', "\\\\")
-        );
-        let _ = Command::new("powershell")
-            .args(["-Command", &ps_script])
-            .output();
+        // Create Start Menu shortcut via PowerShell - pass args via $args to
+        // avoid injection, ensure the Linuxy folder exists, and surface errors
+        let ps_script = r#"
+$FileName = $args[0]
+$TargetPath = $args[1]
+$StartMenuDir = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Linuxy"
+if (!(Test-Path $StartMenuDir)) {
+    New-Item -ItemType Directory -Path $StartMenuDir -Force | Out-Null
+    if (!(Test-Path $StartMenuDir)) { Write-Error "Failed to create Start Menu directory: $StartMenuDir"; exit 1 }
+}
+$WScriptShell = New-Object -ComObject WScript.Shell
+$ShortcutPath = Join-Path $StartMenuDir "$FileName.lnk"
+$Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
+$Shortcut.TargetPath = $TargetPath
+$Shortcut.Save()
+if (!(Test-Path $ShortcutPath)) { Write-Error "Failed to create shortcut: $ShortcutPath"; exit 1 }
+"#;
+        let output = Command::new("powershell")
+            .args([
+                "-Command",
+                ps_script,
+                &file_name,
+                &final_app_path.to_string_lossy().to_string(),
+            ])
+            .output()
+            .map_err(|e| format!("Failed to launch PowerShell for shortcut creation: {}", e))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let details = if stderr.trim().is_empty() && stdout.trim().is_empty() {
+                "unknown error".to_string()
+            } else {
+                format!("{}{}", stderr.trim(), if stdout.trim().is_empty() { String::new() } else { format!(" {}", stdout.trim()) })
+            };
+            return Err(format!(
+                "Failed to create Start Menu shortcut for '{}': {}",
+                file_name, details
+            ));
+        }
 
         Ok("Successfully installed executable on Windows".into())
     }
@@ -690,10 +721,22 @@ pub async fn install_executable_internal(path: String) -> Result<String, String>
         std::fs::copy(source_path, &final_app_path)
             .map_err(|e| format!("Failed to copy file: {}", e))?;
 
-        let mut perms = std::fs::metadata(&final_app_path)
-            .map_err(|e| e.to_string())?
-            .permissions();
-        std::fs::set_permissions(&final_app_path, perms).map_err(|e| e.to_string())?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&final_app_path)
+                .map_err(|e| e.to_string())?
+                .permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&final_app_path, perms).map_err(|e| e.to_string())?;
+        }
+        #[cfg(not(unix))]
+        {
+            let perms = std::fs::metadata(&final_app_path)
+                .map_err(|e| e.to_string())?
+                .permissions();
+            std::fs::set_permissions(&final_app_path, perms).map_err(|e| e.to_string())?;
+        }
 
         Ok("Successfully installed executable on macOS".into())
     }

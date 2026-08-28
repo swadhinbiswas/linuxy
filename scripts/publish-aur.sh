@@ -33,7 +33,7 @@ echo "Adding aur.archlinux.org to known hosts"
 ssh-keyscan -t rsa,ed25519 aur.archlinux.org >>~/.ssh/known_hosts 2>/dev/null || true
 
 echo "Importing private key"
-printf '%s\n' "$SSH_PRIVATE_KEY" >~/.ssh/aur_key
+(umask 077; printf '%s\n' "$SSH_PRIVATE_KEY" >~/.ssh/aur_key)
 chmod 600 ~/.ssh/aur_key
 
 export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/aur_key -o IdentitiesOnly=yes"
@@ -67,6 +67,7 @@ while ! git push --quiet origin master; do
     delay=$((attempt * 30))
     echo "Push failed (attempt ${attempt}/${MAX_ATTEMPTS}); retrying in ${delay}s..." >&2
     sleep "$delay"
+    git fetch --quiet origin master && git rebase --quiet origin/master || true
 done
 
 echo "Successfully published ${AUR_PKG} ${AUR_VERSION} to the AUR."

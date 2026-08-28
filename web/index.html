@@ -1189,6 +1189,7 @@
           <iframe
             src="https://www.youtube.com/embed/1VJj5NP0NtE?si=KBZoUZafGy5KuLAP"
             title="Linuxy Demo"
+            loading="lazy"
             allowfullscreen
           ></iframe>
         </div>
@@ -1964,11 +1965,9 @@
       })();
 
       // Nav scroll effect
-      let lastScroll = 0;
       addEventListener("scroll", () => {
         const s = scrollY;
         document.getElementById("main-nav").classList.toggle("scrolled", s > 50);
-        lastScroll = s;
       });
 
       // FAQ accordion

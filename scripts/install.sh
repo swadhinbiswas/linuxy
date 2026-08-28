@@ -72,7 +72,8 @@ install_deps() {
   case "$DISTRO_ID" in
     debian|ubuntu|pop|linuxmint|elementary|zorin)
       sudo apt update
-      sudo apt install -y firejail xdg-utils gtk3 webkit2gtk4.1 libappindicator-gtk3
+      sudo apt install -y firejail xdg-utils libgtk-3-0 libwebkit2gtk-4.1-0 \
+        libayatana-appindicator3-1 libxdo3
       ;;
     fedora|rhel|centos)
       sudo dnf install -y firejail xdg-utils gtk3 webkit2gtk4.1 libappindicator-gtk3
@@ -167,7 +168,7 @@ install_linuxy() {
       fi
       ;;
     windows)
-      local exe="$(find "$PROJECT_ROOT/src-tauri/target/release/bundle/nshs/" -name '*.exe' 2>/dev/null | head -1)"
+      local exe="$(find "$PROJECT_ROOT/src-tauri/target/release/bundle/nsis/" -name '*.exe' 2>/dev/null | head -1)"
       if [ -n "$exe" ]; then
         log_info "Run $exe to install Linuxy on Windows."
       else
@@ -214,17 +215,18 @@ install_rpm() {
 
 install_appimage() {
   local path="$1"
-  local dest="$HOME/.local/share/applications"
-  mkdir -p "$dest"
-  cp "$path" "$dest/linuxy.AppImage"
-  chmod +x "$dest/linuxy.AppImage"
+  local bin_dest="$HOME/.local/appimages"
+  local desktop_dest="$HOME/.local/share/applications"
+  mkdir -p "$bin_dest" "$desktop_dest"
+  cp "$path" "$bin_dest/linuxy.AppImage"
+  chmod +x "$bin_dest/linuxy.AppImage"
 
-  cat > "$dest/linuxy.desktop" << 'EOF'
+  cat > "$desktop_dest/linuxy.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=Linuxy
 Comment=One-click Linux Application Manager
-Exec=$HOME/.local/share/applications/linuxy.AppImage
+Exec=$bin_dest/linuxy.AppImage %U
 Icon=linuxy
 Categories=Utility;System;
 Terminal=false
@@ -235,8 +237,8 @@ EOF
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
   fi
 
-  log_ok "Linuxy AppImage installed to $dest/linuxy.AppImage"
-  log_info "You can run it from your application menu or directly: $dest/linuxy.AppImage"
+  log_ok "Linuxy AppImage installed to $bin_dest/linuxy.AppImage"
+  log_info "You can run it from your application menu or directly: $bin_dest/linuxy.AppImage"
 }
 
 install_binary() {
@@ -247,15 +249,37 @@ install_binary() {
 
   for size in 32 128 256 512; do
     icon="$PROJECT_ROOT/src-tauri/icons/${size}x${size}.png"
-    [ -f "$icon" ] && sudo install -Dm644 "$icon" "/usr/share/icons/hicolor/${size}x${size}/apps/linuxy.png"
+    if [ -f "$icon" ]; then
+      sudo install -Dm644 "$icon" "/usr/share/icons/hicolor/${size}x${size}/apps/linuxy.png"
+    fi
   done
-  [ -f "$PROJECT_ROOT/src-tauri/icons/icon.png" ] && sudo install -Dm644 "$PROJECT_ROOT/src-tauri/icons/icon.png" "/usr/share/icons/hicolor/512x512/apps/linuxy.png"
+  if [ -f "$PROJECT_ROOT/src-tauri/icons/icon.png" ]; then
+    sudo install -Dm644 "$PROJECT_ROOT/src-tauri/icons/icon.png" "/usr/share/icons/hicolor/512x512/apps/linuxy.png"
+  fi
 
   if command -v update-desktop-database &>/dev/null; then
     sudo update-desktop-database /usr/share/applications 2>/dev/null || true
   fi
 
   log_ok "Linuxy installed to /usr/local/bin/linuxy"
+}
+
+uninstall_linuxy() {
+  log_info "Removing Linuxy..."
+  sudo rm -f /usr/local/bin/linuxy
+  sudo rm -f /usr/share/applications/linuxy.desktop
+  for size in 32 128 256 512; do
+    sudo rm -f "/usr/share/icons/hicolor/${size}x${size}/apps/linuxy.png"
+  done
+  sudo rm -f "/usr/share/icons/hicolor/512x512/apps/linuxy.png"
+  rm -f "$HOME/.local/appimages/linuxy.AppImage"
+  rm -f "$HOME/.local/share/applications/linuxy.desktop"
+  rm -f "$HOME/.local/share/applications/linuxy.AppImage"
+  if command -v update-desktop-database &>/dev/null; then
+    sudo update-desktop-database /usr/share/applications 2>/dev/null || true
+    update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+  fi
+  log_ok "Linuxy removed."
 }
 
 main() {

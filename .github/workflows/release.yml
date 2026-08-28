@@ -21,6 +21,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+          no-cache: true
       - uses: dtolnay/rust-toolchain@stable
       - name: Install system deps
         run: |
@@ -54,7 +55,7 @@ jobs:
           releaseName: "Linuxy ${{ github.ref_name }}"
           includeUpdaterArtifacts: true
           releaseBody: |
-            ## Linuxy v${{ github.ref_name }}
+            ## Linuxy ${{ github.ref_name }}
 
             One-click Linux Application Manager with Firejail sandboxing.
 
@@ -99,7 +100,7 @@ jobs:
             bun install
             bun run tauri build
             ```
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           includeDebug: false
 
@@ -119,7 +120,7 @@ jobs:
         with:
           files: |
             src-tauri/target/release/bundle/rpm/*.rpm
-          draft: true
+          draft: false
 
   publish-aur:
     name: Publish AUR Package

@@ -58,7 +58,8 @@
 
           buildPhase = ''
             export HOME=$TMPDIR
-            bun install --frozen-lockfile
+            export BUN_INSTALL_CACHE_DIR=$TMPDIR/bun-cache
+            bun install --offline --frozen-lockfile
             bun run build
             cd src-tauri
             cargo build --release --locked

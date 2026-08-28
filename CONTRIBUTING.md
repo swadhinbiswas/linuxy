@@ -56,7 +56,7 @@ Before contributing, ensure you have:
 
 - [ ] A GitHub account
 - [ ] Git installed on your system
-- [ ] Bun 1.1+ installed
+- [ ] Bun 1.2+ installed
 - [ ] Rust 1.70+ installed
 - [ ] Basic knowledge of React, TypeScript, and Rust
 

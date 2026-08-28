@@ -15,8 +15,7 @@ mod watcher;
 use tauri::Emitter;
 use tauri::Manager;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     #[cfg(target_os = "linux")]
     {
         // GTK natively handles backend negotiation (Wayland/X11).

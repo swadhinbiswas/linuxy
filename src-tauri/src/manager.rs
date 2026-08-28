@@ -854,6 +854,9 @@ pub async fn analyze_storage() -> Result<CleanupStats, String> {
                             .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
+                        if !name.ends_with("_icon") {
+                            continue;
+                        }
                         let base_name = name.replace("_icon", "");
                         if !app_names.contains(&base_name) {
                             orphaned_icons += 1;
@@ -873,6 +876,10 @@ pub async fn analyze_storage() -> Result<CleanupStats, String> {
                     if path.is_file()
                         && path.extension().and_then(|s| s.to_str()) == Some("desktop")
                     {
+                        let content = std::fs::read_to_string(&path).unwrap_or_default();
+                        if !content.contains("X-Linuxy=true") {
+                            continue;
+                        }
                         let name = path
                             .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
@@ -951,6 +958,9 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
                             .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
                             .unwrap_or_default();
+                        if !name.ends_with("_icon") {
+                            continue;
+                        }
                         let base_name = name.replace("_icon", "");
                         if !app_names.contains(&base_name) {
                             let _ = std::fs::remove_file(&path);
@@ -967,6 +977,10 @@ pub async fn cleanup_storage() -> Result<CleanupStats, String> {
                     if path.is_file()
                         && path.extension().and_then(|s| s.to_str()) == Some("desktop")
                     {
+                        let content = std::fs::read_to_string(&path).unwrap_or_default();
+                        if !content.contains("X-Linuxy=true") {
+                            continue;
+                        }
                         let name = path
                             .file_stem()
                             .map(|n| n.to_string_lossy().to_string())
@@ -1031,15 +1045,29 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
         let mut restored = 0;
         for app in &backup.apps {
             if std::path::Path::new(&app.path).exists() {
+                if app.name.contains('\n')
+                    || app.exec.contains('\n')
+                    || app.icon.as_deref().map(|i| i.contains('\n')).unwrap_or(false)
+                    || app.name.contains('/') || app.name.contains('\\')
+                {
+                    continue;
+                }
+                let file_stem = std::path::Path::new(&app.desktop_path)
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("");
+                if file_stem.is_empty() || file_stem.contains('\n') || file_stem.contains('/') || file_stem.contains('\\') {
+                    continue;
+                }
+                let desktop_path = apps_dir.join(file_stem);
                 let desktop_content = format!(
-                    "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories={}\n",
+                    "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories={}\nX-Linuxy=true\n",
                     app.name,
                     if app.sandboxed { format!("firejail --appimage \"{}\"", app.exec) } else { format!("\"{}\"", app.exec) },
                     app.icon.as_deref().unwrap_or(""),
                     app.categories.join(";"),
                 );
-                let desktop_path = std::path::Path::new(&app.desktop_path);
-                if std::fs::write(desktop_path, desktop_content).is_ok() {
+                if std::fs::write(&desktop_path, desktop_content).is_ok() {
                     restored += 1;
                 }
             }
@@ -1066,26 +1094,19 @@ pub async fn get_app_checksum(path: String) -> Result<String, String> {
     if !p.exists() {
         return Err("File does not exist".into());
     }
-
-    #[cfg(target_os = "linux")]
-    {
-        let output = std::process::Command::new("sha256sum")
-            .arg(&path)
-            .output()
-            .map_err(|e| format!("Failed to run sha256sum: {}", e))?;
-        if output.status.success() {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            if let Some(hash) = stdout.split_whitespace().next() {
-                return Ok(hash.to_string());
-            }
+    use sha2::{Digest, Sha256};
+    use std::io::Read;
+    let mut file = std::fs::File::open(p).map_err(|e| e.to_string())?;
+    let mut hasher = Sha256::new();
+    let mut buf = [0u8; 8192];
+    loop {
+        let n = file.read(&mut buf).map_err(|e| e.to_string())?;
+        if n == 0 {
+            break;
         }
-        Err("Failed to calculate SHA-256 checksum".into())
+        hasher.update(&buf[..n]);
     }
-
-    #[cfg(not(target_os = "linux"))]
-    {
-        Ok("SHA-256 calculation only supported on Linux".into())
-    }
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 #[tauri::command]
@@ -1139,7 +1160,7 @@ pub async fn recreate_desktop_entry(path: String) -> Result<String, String> {
         };
 
         let desktop_content = format!(
-            "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories=Utility;\n",
+            "[Desktop Entry]\nType=Application\nName={}\nExec={}\nIcon={}\nTerminal=false\nCategories=Utility;\nX-Linuxy=true\n",
             base_name,
             exec_str,
             icon_str

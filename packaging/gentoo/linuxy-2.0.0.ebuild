@@ -57,7 +57,9 @@ src_install() {
 
 	for size in 32 128 256 512; do
 		icon="src-tauri/icons/${size}x${size}.png"
-		[ -f "$icon" ] && newicon -s ${size} "$icon" linuxy.png
+		if [ -f "$icon" ]; then
+			newicon -s ${size} "$icon" linuxy.png || die
+		fi
 	done
 
 	dodoc README.md

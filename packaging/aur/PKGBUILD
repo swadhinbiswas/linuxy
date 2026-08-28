@@ -42,10 +42,13 @@ package() {
 
   for size in 32 128 256 512; do
     icon="src-tauri/icons/${size}x${size}.png"
-    [ -f "$icon" ] && install -Dm644 "$icon" "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/linuxy.png"
+    if [ -f "$icon" ]; then
+      install -Dm644 "$icon" "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/linuxy.png"
+    fi
   done
-  [ -f "src-tauri/icons/icon.png" ] && install -Dm644 "src-tauri/icons/icon.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/linuxy.png"
-  [ -f "src-tauri/icons/icon.icns" ] && install -Dm644 "src-tauri/icons/icon.icns" "$pkgdir/usr/share/icons/hicolor/512x512/apps/linuxy.icns"
+  if [ -f "src-tauri/icons/icon.png" ]; then
+    install -Dm644 "src-tauri/icons/icon.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/linuxy.png"
+  fi
 
   install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

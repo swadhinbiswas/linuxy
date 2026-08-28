@@ -38,8 +38,14 @@ with optional Firejail sandboxing for enhanced security.</Description>
       <Dependency>libappindicator-gtk3</Dependency>
       <Dependency>libxdo</Dependency>
     </RuntimeDependencies>
-    <Parts>
-      <Part name="program" installPath="/"/>
-    </Parts>
+    <Files>
+      <Path fileType="executable">/usr/bin/linuxy</Path>
+      <Path fileType="data">/usr/share/applications/linuxy.desktop</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/32x32/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/128x128/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/256x256/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/icons/hicolor/512x512/apps/linuxy.png</Path>
+      <Path fileType="data">/usr/share/licenses/linuxy/LICENSE</Path>
+    </Files>
   </Package>
 </PISI>

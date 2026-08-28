@@ -60,9 +60,7 @@
   },
   "plugins": {
     "updater": {
-      "active": true,
       "endpoints": ["https://github.com/swadhinbiswas/linuxy/releases/latest/download/updater.json"],
-      "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDMyNEU0QUZFODkwNzYwOUQKUldTZFlBZUova3BPTXZ1UG91Z3ROOUdWUDJXWDdlYzRCMTBuSjB3SUo4Ump5dEx5QUFLOVZ0RHQK"
     },
     "cli": {
@@ -111,9 +109,6 @@
               "index": 1
             }
           ]
-        },
-        "help": {
-          "description": "Show help information"
         }
       }
     },

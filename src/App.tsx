@@ -90,7 +90,7 @@ function App() {
 
   const addToast = useCallback(
     (type: "success" | "error" | "info", title: string, message?: string) => {
-      const id = Math.random().toString(36).substring(2, 9);
+      const id = crypto.randomUUID();
       setToasts((prev) => [...prev, { id, type, title, message }]);
     },
     []
@@ -181,10 +181,10 @@ function App() {
     });
   };
 
-  const installAppImage = async (path: string) => {
+  const installPackage = async (command: string, path: string, label: string) => {
     try {
-      setInstallProgress("Initializing...");
-      await invoke("install_appimage", { path });
+      setInstallProgress(label);
+      await invoke(command, { path });
       return true;
     } catch (err) {
       console.error(err);
@@ -193,41 +193,14 @@ function App() {
     }
   };
 
-  const installDeb = async (path: string) => {
-    try {
-      setInstallProgress("Initializing DEB installation...");
-      await invoke("install_deb", { path });
-      return true;
-    } catch (err) {
-      console.error(err);
-      setError(String(err));
-      return false;
-    }
-  };
-
-  const installRpm = async (path: string) => {
-    try {
-      setInstallProgress("Initializing RPM installation...");
-      await invoke("install_rpm", { path });
-      return true;
-    } catch (err) {
-      console.error(err);
-      setError(String(err));
-      return false;
-    }
-  };
-
-  const installExecutable = async (path: string) => {
-    try {
-      setInstallProgress("Initializing Executable installation...");
-      await invoke("install_executable", { path });
-      return true;
-    } catch (err) {
-      console.error(err);
-      setError(String(err));
-      return false;
-    }
-  };
+  const installAppImage = (path: string) =>
+    installPackage("install_appimage", path, "Initializing...");
+  const installDeb = (path: string) =>
+    installPackage("install_deb", path, "Initializing DEB installation...");
+  const installRpm = (path: string) =>
+    installPackage("install_rpm", path, "Initializing RPM installation...");
+  const installExecutable = (path: string) =>
+    installPackage("install_executable", path, "Initializing Executable installation...");
 
   const handleInstall = async (paths: string[]) => {
     try {

@@ -222,7 +222,7 @@ chmod +x linuxy-0.1.0-x86_64.AppImage
 #### Prerequisites
 
 ```bash
-# Install Bun (v1.1 or later)
+# Install Bun (v1.2 or later)
 curl -fsSL https://bun.sh/install | bash
 
 # Install Rust (v1.70 or later)

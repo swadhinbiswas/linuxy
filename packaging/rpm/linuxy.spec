@@ -1,5 +1,3 @@
-%global rustflags %{nil}
-
 Name:           linuxy
 Version:        2.0.0
 Release:        1%{?dist}
@@ -14,7 +12,7 @@ BuildRequires:  nodejs
 BuildRequires:  npm
 BuildRequires:  pkgconfig(webkit2gtk-4.1)
 BuildRequires:  pkgconfig(gtk+-3.0)
-BuildRequires:  pkgconfig(libappindicator3-0.1) || pkgconfig(ayatana-appindicator3-0.1)
+BuildRequires:  (pkgconfig(libappindicator3-0.1) or pkgconfig(ayatana-appindicator3-0.1))
 BuildRequires:  pkgconfig(librsvg-2.0)
 BuildRequires:  openssl-devel
 BuildRequires:  libxdo-devel
@@ -53,9 +51,13 @@ install -Dm644 src-tauri/debian/desktop-template.desktop %{buildroot}%{_datadir}
 
 for size in 32 128 256 512; do
   icon="src-tauri/icons/${size}x${size}.png"
-  [ -f "$icon" ] && install -Dm644 "$icon" "%{buildroot}%{_datadir}/icons/hicolor/${size}x${size}/apps/linuxy.png"
+  if [ -f "$icon" ]; then
+    install -Dm644 "$icon" "%{buildroot}%{_datadir}/icons/hicolor/${size}x${size}/apps/linuxy.png"
+  fi
 done
-[ -f "src-tauri/icons/icon.png" ] && install -Dm644 "src-tauri/icons/icon.png" "%{buildroot}%{_datadir}/icons/hicolor/512x512/apps/linuxy.png"
+if [ -f "src-tauri/icons/icon.png" ]; then
+  install -Dm644 "src-tauri/icons/icon.png" "%{buildroot}%{_datadir}/icons/hicolor/512x512/apps/linuxy.png"
+fi
 
 install -Dm644 LICENSE %{buildroot}%{_datadir}/licenses/linuxy/LICENSE
 

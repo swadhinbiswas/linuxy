@@ -1,8 +1,6 @@
-use std::fs::File;
-use std::io::Write;
-
 use futures_util::StreamExt;
 use tauri::Emitter;
+use tokio::io::AsyncWriteExt;
 
 use crate::installer;
 
@@ -26,7 +24,9 @@ pub async fn download_and_install(
 
     let total_size = response.content_length().unwrap_or(0);
     let temp_path = std::env::temp_dir().join(format!("{}.AppImage", uuid::Uuid::new_v4()));
-    let mut file = File::create(&temp_path).map_err(|e| e.to_string())?;
+    let mut file = tokio::fs::File::create(&temp_path)
+        .await
+        .map_err(|e| e.to_string())?;
     let mut downloaded: u64 = 0;
     let mut stream = response.bytes_stream();
 
@@ -35,7 +35,7 @@ pub async fn download_and_install(
         if chunk.is_empty() {
             continue;
         }
-        file.write_all(&chunk).map_err(|e| e.to_string())?;
+        file.write_all(&chunk).await.map_err(|e| e.to_string())?;
         downloaded += chunk.len() as u64;
 
         if total_size > 0 {
@@ -47,7 +47,7 @@ pub async fn download_and_install(
         }
     }
 
-    file.flush().map_err(|e| e.to_string())?;
+    file.flush().await.map_err(|e| e.to_string())?;
 
     if downloaded == 0 {
         let _ = std::fs::remove_file(&temp_path);

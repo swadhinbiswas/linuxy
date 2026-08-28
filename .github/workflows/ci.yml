@@ -20,6 +20,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+          no-cache: true
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
       - run: bun run format:check
@@ -83,6 +84,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+          no-cache: true
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install system deps
@@ -150,6 +152,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+          no-cache: true
       - run: bun install --frozen-lockfile
       - run: bun audit
 
@@ -181,6 +184,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+          no-cache: true
       - name: Install system deps
         run: |
           sudo apt-get update
@@ -215,5 +219,10 @@ jobs:
           ls -la src-tauri/target/release/linuxy
           file src-tauri/target/release/linuxy
           ls -la src-tauri/target/release/bundle/
-          [ -d "src-tauri/target/release/bundle/deb" ] && echo "DEB: OK"
-          [ -d "src-tauri/target/release/bundle/rpm" ] && echo "RPM: OK"
+          for d in deb rpm; do
+            if [ -d "src-tauri/target/release/bundle/$d" ]; then
+              echo "${d^^}: OK"
+            else
+              echo "::error::Missing bundle directory: $d" && exit 1
+            fi
+          done
