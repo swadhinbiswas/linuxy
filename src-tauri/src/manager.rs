@@ -1047,8 +1047,13 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
             if std::path::Path::new(&app.path).exists() {
                 if app.name.contains('\n')
                     || app.exec.contains('\n')
-                    || app.icon.as_deref().map(|i| i.contains('\n')).unwrap_or(false)
-                    || app.name.contains('/') || app.name.contains('\\')
+                    || app
+                        .icon
+                        .as_deref()
+                        .map(|i| i.contains('\n'))
+                        .unwrap_or(false)
+                    || app.name.contains('/')
+                    || app.name.contains('\\')
                 {
                     continue;
                 }
@@ -1056,7 +1061,11 @@ pub async fn import_library(backup_path: String) -> Result<String, String> {
                     .file_name()
                     .and_then(|n| n.to_str())
                     .unwrap_or("");
-                if file_stem.is_empty() || file_stem.contains('\n') || file_stem.contains('/') || file_stem.contains('\\') {
+                if file_stem.is_empty()
+                    || file_stem.contains('\n')
+                    || file_stem.contains('/')
+                    || file_stem.contains('\\')
+                {
                     continue;
                 }
                 let desktop_path = apps_dir.join(file_stem);

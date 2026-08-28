@@ -701,7 +701,15 @@ if (!(Test-Path $ShortcutPath)) { Write-Error "Failed to create shortcut: $Short
             let details = if stderr.trim().is_empty() && stdout.trim().is_empty() {
                 "unknown error".to_string()
             } else {
-                format!("{}{}", stderr.trim(), if stdout.trim().is_empty() { String::new() } else { format!(" {}", stdout.trim()) })
+                format!(
+                    "{}{}",
+                    stderr.trim(),
+                    if stdout.trim().is_empty() {
+                        String::new()
+                    } else {
+                        format!(" {}", stdout.trim())
+                    }
+                )
             };
             return Err(format!(
                 "Failed to create Start Menu shortcut for '{}': {}",
