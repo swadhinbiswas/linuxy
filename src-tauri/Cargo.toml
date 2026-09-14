@@ -34,7 +34,7 @@ uuid = { version = "1", features = ["v4"] }
 dirs = "5"
 sha2 = "0.10"
 futures = "0.3"
-reqwest = { version = "0.12", features = ["stream", "rustls-tls"], default-features = false }
+reqwest = { version = "0.13", features = ["stream", "rustls-tls"], default-features = false }
 futures-util = "0.3"
 log = "0.4"
 anyhow = "1"
